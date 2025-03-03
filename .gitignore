@@ -1,0 +1,18 @@
+# Magento specific
+/src/generated/*
+/src/pub/static/*
+/src/var/*
+/src/vendor/*
+/src/app/etc/env.php
+/src/app/etc/config.php
+
+# Environment files
+.env
+auth.json
+
+# Docker volumes
+dbdata/
+esdata/
+
+# System files
+.DS_Store
