@@ -32,35 +32,3 @@
 
 
 
-<!-- <?xml version="1.0"?>
-<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
-    <route url="/V1/brand" method="POST">
-        <service class="Formula\Brand\Api\BrandRepositoryInterface" method="save"/>
-        <resources>
-            <resource ref="Formula_Brand::brand"/>
-        </resources>
-    </route>
-    <route url="/V1/brand/:brandId" method="GET">
-        <service class="Formula\Brand\Api\BrandRepositoryInterface" method="getById"/>
-        <resources>
-            <resource ref="Formula_Brand::brand"/>
-        </resources>
-    </route>
-    <route url="/V1/brand" method="GET">
-        <service class="Formula\Brand\Api\BrandRepositoryInterface" method="getList"/>
-        <resources>
-            <resource ref="Formula_Brand::brand"/>
-        </resources>
-        <data>
-            <parameter name="searchCriteria" force="true">%searchCriteria%</parameter>
-        </data>
-    </route>
-    <route url="/V1/brand/:brandId" method="DELETE">
-        <service class="Formula\Brand\Api\BrandRepositoryInterface" method="deleteById"/>
-        <resources>
-            <resource ref="Formula_Brand::brand"/>
-        </resources>
-    </route>
-</routes> -->
-
-

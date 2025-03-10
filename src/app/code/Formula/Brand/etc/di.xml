@@ -1,56 +1,103 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <!-- Add these preference declarations -->
-    <preference for="Formula\Brand\Api\BrandRepositoryInterface" type="Formula\Brand\Model\BrandRepository" />
-    <preference for="Formula\Brand\Api\Data\BrandInterface" type="Formula\Brand\Model\Brand" />
-    
-    <!-- Configuration for Brand Save controller -->
-    <type name="Formula\Brand\Controller\Adminhtml\Brand\Save">
-        <arguments>
-            <argument name="jsonSerializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Json</argument>
-        </arguments>
-    </type>
-
-    <!-- Configuration for Brand DataProvider -->
-    <type name="Formula\Brand\Model\Brand\DataProvider">
-        <arguments>
-            <argument name="jsonSerializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Json</argument>
-        </arguments>
-    </type>
-
-    <!-- Your existing configuration -->
-    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
-        <arguments>
-            <argument name="collections" xsi:type="array">
-                <item name="formula_brand_listing_data_source" xsi:type="string">Formula\Brand\Model\ResourceModel\Brand\Grid\Collection</item>
-            </argument>
-        </arguments>
-    </type>
-
-    <!-- Configuration for image types -->
-    <virtualType name="Formula\Brand\BrandImageUploader" type="Formula\Brand\Model\ImageUploader">
-        <arguments>
-            <argument name="baseTmpPath" xsi:type="string">brand/tmp/logo</argument>
-            <argument name="basePath" xsi:type="string">brand/logo</argument>
-            <argument name="allowedExtensions" xsi:type="array">
-                <item name="jpg" xsi:type="string">jpg</item>
-                <item name="jpeg" xsi:type="string">jpeg</item>
-                <item name="gif" xsi:type="string">gif</item>
-                <item name="png" xsi:type="string">png</item>
-            </argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="Formula\Brand\BrandBannerUploader" type="Formula\Brand\Model\ImageUploader">
-        <arguments>
-            <argument name="baseTmpPath" xsi:type="string">brand/tmp/banner</argument>
-            <argument name="basePath" xsi:type="string">brand/banner</argument>
-            <argument name="allowedExtensions" xsi:type="array">
-                <item name="jpg" xsi:type="string">jpg</item>
-                <item name="jpeg" xsi:type="string">jpeg</item>
-                <item name="gif" xsi:type="string">gif</item>
-                <item name="png" xsi:type="string">png</item>
-            </argument>
-        </arguments>
-    </virtualType>
+	<!-- Add these preference declarations -->
+	<preference for="Formula\Brand\Api\BrandRepositoryInterface" type="Formula\Brand\Model\BrandRepository" />
+	<preference for="Formula\Brand\Api\Data\BrandInterface" type="Formula\Brand\Model\Brand" />
+	<!-- Add Plugin for Product Repository -->
+	<type name="Magento\Catalog\Api\ProductRepositoryInterface">
+		<plugin name="formula_brand_product_repository" type="Formula\Brand\Plugin\ProductRepositoryPlugin" />
+	</type>
+	<!-- Remove or comment out the collection plugin -->
+	<!--
+	<type name="Magento\Catalog\Model\ResourceModel\Product\Collection">
+	<plugin name="formula_brand_product_collection" type="Formula\Brand\Plugin\ProductCollectionPlugin" />
+	</type>
+	-->
+	<!-- Add this plugin for the data provider -->
+	<type name="Magento\Catalog\Ui\DataProvider\Product\ProductDataProvider">
+		<plugin name="formula_brand_data_provider" type="Formula\Brand\Plugin\ProductDataProviderPlugin" />
+	</type>
+	<!-- Existing configuration for Brand Save controller -->
+	<type name="Formula\Brand\Controller\Adminhtml\Brand\Save">
+		<arguments>
+			<argument name="jsonSerializer" xsi:type="object">
+				Magento\Framework\Serialize\Serializer\Json
+			</argument>
+		</arguments>
+	</type>
+	<!-- Configuration for Brand Save controller -->
+	<type name="Formula\Brand\Controller\Adminhtml\Brand\Save">
+		<arguments>
+			<argument name="jsonSerializer" xsi:type="object">
+				Magento\Framework\Serialize\Serializer\Json
+			</argument>
+		</arguments>
+	</type>
+	<!-- Configuration for Brand DataProvider -->
+	<type name="Formula\Brand\Model\Brand\DataProvider">
+		<arguments>
+			<argument name="jsonSerializer" xsi:type="object">
+				Magento\Framework\Serialize\Serializer\Json
+			</argument>
+		</arguments>
+	</type>
+	<!-- Your existing configuration -->
+	<type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+		<arguments>
+			<argument name="collections" xsi:type="array">
+				<item name="formula_brand_listing_data_source" xsi:type="string">
+					Formula\Brand\Model\ResourceModel\Brand\Grid\Collection
+				</item>
+			</argument>
+		</arguments>
+	</type>
+	<!-- Configuration for image types -->
+	<virtualType name="Formula\Brand\BrandImageUploader" type="Formula\Brand\Model\ImageUploader">
+		<arguments>
+			<argument name="baseTmpPath" xsi:type="string">
+				brand/tmp/logo
+			</argument>
+			<argument name="basePath" xsi:type="string">
+				brand/logo
+			</argument>
+			<argument name="allowedExtensions" xsi:type="array">
+				<item name="jpg" xsi:type="string">
+					jpg
+				</item>
+				<item name="jpeg" xsi:type="string">
+					jpeg
+				</item>
+				<item name="gif" xsi:type="string">
+					gif
+				</item>
+				<item name="png" xsi:type="string">
+					png
+				</item>
+			</argument>
+		</arguments>
+	</virtualType>
+	<virtualType name="Formula\Brand\BrandBannerUploader" type="Formula\Brand\Model\ImageUploader">
+		<arguments>
+			<argument name="baseTmpPath" xsi:type="string">
+				brand/tmp/banner
+			</argument>
+			<argument name="basePath" xsi:type="string">
+				brand/banner
+			</argument>
+			<argument name="allowedExtensions" xsi:type="array">
+				<item name="jpg" xsi:type="string">
+					jpg
+				</item>
+				<item name="jpeg" xsi:type="string">
+					jpeg
+				</item>
+				<item name="gif" xsi:type="string">
+					gif
+				</item>
+				<item name="png" xsi:type="string">
+					png
+				</item>
+			</argument>
+		</arguments>
+	</virtualType>
 </config>

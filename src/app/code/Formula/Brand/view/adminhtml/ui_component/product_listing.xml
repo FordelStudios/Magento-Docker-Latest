@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <columns name="product_columns">
+        <column name="brand" class="Formula\Brand\Ui\Component\Listing\Column\Brand" sortOrder="65">
+            <settings>
+                <filter>select</filter>
+                <options class="Formula\Brand\Model\Product\Attribute\Source\Brand"/>
+                <dataType>select</dataType>
+                <label translate="true">Brand</label>
+            </settings>
+        </column>
+    </columns>
+</listing>
