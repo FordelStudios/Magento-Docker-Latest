@@ -40,20 +40,24 @@ services:
     ports:
       - "127.0.0.1:3306:3306" # Changed to bind to localhost only
 
-  elasticsearch:
-    image: elasticsearch:7.17.10
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
     environment:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - plugins.security.disabled=true
     ulimits:
       memlock:
         soft: -1
         hard: -1
-    volumes:
-      - esdata:/usr/share/elasticsearch/data
+      nofile:
+        soft: 65536
+        hard: 65536
     ports:
-      - "127.0.0.1:9200:9200" # Changed to bind to localhost only
+      - "9200:9200"
+    volumes:
+      - osdata:/usr/share/opensearch/data
 
   redis:
     image: redis:6.2
