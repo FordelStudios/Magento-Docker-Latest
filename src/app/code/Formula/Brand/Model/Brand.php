@@ -155,7 +155,7 @@ class Brand extends AbstractModel implements BrandInterface
     /**
      * Get Promotional Banners
      * 
-     * @return array|null
+     * @return string|null
      */
     public function getPromotionalBanners()
     {
@@ -173,7 +173,7 @@ class Brand extends AbstractModel implements BrandInterface
     /**
      * Set Promotional Banners
      * 
-     * @param array|string $banners
+     * @param string|mixed[] $banners
      * @return $this
      */
     public function setPromotionalBanners($banners)
@@ -187,7 +187,7 @@ class Brand extends AbstractModel implements BrandInterface
     /**
      * Get Tags
      * 
-     * @return array|null
+     * @return string|null
      */
     public function getTags()
     {
@@ -205,7 +205,7 @@ class Brand extends AbstractModel implements BrandInterface
     /**
      * Set Tags
      * 
-     * @param array|string $tags
+     * @param string|mixed[] $tags
      * @return $this
      */
     public function setTags($tags)

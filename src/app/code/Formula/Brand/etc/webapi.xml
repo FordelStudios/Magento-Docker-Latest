@@ -27,6 +27,12 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/brand/:brandId" method="PUT">
+        <service class="Formula\Brand\Api\BrandRepositoryInterface" method="update"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>
 
 

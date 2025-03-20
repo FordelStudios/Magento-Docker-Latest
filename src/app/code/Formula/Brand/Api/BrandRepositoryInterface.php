@@ -45,4 +45,14 @@ interface BrandRepositoryInterface
      * @return bool
      */
     public function deleteById($brandId);
+
+    /**
+     * Update brand.
+     *
+     * @param int $brandId
+     * @param BrandInterface $brand
+     * @return BrandInterface
+     */
+    public function update($brandId, BrandInterface $brand);
+
 }

@@ -68,23 +68,23 @@ interface BrandInterface
     public function setLogo($logo);
 
     /**
-     * @return array|null
+     * @return string|null
      */
     public function getPromotionalBanners();
 
     /**
-     * @param array|string $banners
+     * @param string|mixed[] $banners
      * @return $this
      */
     public function setPromotionalBanners($banners);
 
     /**
-     * @return array|null
+     * @return string|null
      */
     public function getTags();
 
     /**
-     * @param array|string $tags
+     * @param string|mixed[] $tags
      * @return $this
      */
     public function setTags($tags);
