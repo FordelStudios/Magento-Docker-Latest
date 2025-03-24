@@ -3,7 +3,7 @@
 	<module name="Formula_SkinConcern" setup_version="1.0.3">
 		<sequence>
 			<module name="Magento_Catalog" />
-			<module name="Formula_Brand" />
+			<module name="Formula_SkinType" />
 		</sequence>
 	</module>
 </config>

@@ -1,21 +1,5 @@
 <?xml version="1.0"?>
-
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
-    <menu>
-        <add id="Formula_SkinConcern::content_elements"
-             title="Formula SkinConcern Page"
-             translate="title"
-             module="Formula_SkinConcern"
-             sortOrder="10"
-             parent="Magento_Backend::content"
-             resource="Magento_Backend::admin"/>
-        <add id="Formula_SkinConcern::post"
-            title="SkinConcerns"
-            translate="title"
-            module="Formula_SkinConcern"
-            sortOrder="0"
-            parent="Formula_SkinConcern::content_elements"
-            action="formula_skinconcern/skinconcern" 
-            resource="Magento_Backend::admin"/>
-    </menu>
+	<menu>
+	</menu>
 </config>
