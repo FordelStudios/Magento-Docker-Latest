@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">formula_ingredient_listing.formula_ingredient_listing_data_source</item>
+            <item name="deps" xsi:type="string">formula_ingredient_listing.formula_ingredient_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="add">
+                <url path="*/*/new"/>
+                <class>primary</class>
+                <label translate="true">Add New Ingredient</label>
+            </button>
+        </buttons>
+        <spinner>formula_ingredient_columns</spinner>
+        <deps>
+            <dep>formula_ingredient_listing.formula_ingredient_listing_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="formula_ingredient_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">ingredient_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Formula_Ingredient::ingredient</aclResource>
+        <dataProvider class="Formula\Ingredient\Ui\DataProvider\Ingredient\ListingDataProvider" name="formula_ingredient_listing_data_source">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>ingredient_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filterSearch name="fulltext"/>
+        <filters name="listing_filters"/>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    <columns name="formula_ingredient_columns">
+        <selectionsColumn name="ids">
+            <settings>
+                <indexField>ingredient_id</indexField>
+            </settings>
+        </selectionsColumn>
+        <column name="ingredient_id">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">ID</label>
+                <sorting>asc</sorting>
+            </settings>
+        </column>
+        <column name="name">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Name</label>
+            </settings>
+        </column>
+        <column name="tagline">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Tagline</label>
+            </settings>
+        </column>
+      <column name="description" class="Magento\Ui\Component\Listing\Columns\Column">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Description</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="escapeHtml" xsi:type="boolean">false</item>
+                    <item name="truncate" xsi:type="number">50</item>
+                </item>
+            </argument>
+        </column>
+        <column name="promotional_banners" class="Formula\Ingredient\Ui\Component\Listing\Column\PromotionalBanners">
+            <settings>
+                <label translate="true">Promotional Banners</label>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+                <sortable>false</sortable>
+                <filter>false</filter>
+            </settings>
+        </column>
+        <column name="logo" component="Magento_Ui/js/grid/columns/thumbnail">
+            <settings>
+                <label translate="true">Logo</label>
+                <bodyTmpl>ui/grid/cells/thumbnail</bodyTmpl>
+                <sortable>false</sortable>
+                <filter>false</filter>
+            </settings>
+        </column>
+        <column name="tags">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Tags</label>
+            </settings>
+        </column>
+        <column name="status">
+            <settings>
+                <filter>select</filter>
+                <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                <label translate="true">Status</label>
+            </settings>
+        </column>
+        <actionsColumn name="actions" class="Formula\Ingredient\Ui\Component\Listing\Column\Actions">
+            <settings>
+                <indexField>ingredient_id</indexField>
+                <resizeEnabled>false</resizeEnabled>
+                <resizeDefaultWidth>107</resizeDefaultWidth>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

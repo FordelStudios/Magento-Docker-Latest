@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <columns name="product_columns">
+        <column name="ingredient" class="Formula\Ingredient\Ui\Component\Listing\Column\Ingredient" sortOrder="90">
+            <settings>
+                <filter>select</filter>
+                <options class="Formula\Ingredient\Model\Product\Attribute\Source\Ingredient"/>
+                <dataType>select</dataType>
+                <label translate="true">Ingredient</label>
+            </settings>
+        </column>
+    </columns>
+</listing>

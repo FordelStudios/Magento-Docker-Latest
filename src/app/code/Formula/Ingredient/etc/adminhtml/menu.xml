@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Formula_Ingredient::content_elements"
+             title="Formula Ingredient Page"
+             translate="title"
+             module="Formula_Ingredient"
+             sortOrder="10"
+             parent="Magento_Backend::content"
+             resource="Magento_Backend::admin"/>
+        <add id="Formula_Ingredient::post"
+            title="Ingredients"
+            translate="title"
+            module="Formula_Ingredient"
+            sortOrder="0"
+            parent="Formula_Ingredient::content_elements"
+            action="formula_ingredient/ingredient" 
+            resource="Magento_Backend::admin"/>
+    </menu>
+</config>

@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/ingredient" method="POST">
+        <service class="Formula\Ingredient\Api\IngredientRepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/ingredient/:ingredientId" method="GET">
+        <service class="Formula\Ingredient\Api\IngredientRepositoryInterface" method="getById"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/ingredient" method="GET">
+        <service class="Formula\Ingredient\Api\IngredientRepositoryInterface" method="getList"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+        <data>
+            <parameter name="searchCriteria" force="true">%searchCriteria%</parameter>
+        </data>
+    </route>
+    <route url="/V1/ingredient/:ingredientId" method="DELETE">
+        <service class="Formula\Ingredient\Api\IngredientRepositoryInterface" method="deleteById"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/ingredient/:ingredientId" method="PUT">
+        <service class="Formula\Ingredient\Api\IngredientRepositoryInterface" method="update"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+</routes>
+
+
+
+

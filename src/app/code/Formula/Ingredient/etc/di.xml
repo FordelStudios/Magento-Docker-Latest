@@ -1,25 +1,26 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 	<!-- Add these preference declarations -->
-	<preference for="Formula\Brand\Api\BrandRepositoryInterface" type="Formula\Brand\Model\BrandRepository" />
-	<preference for="Formula\Brand\Api\Data\BrandInterface" type="Formula\Brand\Model\Brand" />
+	<preference for="Formula\Ingredient\Api\IngredientRepositoryInterface" type="Formula\Ingredient\Model\IngredientRepository" />
+	<preference for="Formula\Ingredient\Api\Data\IngredientInterface" type="Formula\Ingredient\Model\Ingredient" />
 	<!-- Add Plugin for Product Repository -->
 	<type name="Magento\Catalog\Api\ProductRepositoryInterface">
-		<plugin name="formula_brand_product_repository" type="Formula\Brand\Plugin\ProductRepositoryPlugin" />
+		<plugin name="formula_ingredient_product_repository" type="Formula\Ingredient\Plugin\ProductRepositoryPlugin" />
 	</type>
 	<type name="Magento\Catalog\Ui\DataProvider\Product\ProductDataProvider">
-		<plugin name="formula_brand_data_provider" type="Formula\Brand\Plugin\ProductDataProviderPlugin" />
+		<plugin name="formula_ingredient_data_provider" type="Formula\Ingredient\Plugin\ProductDataProviderPlugin" />
 	</type>
-	<!-- Configuration for Brand Save controller -->
-	<type name="Formula\Brand\Controller\Adminhtml\Brand\Save">
+	
+	<!-- Configuration for Ingredient Save controller -->
+	<type name="Formula\Ingredient\Controller\Adminhtml\Ingredient\Save">
 		<arguments>
 			<argument name="jsonSerializer" xsi:type="object">
 				Magento\Framework\Serialize\Serializer\Json
 			</argument>
 		</arguments>
 	</type>
-	<!-- Configuration for Brand DataProvider -->
-	<type name="Formula\Brand\Model\Brand\DataProvider">
+	<!-- Configuration for Ingredient DataProvider -->
+	<type name="Formula\Ingredient\Model\Ingredient\DataProvider">
 		<arguments>
 			<argument name="jsonSerializer" xsi:type="object">
 				Magento\Framework\Serialize\Serializer\Json
@@ -30,20 +31,20 @@
 	<type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
 		<arguments>
 			<argument name="collections" xsi:type="array">
-				<item name="formula_brand_listing_data_source" xsi:type="string">
-					Formula\Brand\Model\ResourceModel\Brand\Grid\Collection
+				<item name="formula_ingredient_listing_data_source" xsi:type="string">
+					Formula\Ingredient\Model\ResourceModel\Ingredient\Grid\Collection
 				</item>
 			</argument>
 		</arguments>
 	</type>
 	<!-- Configuration for image types -->
-	<virtualType name="Formula\Brand\BrandImageUploader" type="Formula\Brand\Model\ImageUploader">
+	<virtualType name="Formula\Ingredient\IngredientImageUploader" type="Formula\Ingredient\Model\ImageUploader">
 		<arguments>
 			<argument name="baseTmpPath" xsi:type="string">
-				brand/tmp/logo
+				ingredient/tmp/logo
 			</argument>
 			<argument name="basePath" xsi:type="string">
-				brand/logo
+				ingredient/logo
 			</argument>
 			<argument name="allowedExtensions" xsi:type="array">
 				<item name="jpg" xsi:type="string">
@@ -61,13 +62,13 @@
 			</argument>
 		</arguments>
 	</virtualType>
-	<virtualType name="Formula\Brand\BrandBannerUploader" type="Formula\Brand\Model\ImageUploader">
+	<virtualType name="Formula\Ingredient\IngredientBannerUploader" type="Formula\Ingredient\Model\ImageUploader">
 		<arguments>
 			<argument name="baseTmpPath" xsi:type="string">
-				brand/tmp/banner
+				ingredient/tmp/banner
 			</argument>
 			<argument name="basePath" xsi:type="string">
-				brand/banner
+				ingredient/banner
 			</argument>
 			<argument name="allowedExtensions" xsi:type="array">
 				<item name="jpg" xsi:type="string">
