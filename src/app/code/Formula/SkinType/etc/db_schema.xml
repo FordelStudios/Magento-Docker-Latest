@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="skintype_details" resource="default" engine="innodb" comment="SkinType Details Table">
+        <column xsi:type="int" name="skintype_id" padding="10" unsigned="true" nullable="false" identity="true" comment="SkinType ID"/>
+        <column xsi:type="varchar" name="name" nullable="false" length="255" comment="SkinType Name"/>
+        <column xsi:type="text" name="description" nullable="true" comment="SkinType Description"/>
+        <column xsi:type="varchar" name="tagline" nullable="true" length="255" comment="SkinType Tagline"/>
+        <column xsi:type="varchar" name="logo" nullable="true" length="255" comment="SkinType Logo Path"/>
+        <column xsi:type="text" name="promotional_banners" nullable="true" comment="Promotional Banners (JSON)"/>
+        <column xsi:type="text" name="tags" nullable="true" comment="SkinType Tags (JSON)"/>
+        <column xsi:type="smallint" name="status" padding="5" unsigned="true" nullable="false" default="1" comment="Status"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Creation Time"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Update Time"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="skintype_id"/>
+        </constraint>
+    </table>
+</schema>

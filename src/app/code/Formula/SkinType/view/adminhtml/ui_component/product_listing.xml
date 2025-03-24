@@ -2,12 +2,12 @@
 <listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
          xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
     <columns name="product_columns">
-        <column name="ingredient" class="Formula\Ingredient\Ui\Component\Listing\Column\Ingredient" sortOrder="90">
+        <column name="skintype" class="Formula\SkinType\Ui\Component\Listing\Column\SkinType" sortOrder="115">
             <settings>
                 <filter>select</filter>
-                <options class="Formula\Ingredient\Model\Product\Attribute\Source\Ingredient"/>
+                <options class="Formula\SkinType\Model\Product\Attribute\Source\SkinType"/>
                 <dataType>select</dataType>
-                <label translate="true">Ingredients</label>
+                <label translate="true">SkinTypes</label>
             </settings>
         </column>
     </columns>

@@ -2,6 +2,6 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Api/etc/extension_attributes.xsd">
     <extension_attributes for="Magento\Catalog\Api\Data\ProductInterface">
-        <attribute code="ingredient_names" type="string"/>
+        <attribute code="skinconcern_names" type="string"/>
     </extension_attributes>
 </config>

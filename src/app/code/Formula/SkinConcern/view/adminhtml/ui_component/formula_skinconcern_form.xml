@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">formula_skinconcern_form.formula_skinconcern_form_data_source</item>
+        </item>
+        <item name="label" xsi:type="string" translate="true">SkinConcern Information</item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="back" class="Formula\SkinConcern\Block\Adminhtml\SkinConcern\Edit\BackButton"/>
+            <button name="save" class="Formula\SkinConcern\Block\Adminhtml\SkinConcern\Edit\SaveButton"/>
+        </buttons>
+        <namespace>formula_skinconcern_form</namespace>
+        <dataScope>data</dataScope>
+        <deps>
+            <dep>formula_skinconcern_form.formula_skinconcern_form_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="formula_skinconcern_form_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
+            </item>
+        </argument>
+        <settings>
+            <submitUrl path="*/*/save"/>
+        </settings>
+        <dataProvider class="Formula\SkinConcern\Model\SkinConcern\DataProvider" name="formula_skinconcern_form_data_source">
+            <settings>
+                <requestFieldName>skinconcern_id</requestFieldName>
+                <primaryFieldName>skinconcern_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="general">
+        <settings>
+            <label translate="true">SkinConcern Information</label>
+        </settings>
+        <field name="skinconcern_id" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">skinconcern</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <visible>false</visible>
+                <dataScope>skinconcern_id</dataScope>
+            </settings>
+        </field>
+
+        <field name="name" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">skinconcern</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">SkinConcern Name</label>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+        </field>
+
+        <field name="tagline" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">skinconcern</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">SkinConcern Tagline</label>
+            </settings>
+        </field>
+
+        <field name="description" formElement="textarea">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Description</label>
+            </settings>
+        </field>
+
+        <field name="tags" formElement="textarea">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">skinconcern</item>
+                    <item name="notice" xsi:type="string">Enter tags separated by commas</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Tags</label>
+            </settings>
+        </field>
+
+        <field name="logo" formElement="imageUploader">
+            <settings>
+                <label translate="true">SkinConcern Logo</label>
+                <componentType>imageUploader</componentType>
+            </settings>
+            <formElements>
+                <imageUploader>
+                    <settings>
+                        <allowedExtensions>jpg jpeg gif png</allowedExtensions>
+                        <maxFileSize>2097152</maxFileSize>
+                        <uploaderConfig>
+                            <param xsi:type="string" name="url">formula_skinconcern/skinconcern/upload</param>
+                        </uploaderConfig>
+                    </settings>
+                </imageUploader>
+            </formElements>
+        </field>
+
+        <field name="promotional_banners" formElement="imageUploader">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">skinconcern</item>
+                    <item name="dataType" xsi:type="string">string</item>
+                    <item name="label" xsi:type="string" translate="true">Promotional Banners</item>
+                    <item name="visible" xsi:type="boolean">true</item>
+                    <item name="required" xsi:type="boolean">false</item>
+                    <item name="notice" xsi:type="string" translate="true">Allowed file types: jpg, jpeg, gif, png</item>
+                    <item name="maxFileSize" xsi:type="number">2097152</item>
+                    <item name="uploaderConfig" xsi:type="array">
+                        <item name="url" xsi:type="string">formula_skinconcern/skinconcern/uploadBanner</item>
+                    </item>
+                    <item name="multiple" xsi:type="boolean">true</item>
+                </item>
+            </argument>
+            <settings>
+                <componentType>imageUploader</componentType>
+            </settings>
+            <formElements>
+                <imageUploader>
+                    <settings>
+                        <allowedExtensions>jpg jpeg gif png</allowedExtensions>
+                        <maxFileSize>2097152</maxFileSize>
+                        <uploaderConfig>
+                            <param xsi:type="string" name="url">formula_skinconcern/skinconcern/uploadBanner</param>
+                        </uploaderConfig>
+                        <isMultipleFiles>true</isMultipleFiles>
+                    </settings>
+                </imageUploader>
+            </formElements>
+        </field>
+
+        <field name="status" formElement="select">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Status</label>
+                <dataScope>status</dataScope>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+    </fieldset>
+</form>

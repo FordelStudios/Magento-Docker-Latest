@@ -1,46 +1,46 @@
 <?php
-namespace Formula\Ingredient\Plugin;
+namespace Formula\SkinConcern\Plugin;
 
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
-use Formula\Ingredient\Model\IngredientRepository;
+use Formula\SkinConcern\Model\SkinConcernRepository;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 class ProductRepositoryPlugin
 {
-    protected $ingredientRepository;
+    protected $skinconcernRepository;
     
     public function __construct(
-        IngredientRepository $ingredientRepository
+        SkinConcernRepository $skinconcernRepository
     ) {
-        $this->ingredientRepository = $ingredientRepository;
+        $this->skinconcernRepository = $skinconcernRepository;
     }
     
     public function afterGet(
         ProductRepositoryInterface $subject,
         ProductInterface $product
     ) {
-        $ingredientAttribute = $product->getCustomAttribute('ingredient');
-        if ($ingredientAttribute) {
-            $ingredientValue = $ingredientAttribute->getValue();
+        $skinconcernAttribute = $product->getCustomAttribute('skinconcern');
+        if ($skinconcernAttribute) {
+            $skinconcernValue = $skinconcernAttribute->getValue();
             
-            if ($ingredientValue) {
+            if ($skinconcernValue) {
                 try {
-                    $ingredientNames = [];
-                    $ingredientIds = explode(',', $ingredientValue);
+                    $skinconcernNames = [];
+                    $skinconcernIds = explode(',', $skinconcernValue);
                     
-                    foreach ($ingredientIds as $ingredientId) {
-                        $ingredient = $this->ingredientRepository->getById($ingredientId);
-                        $ingredientNames[] = $ingredient->getName();
+                    foreach ($skinconcernIds as $skinconcernId) {
+                        $skinconcern = $this->skinconcernRepository->getById($skinconcernId);
+                        $skinconcernNames[] = $skinconcern->getName();
                     }
                     
                     $extensionAttributes = $product->getExtensionAttributes();
                     if ($extensionAttributes) {
-                        $extensionAttributes->setIngredientNames(implode(', ', $ingredientNames));
+                        $extensionAttributes->setSkinConcernNames(implode(', ', $skinconcernNames));
                         $product->setExtensionAttributes($extensionAttributes);
                     }
                 } catch (NoSuchEntityException $e) {
-                    // Ingredient not found
+                    // SkinConcern not found
                 }
             }
         }
