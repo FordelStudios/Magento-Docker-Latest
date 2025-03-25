@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <!-- Get Wishlist Items for Current Customer -->
+    <route url="/V1/wishlist/items" method="GET">
+        <service class="Formula\Wishlist\Api\WishlistRepositoryInterface" method="getByCustomerId"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="customerId" force="true">%customer_id%</parameter>
+        </data>
+    </route>
+    
+    <!-- Get Wishlist Item by ID -->
+    <route url="/V1/wishlist/items/:wishlistItemId" method="GET">
+        <service class="Formula\Wishlist\Api\WishlistRepositoryInterface" method="getById"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+    
+    <!-- Add Item to Wishlist -->
+    <route url="/V1/wishlist/items" method="POST">
+        <service class="Formula\Wishlist\Api\WishlistRepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+    
+    <!-- Update Wishlist Item -->
+    <route url="/V1/wishlist/items/:wishlistItemId" method="PUT">
+        <service class="Formula\Wishlist\Api\WishlistRepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+    
+    <!-- Delete Wishlist Item -->
+    <route url="/V1/wishlist/items/:wishlistItemId" method="DELETE">
+        <service class="Formula\Wishlist\Api\WishlistRepositoryInterface" method="deleteById"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+</routes>
