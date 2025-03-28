@@ -90,6 +90,23 @@ class Review extends AbstractExtensibleObject implements ReviewInterface
     {
         return $this->setData('ratings', $ratings);
     }
+    
+    /**
+     * @return array
+     */
+    public function getRatingsDetails()
+    {
+        return $this->_get('ratings_details');
+    }
+    
+    /**
+     * @param array $ratingsDetails
+     * @return $this
+     */
+    public function setRatingsDetails($ratingsDetails)
+    {
+        return $this->setData('ratings_details', $ratingsDetails);
+    }
 
     /**
      * @return string
@@ -106,5 +123,56 @@ class Review extends AbstractExtensibleObject implements ReviewInterface
     public function setProductSku($productSku)
     {
         return $this->setData('product_sku', $productSku);
+    }
+    
+    /**
+     * @return string
+     */
+    public function getStatus()
+    {
+        return $this->_get('status');
+    }
+    
+    /**
+     * @param string $status
+     * @return $this
+     */
+    public function setStatus($status)
+    {
+        return $this->setData('status', $status);
+    }
+    
+    /**
+     * @return string
+     */
+    public function getCreatedAt()
+    {
+        return $this->_get('created_at');
+    }
+    
+    /**
+     * @param string $createdAt
+     * @return $this
+     */
+    public function setCreatedAt($createdAt)
+    {
+        return $this->setData('created_at', $createdAt);
+    }
+    
+    /**
+     * @return string
+     */
+    public function getUpdatedAt()
+    {
+        return $this->_get('updated_at');
+    }
+    
+    /**
+     * @param string $updatedAt
+     * @return $this
+     */
+    public function setUpdatedAt($updatedAt)
+    {
+        return $this->setData('updated_at', $updatedAt);
     }
 }

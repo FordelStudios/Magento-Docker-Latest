@@ -1,5 +1,11 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-	<preference for="Formula\Review\Api\ProductReviewRepositoryInterface" type="Formula\Review\Model\ProductReviewRepository" />
-	<preference for="Formula\Review\Api\Data\ReviewInterface" type="Formula\Review\Model\Data\Review" />
+    <!-- Review interface preference -->
+    <preference for="Formula\Review\Api\Data\ReviewInterface" type="Formula\Review\Model\Data\Review" />
+    <preference for="Formula\Review\Api\ProductReviewRepositoryInterface" type="Formula\Review\Model\ProductReviewRepository" />
+    
+    <!-- Plugin for API serialization -->
+    <type name="Magento\Framework\Reflection\DataObjectProcessor">
+        <plugin name="formula_review_add_rating_details" type="Formula\Review\Plugin\DataObjectProcessorPlugin" />
+    </type>
 </config>

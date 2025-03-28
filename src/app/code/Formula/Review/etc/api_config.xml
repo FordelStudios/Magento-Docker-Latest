@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Api/etc/api.xsd">
+    <api>
+        <additional_data_interfaces>
+            <interface_config interface="Formula\Review\Api\Data\ReviewInterface">
+                <item name="status" />
+                <item name="created_at" />
+                <item name="updated_at" />
+                <item name="ratings_details" />
+            </interface_config>
+        </additional_data_interfaces>
+    </api>
+</config>

@@ -28,4 +28,32 @@ interface ProductReviewRepositoryInterface
      * @throws \Magento\Framework\Exception\CouldNotSaveException
      */
     public function create(\Formula\Review\Api\Data\ReviewInterface $review);
+
+    /**
+     * Update review
+     *
+     * @param int $id
+     * @param \Formula\Review\Api\Data\ReviewInterface $review
+     * @return \Formula\Review\Api\Data\ReviewInterface
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Magento\Framework\Exception\CouldNotSaveException
+     */
+    public function update($id, \Formula\Review\Api\Data\ReviewInterface $review);
+    
+    /**
+     * Delete review by ID
+     *
+     * @param int $id
+     * @return bool
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Magento\Framework\Exception\CouldNotDeleteException
+     */
+    public function deleteById($id);
+    
+    /**
+     * Get all reviews
+     *
+     * @return \Formula\Review\Api\Data\ReviewInterface[]
+     */
+    public function getAllReviews();
 }

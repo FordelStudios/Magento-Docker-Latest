@@ -57,6 +57,17 @@ interface ReviewInterface
      * @return $this
      */
     public function setRatings($ratings);
+    
+    /**
+     * @return array
+     */
+    public function getRatingsDetails();
+    
+    /**
+     * @param array $ratingsDetails
+     * @return $this
+     */
+    public function setRatingsDetails($ratingsDetails);
 
     /**
      * @return string
@@ -68,4 +79,37 @@ interface ReviewInterface
      * @return $this
      */
     public function setProductSku($productSku);
+    
+    /**
+     * @return string
+     */
+    public function getStatus();
+    
+    /**
+     * @param string $status
+     * @return $this
+     */
+    public function setStatus($status);
+    
+    /**
+     * @return string
+     */
+    public function getCreatedAt();
+    
+    /**
+     * @param string $createdAt
+     * @return $this
+     */
+    public function setCreatedAt($createdAt);
+    
+    /**
+     * @return string
+     */
+    public function getUpdatedAt();
+    
+    /**
+     * @param string $updatedAt
+     * @return $this
+     */
+    public function setUpdatedAt($updatedAt);
 }

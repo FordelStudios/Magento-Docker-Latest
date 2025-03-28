@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Api/etc/extension_attributes.xsd">
+    <extension_attributes for="Formula\Review\Api\Data\ReviewInterface">
+        <attribute code="status" type="string" />
+        <attribute code="created_at" type="string" />
+        <attribute code="updated_at" type="string" />
+        <attribute code="ratings_details" type="mixed" />
+    </extension_attributes>
+</config>
