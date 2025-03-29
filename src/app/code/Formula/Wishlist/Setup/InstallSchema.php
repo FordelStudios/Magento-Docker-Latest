@@ -44,13 +44,6 @@ class InstallSchema implements InstallSchemaInterface
                 'Product ID'
             )
             ->addColumn(
-                'description',
-                Table::TYPE_TEXT,
-                255,
-                ['nullable' => true],
-                'Customer notes'
-            )
-            ->addColumn(
                 'added_at',
                 Table::TYPE_TIMESTAMP,
                 null,

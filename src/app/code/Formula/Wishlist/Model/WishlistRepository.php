@@ -57,6 +57,11 @@ class WishlistRepository implements WishlistRepositoryInterface
      */
     private $serviceInputProcessor;
 
+     /**
+     * @var WishlistItemHydrator
+     */
+    private $wishlistItemHydrator;
+
     /**
      * @param ResourceWishlistItem $resource
      * @param WishlistItemFactory $wishlistItemFactory
@@ -66,6 +71,7 @@ class WishlistRepository implements WishlistRepositoryInterface
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
      * @param \Magento\Framework\Webapi\ServiceInputProcessor $serviceInputProcessor
+     * @param WishlistItemHydrator $wishlistItemHydrator
      */
     public function __construct(
         ResourceWishlistItem $resource,
@@ -75,7 +81,8 @@ class WishlistRepository implements WishlistRepositoryInterface
         CollectionProcessorInterface $collectionProcessor,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
-        \Magento\Framework\Webapi\ServiceInputProcessor $serviceInputProcessor = null
+        \Magento\Framework\Webapi\ServiceInputProcessor $serviceInputProcessor = null,
+        WishlistItemHydrator $wishlistItemHydrator = null
     ) {
         $this->resource = $resource;
         $this->wishlistItemFactory = $wishlistItemFactory;
@@ -86,6 +93,8 @@ class WishlistRepository implements WishlistRepositoryInterface
         $this->customerRepository = $customerRepository;
         $this->serviceInputProcessor = $serviceInputProcessor ?: \Magento\Framework\App\ObjectManager::getInstance()
             ->get(\Magento\Framework\Webapi\ServiceInputProcessor::class);
+        $this->wishlistItemHydrator = $wishlistItemHydrator ?: \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(WishlistItemHydrator::class);        
     }
 
     /**
@@ -171,7 +180,8 @@ class WishlistRepository implements WishlistRepositoryInterface
         if (!$wishlistItem->getId()) {
             throw new NoSuchEntityException(__('Wishlist item with id "%1" does not exist.', $wishlistItemId));
         }
-        return $wishlistItem;
+        // Hydrate with product data
+        return $this->wishlistItemHydrator->hydrate($wishlistItem);
     }
 
     /**
@@ -187,7 +197,15 @@ class WishlistRepository implements WishlistRepositoryInterface
         
         $searchResults = $this->searchResultsFactory->create();
         $searchResults->setSearchCriteria($searchCriteria);
-        $searchResults->setItems($collection->getItems());
+        
+        $items = $collection->getItems();
+        
+        // Hydrate all items with product data
+        foreach ($items as $key => $item) {
+            $items[$key] = $this->wishlistItemHydrator->hydrate($item);
+        }
+        
+        $searchResults->setItems($items);
         $searchResults->setTotalCount($collection->getSize());
         
         return $searchResults;
@@ -203,7 +221,14 @@ class WishlistRepository implements WishlistRepositoryInterface
     {
         $collection = $this->collectionFactory->create();
         $collection->addCustomerFilter($customerId);
-        return $collection->getItems();
+        $items = $collection->getItems();
+        
+        // Hydrate all items with product data
+        foreach ($items as $key => $item) {
+            $items[$key] = $this->wishlistItemHydrator->hydrate($item);
+        }
+        
+        return $items;
     }
 
     /**

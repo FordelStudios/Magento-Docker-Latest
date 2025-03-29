@@ -2,9 +2,9 @@
 namespace Formula\Wishlist\Model;
 
 use Formula\Wishlist\Api\Data\WishlistItemInterface;
-use Magento\Framework\Model\AbstractModel;
+use Magento\Framework\Model\AbstractExtensibleModel;
 
-class WishlistItem extends AbstractModel implements WishlistItemInterface
+class WishlistItem extends AbstractExtensibleModel implements WishlistItemInterface
 {
     /**
      * Initialize resource model
@@ -80,27 +80,6 @@ class WishlistItem extends AbstractModel implements WishlistItemInterface
     }
 
     /**
-     * Get description
-     *
-     * @return string|null
-     */
-    public function getDescription()
-    {
-        return $this->getData(self::DESCRIPTION);
-    }
-
-    /**
-     * Set description
-     *
-     * @param string $description
-     * @return $this
-     */
-    public function setDescription($description)
-    {
-        return $this->setData(self::DESCRIPTION, $description);
-    }
-
-    /**
      * Get added at time
      *
      * @return string
@@ -119,5 +98,27 @@ class WishlistItem extends AbstractModel implements WishlistItemInterface
     public function setAddedAt($addedAt)
     {
         return $this->setData(self::ADDED_AT, $addedAt);
+    }
+
+    /**
+     * Retrieve existing extension attributes object or create a new one.
+     *
+     * @return \Formula\Wishlist\Api\Data\WishlistItemExtensionInterface|null
+     */
+    public function getExtensionAttributes()
+    {
+        return $this->_getExtensionAttributes();
+    }
+
+    /**
+     * Set an extension attributes object.
+     *
+     * @param \Formula\Wishlist\Api\Data\WishlistItemExtensionInterface $extensionAttributes
+     * @return $this
+     */
+    public function setExtensionAttributes(
+        \Formula\Wishlist\Api\Data\WishlistItemExtensionInterface $extensionAttributes
+    ) {
+        return $this->_setExtensionAttributes($extensionAttributes);
     }
 }
