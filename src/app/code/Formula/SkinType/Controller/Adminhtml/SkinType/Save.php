@@ -65,30 +65,7 @@ class Save extends Action
                     }
                 }
 
-                // Handle promotional banners upload
-                if (isset($data['promotional_banners']) && is_array($data['promotional_banners'])) {
-                    $banners = [];
-                    foreach ($data['promotional_banners'] as $banner) {
-                        if (!empty($banner['name']) && !empty($banner['tmp_name'])) {
-                            try {
-                                $this->imageUploader->setBaseTmpPath("skintype/tmp/banner");
-                                $this->imageUploader->setBasePath("skintype/banner");
-                                $banners[] = $banner['name'];
-                                $this->imageUploader->moveFileFromTmp($banner['name']);
-                            } catch (\Exception $e) {
-                                $this->logger->critical($e);
-                                $this->messageManager->addExceptionMessage($e, __('Error processing banner upload: %1', $e->getMessage()));
-                            }
-                        } elseif (!empty($banner['name']) && empty($banner['tmp_name'])) {
-                            $banners[] = $banner['name'];
-                        }
-                    }
-                    if (!empty($banners)) {
-                        $data['promotional_banners'] = $this->jsonSerializer->serialize($banners);
-                    } else {
-                        unset($data['promotional_banners']);
-                    }
-                }
+                
 
                 // Handle tags
                 if (isset($data['tags']) && !empty($data['tags'])) {

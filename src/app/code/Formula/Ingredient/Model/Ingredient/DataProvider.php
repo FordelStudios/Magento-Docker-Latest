@@ -56,9 +56,7 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
             }
 
             if (isset($data['benefits']) && !empty($data['benefits'])) {
-                // Attempt to decode the JSON string
                 $decodedBenefits = json_decode($data['benefits'], true);
-                // If decoding is successful and the result is an array, implode it
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decodedBenefits)) {
                     $data['benefits'] = implode(',', $decodedBenefits);
                 }

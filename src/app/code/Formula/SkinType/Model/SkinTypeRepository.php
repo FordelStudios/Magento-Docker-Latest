@@ -33,9 +33,6 @@ class SkinTypeRepository implements SkinTypeRepositoryInterface
     public function save(SkinTypeInterface $skintype)
     {
         try {
-            $skintype->setPromotionalBanners(json_encode($skintype->getPromotionalBanners()));
-            $skintype->setTags(json_encode($skintype->getTags()));
-
             $this->resource->save($skintype);
         } catch (\Exception $exception) {
             throw new CouldNotSaveException(__($exception->getMessage()));
@@ -68,7 +65,7 @@ class SkinTypeRepository implements SkinTypeRepositoryInterface
                     'name' => $item->getName(),
                     'description' => $item->getDescription(),
                     'logo' => $item->getLogo(),
-                    'status' => $item->getStatus(),
+                    'tags' => $item->getTags(),
                     'created_at' => $item->getCreatedAt(),
                     'updated_at' => $item->getUpdatedAt()
                 ];
@@ -107,19 +104,13 @@ class SkinTypeRepository implements SkinTypeRepositoryInterface
     public function update($skintypeId, SkinTypeInterface $skintype)
     {
         try {
-            // Load existing skintype
             $existingSkinType = $this->getById($skintypeId);
             
-            // Update fields
             $existingSkinType->setName($skintype->getName());
             $existingSkinType->setDescription($skintype->getDescription());
-            $existingSkinType->setTagline($skintype->getTagline());
             $existingSkinType->setLogo($skintype->getLogo());
-            $existingSkinType->setPromotionalBanners($skintype->getPromotionalBanners());
             $existingSkinType->setTags($skintype->getTags());
-            $existingSkinType->setStatus($skintype->getStatus());
 
-            // Save the updated skintype
             $this->resource->save($existingSkinType);
         } catch (\Exception $exception) {
             throw new CouldNotSaveException(

@@ -54,6 +54,13 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
                     ]
                 ];
             }
+
+            if (isset($data['tags']) && !empty($data['tags'])) {
+                $decodedTags = json_decode($data['tags'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedTags)) {
+                    $data['tags'] = implode(',', $decodedTags);
+                }
+            }
             
             $this->loadedData[$skinconcern->getId()] = $data;
         }

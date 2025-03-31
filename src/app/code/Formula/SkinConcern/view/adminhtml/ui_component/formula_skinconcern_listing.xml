@@ -63,12 +63,6 @@
                 <label translate="true">Name</label>
             </settings>
         </column>
-        <column name="tagline">
-            <settings>
-                <filter>text</filter>
-                <label translate="true">Tagline</label>
-            </settings>
-        </column>
       <column name="description" class="Magento\Ui\Component\Listing\Columns\Column">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -79,14 +73,6 @@
                     <item name="truncate" xsi:type="number">50</item>
                 </item>
             </argument>
-        </column>
-        <column name="promotional_banners" class="Formula\SkinConcern\Ui\Component\Listing\Column\PromotionalBanners">
-            <settings>
-                <label translate="true">Promotional Banners</label>
-                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
-                <sortable>false</sortable>
-                <filter>false</filter>
-            </settings>
         </column>
         <column name="logo" component="Magento_Ui/js/grid/columns/thumbnail">
             <settings>
@@ -100,13 +86,6 @@
             <settings>
                 <filter>text</filter>
                 <label translate="true">Tags</label>
-            </settings>
-        </column>
-        <column name="status">
-            <settings>
-                <filter>select</filter>
-                <options class="Magento\Config\Model\Config\Source\Yesno"/>
-                <label translate="true">Status</label>
             </settings>
         </column>
         <actionsColumn name="actions" class="Formula\SkinConcern\Ui\Component\Listing\Column\Actions">

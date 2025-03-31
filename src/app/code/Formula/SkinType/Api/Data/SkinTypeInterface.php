@@ -6,11 +6,8 @@ interface SkinTypeInterface
     const SKINTYPE_ID = 'skintype_id';
     const NAME = 'name';
     const DESCRIPTION = 'description';
-    const TAGLINE = 'tagline';
     const LOGO = 'logo';
-    const PROMOTIONAL_BANNERS = 'promotional_banners';
     const TAGS = 'tags';
-    const STATUS = 'status';
 
     /**
      * @return int|null
@@ -45,16 +42,6 @@ interface SkinTypeInterface
      */
     public function setDescription($description);
 
-    /**
-     * @return string|null
-     */
-    public function getTagline();
-
-    /**
-     * @param string $tagline
-     * @return $this
-     */
-    public function setTagline($tagline);
 
     /**
      * @return string|null
@@ -67,16 +54,6 @@ interface SkinTypeInterface
      */
     public function setLogo($logo);
 
-    /**
-     * @return string|null
-     */
-    public function getPromotionalBanners();
-
-    /**
-     * @param string|mixed[] $banners
-     * @return $this
-     */
-    public function setPromotionalBanners($banners);
 
     /**
      * @return string|null
@@ -89,14 +66,4 @@ interface SkinTypeInterface
      */
     public function setTags($tags);
 
-    /**
-     * @return int|null
-     */
-    public function getStatus();
-
-    /**
-     * @param int $status
-     * @return $this
-     */
-    public function setStatus($status);
 }

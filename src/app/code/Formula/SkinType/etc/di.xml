@@ -62,28 +62,5 @@
 			</argument>
 		</arguments>
 	</virtualType>
-	<virtualType name="Formula\SkinType\SkinTypeBannerUploader" type="Formula\SkinType\Model\ImageUploader">
-		<arguments>
-			<argument name="baseTmpPath" xsi:type="string">
-				skintype/tmp/banner
-			</argument>
-			<argument name="basePath" xsi:type="string">
-				skintype/banner
-			</argument>
-			<argument name="allowedExtensions" xsi:type="array">
-				<item name="jpg" xsi:type="string">
-					jpg
-				</item>
-				<item name="jpeg" xsi:type="string">
-					jpeg
-				</item>
-				<item name="gif" xsi:type="string">
-					gif
-				</item>
-				<item name="png" xsi:type="string">
-					png
-				</item>
-			</argument>
-		</arguments>
-	</virtualType>
+
 </config>

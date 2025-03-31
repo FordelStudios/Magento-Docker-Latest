@@ -33,9 +33,6 @@ class SkinConcernRepository implements SkinConcernRepositoryInterface
     public function save(SkinConcernInterface $skinconcern)
     {
         try {
-            $skinconcern->setPromotionalBanners(json_encode($skinconcern->getPromotionalBanners()));
-            $skinconcern->setTags(json_encode($skinconcern->getTags()));
-
             $this->resource->save($skinconcern);
         } catch (\Exception $exception) {
             throw new CouldNotSaveException(__($exception->getMessage()));
@@ -68,7 +65,7 @@ class SkinConcernRepository implements SkinConcernRepositoryInterface
                     'name' => $item->getName(),
                     'description' => $item->getDescription(),
                     'logo' => $item->getLogo(),
-                    'status' => $item->getStatus(),
+                    'tags' => $item->getTags(),
                     'created_at' => $item->getCreatedAt(),
                     'updated_at' => $item->getUpdatedAt()
                 ];
@@ -110,16 +107,11 @@ class SkinConcernRepository implements SkinConcernRepositoryInterface
             // Load existing skinconcern
             $existingSkinConcern = $this->getById($skinconcernId);
             
-            // Update fields
             $existingSkinConcern->setName($skinconcern->getName());
             $existingSkinConcern->setDescription($skinconcern->getDescription());
-            $existingSkinConcern->setTagline($skinconcern->getTagline());
             $existingSkinConcern->setLogo($skinconcern->getLogo());
-            $existingSkinConcern->setPromotionalBanners($skinconcern->getPromotionalBanners());
             $existingSkinConcern->setTags($skinconcern->getTags());
-            $existingSkinConcern->setStatus($skinconcern->getStatus());
 
-            // Save the updated skinconcern
             $this->resource->save($existingSkinConcern);
         } catch (\Exception $exception) {
             throw new CouldNotSaveException(

@@ -33,7 +33,6 @@ class IngredientRepository implements IngredientRepositoryInterface
     public function save(IngredientInterface $ingredient)
     {
         try {
-            // $ingredient->setBenefits(json_encode($ingredient->getBenefits()));
 
             $this->resource->save($ingredient);
         } catch (\Exception $exception) {

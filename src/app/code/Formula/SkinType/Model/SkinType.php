@@ -13,11 +13,8 @@ class SkinType extends AbstractModel implements SkinTypeInterface
     const SKINTYPE_ID = 'skintype_id';
     const NAME = 'name';
     const DESCRIPTION = 'description';
-    const TAGLINE = 'tagline';
     const LOGO = 'logo';
-    const PROMOTIONAL_BANNERS = 'promotional_banners';
     const TAGS = 'tags';
-    const STATUS = 'status';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
@@ -110,26 +107,6 @@ class SkinType extends AbstractModel implements SkinTypeInterface
         return $this->setData(self::DESCRIPTION, $description);
     }
 
-    /**
-     * Get SkinType Tagline
-     * 
-     * @return string|null
-     */
-    public function getTagline()
-    {
-        return $this->getData(self::TAGLINE);
-    }
-
-    /**
-     * Set SkinType Tagline
-     * 
-     * @param string|null $tagline
-     * @return $this
-     */
-    public function setTagline($tagline)
-    {
-        return $this->setData(self::TAGLINE, $tagline);
-    }
 
     /**
      * Get SkinType Logo Path
@@ -152,37 +129,7 @@ class SkinType extends AbstractModel implements SkinTypeInterface
         return $this->setData(self::LOGO, $logo);
     }
 
-    /**
-     * Get Promotional Banners
-     * 
-     * @return string|null
-     */
-    public function getPromotionalBanners()
-    {
-        $banners = $this->getData(self::PROMOTIONAL_BANNERS);
-        if ($banners && is_string($banners)) {
-            try {
-                return $this->jsonSerializer->unserialize($banners);
-            } catch (\Exception $e) {
-                return [];
-            }
-        }
-        return $banners ?: [];
-    }
-
-    /**
-     * Set Promotional Banners
-     * 
-     * @param string|mixed[] $banners
-     * @return $this
-     */
-    public function setPromotionalBanners($banners)
-    {
-        if (is_array($banners)) {
-            $banners = $this->jsonSerializer->serialize($banners);
-        }
-        return $this->setData(self::PROMOTIONAL_BANNERS, $banners);
-    }
+   
 
     /**
      * Get Tags
@@ -216,26 +163,6 @@ class SkinType extends AbstractModel implements SkinTypeInterface
         return $this->setData(self::TAGS, $tags);
     }
 
-    /**
-     * Get SkinType Status
-     * 
-     * @return int|null
-     */
-    public function getStatus()
-    {
-        return $this->getData(self::STATUS);
-    }
-
-    /**
-     * Set SkinType Status
-     * 
-     * @param int $status
-     * @return $this
-     */
-    public function setStatus($status)
-    {
-        return $this->setData(self::STATUS, $status);
-    }
 
     /**
      * Get SkinType Creation Time
