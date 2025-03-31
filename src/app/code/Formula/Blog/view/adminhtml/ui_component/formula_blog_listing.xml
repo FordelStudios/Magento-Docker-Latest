@@ -1,19 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
-	<settings>
-		<columnsOrder>
-			<column name="ids" />
-			<column name="blog_id" />
-			<column name="image" />
-			<column name="title" />
-			<column name="author" />
-			<column name="created_at" />
-			<column name="updated_at" />
-			<column name="is_published" />
-			<column name="product_ids" />
-			<column name="actions" />
-		</columnsOrder>
-	</settings>
 	<argument name="data" xsi:type="array">
 		<item name="js_config" xsi:type="array">
 			<item name="provider" xsi:type="string">
