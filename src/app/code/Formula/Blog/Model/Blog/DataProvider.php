@@ -2,10 +2,10 @@
 namespace Formula\Blog\Model\Blog;
 
 use Formula\Blog\Model\ResourceModel\Blog\CollectionFactory;
+use Formula\Blog\Model\BlogFactory;
 use Magento\Framework\App\Request\DataPersistorInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\Filesystem;
-use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\UrlInterface;
 
 class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
 {
@@ -14,6 +14,7 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
     protected $loadedData;
     protected $storeManager;
     protected $filesystem;
+    protected $blogFactory;
 
     public function __construct(
         $name,
@@ -22,14 +23,14 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
         CollectionFactory $collectionFactory,
         DataPersistorInterface $dataPersistor,
         StoreManagerInterface $storeManager,
-        Filesystem $filesystem,
+        BlogFactory $blogFactory,
         array $meta = [],
         array $data = []
     ) {
         $this->collection = $collectionFactory->create();
         $this->dataPersistor = $dataPersistor;
         $this->storeManager = $storeManager;
-        $this->filesystem = $filesystem;
+        $this->blogFactory = $blogFactory;
         parent::__construct($name, $primaryFieldName, $requestFieldName, $meta, $data);
     }
 
@@ -44,14 +45,13 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
         foreach ($items as $blog) {
             $data = $blog->getData();
             
-            // Format image data
             if (isset($data['image']) && $data['image']) {
-                $mediaUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
-                $imagePath = $mediaUrl . 'formula_blog/image/' . $data['image'];
+                $mediaUrl = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
                 $data['image'] = [
                     [
                         'name' => $data['image'],
-                        'url' => $imagePath
+                        'url' => $mediaUrl . 'blog/image/' . $data['image'],
+                        'type' => 'image'
                     ]
                 ];
             }
@@ -67,8 +67,9 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
         // Check if we have data in the persistor from a failed save attempt
         $data = $this->dataPersistor->get('blog');
         if (!empty($data)) {
-            $blogId = isset($data['blog_id']) ? $data['blog_id'] : null;
-            $this->loadedData[$blogId] = $data;
+            $blog = $this->blogFactory->create();
+            $blog->setData($data);
+            $this->loadedData[$blog->getId()] = $blog->getData();
             $this->dataPersistor->clear('blog');
         }
         

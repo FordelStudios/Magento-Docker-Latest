@@ -22,26 +22,23 @@
 		</item>
 	</argument>
 	<settings>
-        <buttons>
-            <button name="back" class="Formula\Blog\Block\Adminhtml\Blog\Edit\BackButton"/>
-            <button name="save" class="Formula\Blog\Block\Adminhtml\Blog\Edit\SaveButton"/>
-        </buttons>
-        <namespace>formula_blog_form</namespace>
-        <dataScope>data</dataScope>
-        <deps>
-            <dep>formula_blog_form.formula_blog_form_data_source</dep>
-        </deps>
-    </settings>
+		<buttons>
+			<button name="back" class="Formula\Blog\Block\Adminhtml\Blog\Edit\BackButton" />
+			<button name="save" class="Formula\Blog\Block\Adminhtml\Blog\Edit\SaveButton" />
+		</buttons>
+		<namespace>
+			formula_blog_form
+		</namespace>
+		<dataScope>
+			data
+		</dataScope>
+		<deps>
+			<dep>
+				formula_blog_form.formula_blog_form_data_source
+			</dep>
+		</deps>
+	</settings>
 	<dataSource name="formula_blog_form_data_source">
-		        <dataProvider class="Formula\Blog\Model\Blog\DataProvider" name="formula_blog_form_data_source">
-            <settings>
-                <requestFieldName>blog_id</requestFieldName>
-                <primaryFieldName>blog_id</primaryFieldName>
-            </settings>
-        </dataProvider>
-		<settings>
-            <submitUrl path="*/*/save"/>
-        </settings>
 		<argument name="data" xsi:type="array">
 			<item name="js_config" xsi:type="array">
 				<item name="component" xsi:type="string">
@@ -49,6 +46,19 @@
 				</item>
 			</item>
 		</argument>
+		<settings>
+			<submitUrl path="*/*/save" />
+		</settings>
+		<dataProvider class="Formula\Blog\Model\Blog\DataProvider" name="formula_blog_form_data_source">
+			<settings>
+				<requestFieldName>
+					blog_id
+				</requestFieldName>
+				<primaryFieldName>
+					blog_id
+				</primaryFieldName>
+			</settings>
+		</dataProvider>
 	</dataSource>
 	<fieldset name="general">
 		<argument name="data" xsi:type="array">
@@ -171,29 +181,62 @@
 			</argument>
 		</field>
 		<field name="content" formElement="textarea">
-            <settings>
-                <dataType>text</dataType>
-                <label translate="true">Content</label>
-            </settings>
-        </field>
+			<settings>
+				<dataType>
+					text
+				</dataType>
+				<label translate="true">
+					Content
+				</label>
+			</settings>
+		</field>
+		<!--
 		<field name="image">
-			<argument name="data" xsi:type="array">
-				<item name="config" xsi:type="array">
-					<item name="dataType" xsi:type="string">string</item>
-					<item name="source" xsi:type="string">blog</item>
-					<item name="label" xsi:type="string" translate="true">Blog Image</item>
-					<item name="visible" xsi:type="boolean">true</item>
-					<item name="formElement" xsi:type="string">fileUploader</item>
-					<item name="elementTmpl" xsi:type="string">ui/form/element/uploader/uploader</item>
-					<item name="previewTmpl" xsi:type="string">Formula_Blog/image-preview</item>
-					<item name="required" xsi:type="boolean">false</item>
-					<item name="sortOrder" xsi:type="number">45</item>
-					<item name="uploaderConfig" xsi:type="array">
-						<item name="url" xsi:type="url" path="formula_blog/blog/upload"/>
-					</item>
-					<item name="dataScope" xsi:type="string">image</item>
-				</item>
-			</argument>
+		<argument name="data" xsi:type="array">
+		<item name="config" xsi:type="array">
+		<item name="dataType" xsi:type="string">string</item>
+		<item name="source" xsi:type="string">blog</item>
+		<item name="label" xsi:type="string" translate="true">Blog Image</item>
+		<item name="visible" xsi:type="boolean">true</item>
+		<item name="formElement" xsi:type="string">fileUploader</item>
+		<item name="elementTmpl" xsi:type="string">ui/form/element/uploader/uploader</item>
+		<item name="previewTmpl" xsi:type="string">Formula_Blog/image-preview</item>
+		<item name="required" xsi:type="boolean">false</item>
+		<item name="sortOrder" xsi:type="number">45</item>
+		<item name="uploaderConfig" xsi:type="array">
+		<item name="url" xsi:type="url" path="formula_blog/blog/upload"/>
+		</item>
+		<item name="dataScope" xsi:type="string">image</item>
+		</item>
+		</argument>
+		</field>
+		-->
+		<field name="image" formElement="imageUploader">
+			<settings>
+				<label translate="true">
+					Blog Image
+				</label>
+				<componentType>
+					imageUploader
+				</componentType>
+			</settings>
+			<formElements>
+				<imageUploader>
+					<settings>
+						<allowedExtensions>
+							jpg jpeg gif png
+						</allowedExtensions>
+						<maxFileSize>
+							2097152
+						</maxFileSize>
+						<uploaderConfig>
+							<param xsi:type="string" name="url">
+								formula_blog/blog/upload
+							</param>
+						</uploaderConfig>
+					</settings>
+				</imageUploader>
+			</formElements>
 		</field>
 		<field name="product_ids">
 			<argument name="data" xsi:type="array">

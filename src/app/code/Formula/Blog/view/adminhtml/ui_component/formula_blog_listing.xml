@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+	<settings>
+		<columnsOrder>
+			<column name="ids" />
+			<column name="blog_id" />
+			<column name="image" />
+			<column name="title" />
+			<column name="author" />
+			<column name="created_at" />
+			<column name="updated_at" />
+			<column name="is_published" />
+			<column name="product_ids" />
+			<column name="actions" />
+		</columnsOrder>
+	</settings>
 	<argument name="data" xsi:type="array">
 		<item name="js_config" xsi:type="array">
 			<item name="provider" xsi:type="string">
@@ -29,34 +43,28 @@
 			</item>
 		</item>
 	</argument>
-	<dataSource name="formula_blog_listing_data_source">
-		<argument name="dataProvider" xsi:type="configurableObject">
-			<argument name="class" xsi:type="string">
-				Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider
-			</argument>
-			<argument name="name" xsi:type="string">
-				formula_blog_listing_data_source
-			</argument>
-			<argument name="primaryFieldName" xsi:type="string">
-				blog_id
-			</argument>
-			<argument name="requestFieldName" xsi:type="string">
-				id
-			</argument>
-			<argument name="data" xsi:type="array">
-				<item name="config" xsi:type="array">
-					<item name="component" xsi:type="string">
-						Magento_Ui/js/grid/provider
-					</item>
-					<item name="update_url" xsi:type="url" path="mui/index/render" />
-					<item name="storageConfig" xsi:type="array">
-						<item name="indexField" xsi:type="string">
-							blog_id
-						</item>
-					</item>
-				</item>
-			</argument>
-		</argument>
+	<dataSource name="formula_blog_listing_data_source" component="Magento_Ui/js/grid/provider">
+		<settings>
+			<storageConfig>
+				<param name="indexField" xsi:type="string">
+					blog_id
+				</param>
+			</storageConfig>
+			<updateUrl path="mui/index/render" />
+		</settings>
+		<aclResource>
+			Formula_Blog::blog
+		</aclResource>
+		<dataProvider class="Formula\Blog\Ui\DataProvider\Blog\ListingDataProvider" name="formula_blog_listing_data_source">
+			<settings>
+				<requestFieldName>
+					id
+				</requestFieldName>
+				<primaryFieldName>
+					blog_id
+				</primaryFieldName>
+			</settings>
+		</dataProvider>
 	</dataSource>
 	<listingToolbar name="listing_top">
 		<bookmark name="bookmarks" />
@@ -84,6 +92,9 @@
 		<column name="blog_id">
 			<argument name="data" xsi:type="array">
 				<item name="config" xsi:type="array">
+					<item name="sortOrder" xsi:type="number">
+						10
+					</item>
 					<item name="filter" xsi:type="string">
 						textRange
 					</item>
@@ -96,20 +107,35 @@
 				</item>
 			</argument>
 		</column>
-		<column name="image" class="Formula\Blog\Ui\Component\Listing\Column\Thumbnail">
+		<column name="image" component="Magento_Ui/js/grid/columns/thumbnail">
 			<argument name="data" xsi:type="array">
 				<item name="config" xsi:type="array">
-					<item name="component" xsi:type="string">Magento_Ui/js/grid/columns/thumbnail</item>
-					<item name="sortable" xsi:type="boolean">false</item>
-					<item name="altField" xsi:type="string">title</item>
-					<item name="has_preview" xsi:type="string">1</item>
-					<item name="label" xsi:type="string" translate="true">Image</item>
+					<item name="sortOrder" xsi:type="number">
+						20
+					</item>
 				</item>
 			</argument>
-		</column>	
+			<settings>
+				<label translate="true">
+					Image
+				</label>
+				<bodyTmpl>
+					ui/grid/cells/thumbnail
+				</bodyTmpl>
+				<sortable>
+					false
+				</sortable>
+				<filter>
+					false
+				</filter>
+			</settings>
+		</column>
 		<column name="title">
 			<argument name="data" xsi:type="array">
 				<item name="config" xsi:type="array">
+					<item name="sortOrder" xsi:type="number">
+						30
+					</item>
 					<item name="filter" xsi:type="string">
 						text
 					</item>
@@ -132,6 +158,9 @@
 		<column name="author">
 			<argument name="data" xsi:type="array">
 				<item name="config" xsi:type="array">
+					<item name="sortOrder" xsi:type="number">
+						40
+					</item>
 					<item name="filter" xsi:type="string">
 						text
 					</item>
@@ -149,6 +178,9 @@
 		<column name="created_at" class="Magento\Ui\Component\Listing\Columns\Date">
 			<argument name="data" xsi:type="array">
 				<item name="config" xsi:type="array">
+					<item name="sortOrder" xsi:type="number">
+						50
+					</item>
 					<item name="filter" xsi:type="string">
 						dateRange
 					</item>
@@ -167,6 +199,9 @@
 		<column name="updated_at" class="Magento\Ui\Component\Listing\Columns\Date">
 			<argument name="data" xsi:type="array">
 				<item name="config" xsi:type="array">
+					<item name="sortOrder" xsi:type="number">
+						60
+					</item>
 					<item name="filter" xsi:type="string">
 						dateRange
 					</item>
@@ -188,6 +223,9 @@
 					Magento\Config\Model\Config\Source\Yesno
 				</item>
 				<item name="config" xsi:type="array">
+					<item name="sortOrder" xsi:type="number">
+						70
+					</item>
 					<item name="filter" xsi:type="string">
 						select
 					</item>
@@ -211,6 +249,9 @@
 		<column name="product_ids">
 			<argument name="data" xsi:type="array">
 				<item name="config" xsi:type="array">
+					<item name="sortOrder" xsi:type="number">
+						80
+					</item>
 					<item name="filter" xsi:type="string">
 						text
 					</item>

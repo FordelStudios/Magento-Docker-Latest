@@ -11,6 +11,7 @@ use Psr\Log\LoggerInterface;
 use Magento\MediaStorage\Model\File\UploaderFactory;
 use Magento\Framework\Filesystem;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Formula\Blog\Model\ImageUploader;
 
 class Save extends Action
 {
@@ -20,6 +21,7 @@ class Save extends Action
     protected $logger;
     protected $uploaderFactory;
     protected $filesystem;
+    protected $imageUploader;    
 
     public function __construct(
         Context $context,
@@ -28,13 +30,15 @@ class Save extends Action
         BlogRepository $blogRepository,
         LoggerInterface $logger,
         UploaderFactory $uploaderFactory,
-        Filesystem $filesystem
+        Filesystem $filesystem,
+        ImageUploader $imageUploader
     ) {
         $this->dataPersistor = $dataPersistor;
         $this->blogFactory = $blogFactory;
         $this->blogRepository = $blogRepository;
         $this->logger = $logger;
         $this->uploaderFactory = $uploaderFactory;
+        $this->imageUploader = $imageUploader;
         $this->filesystem = $filesystem;
         parent::__construct($context);
     }
@@ -72,35 +76,23 @@ class Save extends Action
             }
             
             // Handle image upload
-            if (isset($_FILES['image']) && isset($_FILES['image']['name']) && strlen($_FILES['image']['name'])) {
-                try {
-                    $mediaDir = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
-                    $target = $mediaDir->getAbsolutePath('formula_blog/image/');
-                    
-                    // Create target directory if it doesn't exist
-                    if (!$mediaDir->isExist('formula_blog/image')) {
-                        $mediaDir->create('formula_blog/image');
+            if (isset($data['image']) && is_array($data['image'])) {
+                    if (!empty($data['image'][0]['name']) && !empty($data['image'][0]['tmp_name'])) {
+                        try {
+                            $this->imageUploader->setBaseTmpPath("blog/tmp/image");
+                            $this->imageUploader->setBasePath("blog/image");
+                            $data['image'] = $data['image'][0]['name'];
+                            $this->imageUploader->moveFileFromTmp($data['image']);
+                        } catch (\Exception $e) {
+                            $this->logger->critical($e);
+                            $this->messageManager->addExceptionMessage($e, __('Error processing image upload: %1', $e->getMessage()));
+                        }
+                    } elseif (!empty($data['image'][0]['name']) && empty($data['image'][0]['tmp_name'])) {
+                        $data['image'] = $data['image'][0]['name'];
+                    } else {
+                        unset($data['image']);
                     }
-                    
-                    $uploader = $this->uploaderFactory->create(['fileId' => 'image']);
-                    $uploader->setAllowedExtensions(['jpg', 'jpeg', 'png', 'gif']);
-                    $uploader->setAllowRenameFiles(true);
-                    $result = $uploader->save($target);
-                    
-                    if ($result['file']) {
-                        $data['image'] = $result['file'];
-                    }
-                } catch (\Exception $e) {
-                    $this->logger->critical('Image upload error: ' . $e->getMessage());
-                    $this->messageManager->addErrorMessage(__('Error uploading image: %1', $e->getMessage()));
-                }
-            } elseif (isset($data['image']) && is_array($data['image'])) {
-                if (isset($data['image'][0]['name']) && !empty($data['image'][0]['name'])) {
-                    $data['image'] = $data['image'][0]['name'];
-                } else {
-                    $data['image'] = null;
-                }
-            }
+            }    
             
             // Handle product_ids if it's an array
             if (isset($data['product_ids']) && is_array($data['product_ids'])) {
