@@ -93,6 +93,13 @@ class ListingDataProvider extends \Magento\Framework\View\Element\UiComponent\Da
                 $itemData['logo_link'] = $mediaUrl . 'ingredient/logo/' . $itemData['logo'];
                 $itemData['logo_orig_src'] = $mediaUrl . 'ingredient/logo/' . $itemData['logo'];
             }
+
+            if (isset($itemData['benefits']) && !empty($itemData['benefits'])) {
+                $decodedBenefits = json_decode($itemData['benefits'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedBenefits)) {
+                    $itemData['benefits'] = implode(',', $decodedBenefits);
+                }
+            }
             
             $data['items'][] = $itemData;
         }

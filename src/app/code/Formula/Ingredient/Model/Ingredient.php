@@ -13,11 +13,8 @@ class Ingredient extends AbstractModel implements IngredientInterface
     const INGREDIENT_ID = 'ingredient_id';
     const NAME = 'name';
     const DESCRIPTION = 'description';
-    const TAGLINE = 'tagline';
     const LOGO = 'logo';
-    const PROMOTIONAL_BANNERS = 'promotional_banners';
-    const TAGS = 'tags';
-    const STATUS = 'status';
+    const BENEFITS = 'benefits';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
@@ -110,26 +107,7 @@ class Ingredient extends AbstractModel implements IngredientInterface
         return $this->setData(self::DESCRIPTION, $description);
     }
 
-    /**
-     * Get Ingredient Tagline
-     * 
-     * @return string|null
-     */
-    public function getTagline()
-    {
-        return $this->getData(self::TAGLINE);
-    }
 
-    /**
-     * Set Ingredient Tagline
-     * 
-     * @param string|null $tagline
-     * @return $this
-     */
-    public function setTagline($tagline)
-    {
-        return $this->setData(self::TAGLINE, $tagline);
-    }
 
     /**
      * Get Ingredient Logo Path
@@ -152,90 +130,40 @@ class Ingredient extends AbstractModel implements IngredientInterface
         return $this->setData(self::LOGO, $logo);
     }
 
+    
+
     /**
-     * Get Promotional Banners
+     * Get Benefits
      * 
      * @return string|null
      */
-    public function getPromotionalBanners()
+    public function getBenefits()
     {
-        $banners = $this->getData(self::PROMOTIONAL_BANNERS);
-        if ($banners && is_string($banners)) {
+        $benefits = $this->getData(self::BENEFITS);
+        if ($benefits && is_string($benefits)) {
             try {
-                return $this->jsonSerializer->unserialize($banners);
+                return $this->jsonSerializer->unserialize($benefits);
             } catch (\Exception $e) {
                 return [];
             }
         }
-        return $banners ?: [];
+        return $benefits ?: [];
     }
 
     /**
-     * Set Promotional Banners
+     * Set Benefits
      * 
-     * @param string|mixed[] $banners
+     * @param string|mixed[] $benefits
      * @return $this
      */
-    public function setPromotionalBanners($banners)
+    public function setBenefits($benefits)
     {
-        if (is_array($banners)) {
-            $banners = $this->jsonSerializer->serialize($banners);
+        if (is_array($benefits)) {
+            $benefits = $this->jsonSerializer->serialize($benefits);
         }
-        return $this->setData(self::PROMOTIONAL_BANNERS, $banners);
+        return $this->setData(self::BENEFITS, $benefits);
     }
 
-    /**
-     * Get Tags
-     * 
-     * @return string|null
-     */
-    public function getTags()
-    {
-        $tags = $this->getData(self::TAGS);
-        if ($tags && is_string($tags)) {
-            try {
-                return $this->jsonSerializer->unserialize($tags);
-            } catch (\Exception $e) {
-                return [];
-            }
-        }
-        return $tags ?: [];
-    }
-
-    /**
-     * Set Tags
-     * 
-     * @param string|mixed[] $tags
-     * @return $this
-     */
-    public function setTags($tags)
-    {
-        if (is_array($tags)) {
-            $tags = $this->jsonSerializer->serialize($tags);
-        }
-        return $this->setData(self::TAGS, $tags);
-    }
-
-    /**
-     * Get Ingredient Status
-     * 
-     * @return int|null
-     */
-    public function getStatus()
-    {
-        return $this->getData(self::STATUS);
-    }
-
-    /**
-     * Set Ingredient Status
-     * 
-     * @param int $status
-     * @return $this
-     */
-    public function setStatus($status)
-    {
-        return $this->setData(self::STATUS, $status);
-    }
 
     /**
      * Get Ingredient Creation Time

@@ -10,7 +10,6 @@
 	<type name="Magento\Catalog\Ui\DataProvider\Product\ProductDataProvider">
 		<plugin name="formula_ingredient_data_provider" type="Formula\Ingredient\Plugin\ProductDataProviderPlugin" />
 	</type>
-	
 	<!-- Configuration for Ingredient Save controller -->
 	<type name="Formula\Ingredient\Controller\Adminhtml\Ingredient\Save">
 		<arguments>
@@ -45,30 +44,6 @@
 			</argument>
 			<argument name="basePath" xsi:type="string">
 				ingredient/logo
-			</argument>
-			<argument name="allowedExtensions" xsi:type="array">
-				<item name="jpg" xsi:type="string">
-					jpg
-				</item>
-				<item name="jpeg" xsi:type="string">
-					jpeg
-				</item>
-				<item name="gif" xsi:type="string">
-					gif
-				</item>
-				<item name="png" xsi:type="string">
-					png
-				</item>
-			</argument>
-		</arguments>
-	</virtualType>
-	<virtualType name="Formula\Ingredient\IngredientBannerUploader" type="Formula\Ingredient\Model\ImageUploader">
-		<arguments>
-			<argument name="baseTmpPath" xsi:type="string">
-				ingredient/tmp/banner
-			</argument>
-			<argument name="basePath" xsi:type="string">
-				ingredient/banner
 			</argument>
 			<argument name="allowedExtensions" xsi:type="array">
 				<item name="jpg" xsi:type="string">

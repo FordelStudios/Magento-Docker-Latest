@@ -65,37 +65,13 @@ class Save extends Action
                     }
                 }
 
-                // Handle promotional banners upload
-                if (isset($data['promotional_banners']) && is_array($data['promotional_banners'])) {
-                    $banners = [];
-                    foreach ($data['promotional_banners'] as $banner) {
-                        if (!empty($banner['name']) && !empty($banner['tmp_name'])) {
-                            try {
-                                $this->imageUploader->setBaseTmpPath("ingredient/tmp/banner");
-                                $this->imageUploader->setBasePath("ingredient/banner");
-                                $banners[] = $banner['name'];
-                                $this->imageUploader->moveFileFromTmp($banner['name']);
-                            } catch (\Exception $e) {
-                                $this->logger->critical($e);
-                                $this->messageManager->addExceptionMessage($e, __('Error processing banner upload: %1', $e->getMessage()));
-                            }
-                        } elseif (!empty($banner['name']) && empty($banner['tmp_name'])) {
-                            $banners[] = $banner['name'];
-                        }
-                    }
-                    if (!empty($banners)) {
-                        $data['promotional_banners'] = $this->jsonSerializer->serialize($banners);
-                    } else {
-                        unset($data['promotional_banners']);
-                    }
-                }
 
-                // Handle tags
-                if (isset($data['tags']) && !empty($data['tags'])) {
-                    if (is_string($data['tags'])) {
-                        $tags = array_map('trim', explode(',', $data['tags']));
-                        $tags = array_filter($tags);
-                        $data['tags'] = $this->jsonSerializer->serialize($tags);
+                // Handle benefits
+                if (isset($data['benefits']) && !empty($data['benefits'])) {
+                    if (is_string($data['benefits'])) {
+                        $benefits = array_map('trim', explode(',', $data['benefits']));
+                        $benefits = array_filter($benefits);
+                        $data['benefits'] = $this->jsonSerializer->serialize($benefits);
                     }
                 }
 

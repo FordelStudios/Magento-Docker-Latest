@@ -33,8 +33,7 @@ class IngredientRepository implements IngredientRepositoryInterface
     public function save(IngredientInterface $ingredient)
     {
         try {
-            $ingredient->setPromotionalBanners(json_encode($ingredient->getPromotionalBanners()));
-            $ingredient->setTags(json_encode($ingredient->getTags()));
+            // $ingredient->setBenefits(json_encode($ingredient->getBenefits()));
 
             $this->resource->save($ingredient);
         } catch (\Exception $exception) {
@@ -68,7 +67,7 @@ class IngredientRepository implements IngredientRepositoryInterface
                     'name' => $item->getName(),
                     'description' => $item->getDescription(),
                     'logo' => $item->getLogo(),
-                    'status' => $item->getStatus(),
+                    'benefits' => $item->getBenefits(),
                     'created_at' => $item->getCreatedAt(),
                     'updated_at' => $item->getUpdatedAt()
                 ];
@@ -113,11 +112,8 @@ class IngredientRepository implements IngredientRepositoryInterface
             // Update fields
             $existingIngredient->setName($ingredient->getName());
             $existingIngredient->setDescription($ingredient->getDescription());
-            $existingIngredient->setTagline($ingredient->getTagline());
             $existingIngredient->setLogo($ingredient->getLogo());
-            $existingIngredient->setPromotionalBanners($ingredient->getPromotionalBanners());
-            $existingIngredient->setTags($ingredient->getTags());
-            $existingIngredient->setStatus($ingredient->getStatus());
+            $existingIngredient->setBenefits($ingredient->getBenefits());
 
             // Save the updated ingredient
             $this->resource->save($existingIngredient);
