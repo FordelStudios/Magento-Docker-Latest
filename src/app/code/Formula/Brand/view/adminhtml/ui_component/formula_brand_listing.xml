@@ -102,13 +102,6 @@
                 <label translate="true">Tags</label>
             </settings>
         </column>
-        <column name="status">
-            <settings>
-                <filter>select</filter>
-                <options class="Magento\Config\Model\Config\Source\Yesno"/>
-                <label translate="true">Status</label>
-            </settings>
-        </column>
         <actionsColumn name="actions" class="Formula\Brand\Ui\Component\Listing\Column\Actions">
             <settings>
                 <indexField>brand_id</indexField>

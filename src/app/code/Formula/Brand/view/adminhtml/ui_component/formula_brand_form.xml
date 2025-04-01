@@ -148,20 +148,5 @@
                 </imageUploader>
             </formElements>
         </field>
-
-        <field name="status" formElement="select">
-            <settings>
-                <dataType>text</dataType>
-                <label translate="true">Status</label>
-                <dataScope>status</dataScope>
-            </settings>
-            <formElements>
-                <select>
-                    <settings>
-                        <options class="Magento\Config\Model\Config\Source\Yesno"/>
-                    </settings>
-                </select>
-            </formElements>
-        </field>
     </fieldset>
 </form>

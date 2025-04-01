@@ -17,7 +17,6 @@ class Brand extends AbstractModel implements BrandInterface
     const LOGO = 'logo';
     const PROMOTIONAL_BANNERS = 'promotional_banners';
     const TAGS = 'tags';
-    const STATUS = 'status';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
@@ -216,26 +215,6 @@ class Brand extends AbstractModel implements BrandInterface
         return $this->setData(self::TAGS, $tags);
     }
 
-    /**
-     * Get Brand Status
-     * 
-     * @return int|null
-     */
-    public function getStatus()
-    {
-        return $this->getData(self::STATUS);
-    }
-
-    /**
-     * Set Brand Status
-     * 
-     * @param int $status
-     * @return $this
-     */
-    public function setStatus($status)
-    {
-        return $this->setData(self::STATUS, $status);
-    }
 
     /**
      * Get Brand Creation Time

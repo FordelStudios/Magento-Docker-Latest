@@ -34,7 +34,6 @@ class BrandRepository implements BrandRepositoryInterface
     {
         try {
             $brand->setPromotionalBanners(json_encode($brand->getPromotionalBanners()));
-            $brand->setTags(json_encode($brand->getTags()));
 
             $this->resource->save($brand);
         } catch (\Exception $exception) {
@@ -67,8 +66,10 @@ class BrandRepository implements BrandRepositoryInterface
                     'brand_id' => $item->getBrandId(),
                     'name' => $item->getName(),
                     'description' => $item->getDescription(),
+                    'tagline' => $item->getTagline(),
                     'logo' => $item->getLogo(),
-                    'status' => $item->getStatus(),
+                    'tags' => $item->getTags(),
+                    'promotional_banners' => $item->getPromotionalBanners(),
                     'created_at' => $item->getCreatedAt(),
                     'updated_at' => $item->getUpdatedAt()
                 ];
@@ -117,7 +118,6 @@ class BrandRepository implements BrandRepositoryInterface
             $existingBrand->setLogo($brand->getLogo());
             $existingBrand->setPromotionalBanners($brand->getPromotionalBanners());
             $existingBrand->setTags($brand->getTags());
-            $existingBrand->setStatus($brand->getStatus());
 
             // Save the updated brand
             $this->resource->save($existingBrand);

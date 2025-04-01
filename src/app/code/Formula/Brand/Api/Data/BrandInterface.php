@@ -10,7 +10,6 @@ interface BrandInterface
     const LOGO = 'logo';
     const PROMOTIONAL_BANNERS = 'promotional_banners';
     const TAGS = 'tags';
-    const STATUS = 'status';
 
     /**
      * @return int|null
@@ -89,14 +88,5 @@ interface BrandInterface
      */
     public function setTags($tags);
 
-    /**
-     * @return int|null
-     */
-    public function getStatus();
 
-    /**
-     * @param int $status
-     * @return $this
-     */
-    public function setStatus($status);
 }
