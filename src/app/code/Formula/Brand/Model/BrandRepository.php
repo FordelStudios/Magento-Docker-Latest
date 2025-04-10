@@ -10,6 +10,7 @@ use Magento\Framework\Api\SearchResultsInterfaceFactory;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Api\SortOrder;
 
 class BrandRepository implements BrandRepositoryInterface
 {
@@ -49,14 +50,55 @@ class BrandRepository implements BrandRepositoryInterface
         if (!$brand->getId()) {
             throw new NoSuchEntityException(new \Magento\Framework\Phrase('Brand with id %1 does not exist.', [$brandId]));
         }
+        $brand->setData('created_at', $brand->getCreatedAt());
+        $brand->setData('updated_at', $brand->getUpdatedAt());
+
         return $brand;
     }
 
-    public function getList(SearchCriteriaInterface $searchCriteria){
+   public function getList(SearchCriteriaInterface $searchCriteria)
+    {
         try {
             $collection = $this->collectionFactory->create();
             
-            // Get raw items from collection
+            // Apply filters from search criteria
+            foreach ($searchCriteria->getFilterGroups() as $filterGroup) {
+                $fields = [];
+                $conditions = [];
+                
+                foreach ($filterGroup->getFilters() as $filter) {
+                    $fields[] = $filter->getField();
+                    $condition = $filter->getConditionType() ?: 'eq';
+                    $conditions[] = [$condition => $filter->getValue()];
+                }
+                
+                if ($fields) {
+                    $collection->addFieldToFilter($fields, $conditions);
+                }
+            }
+            
+            // Apply sort orders
+            $sortOrders = $searchCriteria->getSortOrders();
+            if ($sortOrders) {
+                foreach ($sortOrders as $sortOrder) {
+                    $field = $sortOrder->getField();
+                    $direction = $sortOrder->getDirection() == SortOrder::SORT_ASC ? 'ASC' : 'DESC';
+                    $collection->addOrder($field, $direction);
+                }
+            }
+            
+            // Apply pagination
+            $pageSize = $searchCriteria->getPageSize();
+            if ($pageSize) {
+                $collection->setPageSize($pageSize);
+            }
+            
+            $currentPage = $searchCriteria->getCurrentPage();
+            if ($currentPage) {
+                $collection->setCurPage($currentPage);
+            }
+            
+            // Get items from filtered, sorted, and paginated collection
             $items = $collection->getItems();
             
             // Convert items to array format
@@ -70,13 +112,19 @@ class BrandRepository implements BrandRepositoryInterface
                     'logo' => $item->getLogo(),
                     'tags' => $item->getTags(),
                     'promotional_banners' => $item->getPromotionalBanners(),
+                    'is_korean' => (bool)$item->getIsKorean(),
+                    'is_homegrown' => (bool)$item->getIsHomegrown(),
+                    'is_trending' => (bool)$item->getIsTrending(), 
+                    'is_popular' => (bool)$item->getIsPopular(),
                     'created_at' => $item->getCreatedAt(),
                     'updated_at' => $item->getUpdatedAt()
                 ];
             }
             
+            // Create and configure search results
             $searchResults = $this->searchResultsFactory->create();
             $searchResults->setSearchCriteria($searchCriteria);
+            $searchResults->getSearchCriteria()->setFilterGroups($searchCriteria->getFilterGroups());
             $searchResults->setItems($brandItems);
             $searchResults->setTotalCount($collection->getSize());
             
@@ -89,6 +137,9 @@ class BrandRepository implements BrandRepositoryInterface
             );
         }
     }
+
+
+    
 
     public function delete(BrandInterface $brand)
     {
@@ -111,19 +162,57 @@ class BrandRepository implements BrandRepositoryInterface
             // Load existing brand
             $existingBrand = $this->getById($brandId);
             
-            // Update fields
-            $existingBrand->setName($brand->getName());
-            $existingBrand->setDescription($brand->getDescription());
-            $existingBrand->setTagline($brand->getTagline());
-            $existingBrand->setLogo($brand->getLogo());
-            $existingBrand->setPromotionalBanners($brand->getPromotionalBanners());
-            $existingBrand->setTags($brand->getTags());
+            // Get all data from the request
+            $data = $brand->getData();
+            
+            // Only update fields that are explicitly set in the request
+            if (isset($data['name'])) {
+                $existingBrand->setName($brand->getName());
+            }
+            
+            if (isset($data['description'])) {
+                $existingBrand->setDescription($brand->getDescription());
+            }
+            
+            if (isset($data['tagline'])) {
+                $existingBrand->setTagline($brand->getTagline());
+            }
+            
+            if (isset($data['logo'])) {
+                $existingBrand->setLogo($brand->getLogo());
+            }
+            
+            // For JSON array fields, only update if they're explicitly in the request
+            if (array_key_exists('promotional_banners', $data)) {
+                $existingBrand->setPromotionalBanners($brand->getPromotionalBanners());
+            }
+            
+            if (array_key_exists('tags', $data)) {
+                $existingBrand->setTags($brand->getTags());
+            }
+            
+            // For boolean fields
+            if (isset($data['is_korean'])) {
+                $existingBrand->setIsKorean($brand->getIsKorean());
+            }
+            
+            if (isset($data['is_homegrown'])) {
+                $existingBrand->setIsHomegrown($brand->getIsHomegrown());
+            }
+            
+            if (isset($data['is_trending'])) {
+                $existingBrand->setIsTrending($brand->getIsTrending());
+            }
+            
+            if (isset($data['is_popular'])) {
+                $existingBrand->setIsPopular($brand->getIsPopular());
+            }
 
             // Save the updated brand
             $this->resource->save($existingBrand);
         } catch (\Exception $exception) {
             throw new CouldNotSaveException(
-                 new \Magento\Framework\Phrase('Unable to update brand: %1', [$exception->getMessage()])
+                new \Magento\Framework\Phrase('Unable to update brand: %1', [$exception->getMessage()])
             );
         }   
 

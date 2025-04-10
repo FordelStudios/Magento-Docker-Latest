@@ -10,6 +10,12 @@ interface BrandInterface
     const LOGO = 'logo';
     const PROMOTIONAL_BANNERS = 'promotional_banners';
     const TAGS = 'tags';
+    const IS_KOREAN = 'is_korean';
+    const IS_HOMEGROWN = 'is_homegrown';
+    const IS_TRENDING = 'is_trending';
+    const IS_POPULAR = 'is_popular';
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = 'updated_at';
 
     /**
      * @return int|null
@@ -87,6 +93,73 @@ interface BrandInterface
      * @return $this
      */
     public function setTags($tags);
+
+    /**
+     * @return bool|null
+     */
+    public function getIsKorean();
+
+    /**
+     * @param bool $isKorean
+     * @return $this
+     */
+
+     public function setIsKorean($isKorean);
+
+    /**
+     * @return bool|null
+     */
+    public function getIsHomegrown();
+
+    /**
+     * @param bool $isHomegrown
+     * @return $this
+     */
+    public function setIsHomegrown($isHomegrown);
+
+    /**
+     * @return bool|null
+     */
+    public function getIsTrending();
+
+    /**
+     * @param bool $isTrending
+     * @return $this
+     */
+    public function setIsTrending($isTrending);
+
+    /**
+     * @return bool|null
+     */
+    public function getIsPopular();
+
+    /**
+     * @param bool $isPopular
+     * @return $this
+     */    
+    public function setIsPopular($isPopular);
+
+    /**
+     * @return string|null
+     */
+    public function getCreatedAt();    
+    
+    /**
+     * @param string $createdAt
+     * @return $this
+     */
+    public function setCreatedAt($createdAt);
+    
+    /**
+     * @return string|null
+     */
+    public function getUpdatedAt();
+    
+    /**
+     * @param string $updatedAt
+     * @return $this
+     */
+    public function setUpdatedAt($updatedAt);
 
 
 }

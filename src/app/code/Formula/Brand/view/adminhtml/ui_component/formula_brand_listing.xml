@@ -40,7 +40,16 @@
         </settings>
         <bookmark name="bookmarks"/>
         <columnsControls name="columns_controls"/>
-        <filterSearch name="fulltext"/>
+        <filterSearch name="fulltext">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="provider" xsi:type="string">formula_brand_listing.formula_brand_listing_data_source</item>
+                </item>
+            </argument>
+            <settings>
+                <chipsProvider>formula_brand_listing.formula_brand_listing.listing_top.listing_filters_chips</chipsProvider>
+            </settings>
+        </filterSearch>
         <filters name="listing_filters"/>
         <paging name="listing_paging"/>
     </listingToolbar>
@@ -69,7 +78,7 @@
                 <label translate="true">Tagline</label>
             </settings>
         </column>
-      <column name="description" class="Magento\Ui\Component\Listing\Columns\Column">
+        <column name="description" class="Magento\Ui\Component\Listing\Columns\Column">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -79,6 +88,75 @@
                     <item name="truncate" xsi:type="number">50</item>
                 </item>
             </argument>
+        </column>
+        <!-- Boolean Fields -->
+        <column name="is_korean" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <filter>select</filter>
+                <options>
+                    <option name="0" xsi:type="array">
+                        <item name="value" xsi:type="number">0</item>
+                        <item name="label" xsi:type="string" translate="true">No</item>
+                    </option>
+                    <option name="1" xsi:type="array">
+                        <item name="value" xsi:type="number">1</item>
+                        <item name="label" xsi:type="string" translate="true">Yes</item>
+                    </option>
+                </options>
+                <dataType>select</dataType>
+                <label translate="true">Korean Brand</label>
+            </settings>
+        </column>
+        <column name="is_homegrown" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <filter>select</filter>
+                <options>
+                    <option name="0" xsi:type="array">
+                        <item name="value" xsi:type="number">0</item>
+                        <item name="label" xsi:type="string" translate="true">No</item>
+                    </option>
+                    <option name="1" xsi:type="array">
+                        <item name="value" xsi:type="number">1</item>
+                        <item name="label" xsi:type="string" translate="true">Yes</item>
+                    </option>
+                </options>
+                <dataType>select</dataType>
+                <label translate="true">Homegrown Brand</label>
+            </settings>
+        </column>
+        <column name="is_trending" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <filter>select</filter>
+                <options>
+                    <option name="0" xsi:type="array">
+                        <item name="value" xsi:type="number">0</item>
+                        <item name="label" xsi:type="string" translate="true">No</item>
+                    </option>
+                    <option name="1" xsi:type="array">
+                        <item name="value" xsi:type="number">1</item>
+                        <item name="label" xsi:type="string" translate="true">Yes</item>
+                    </option>
+                </options>
+                <dataType>select</dataType>
+                <label translate="true">Trending Brand</label>
+            </settings>
+        </column>
+        <column name="is_popular" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <filter>select</filter>
+                <options>
+                    <option name="0" xsi:type="array">
+                        <item name="value" xsi:type="number">0</item>
+                        <item name="label" xsi:type="string" translate="true">No</item>
+                    </option>
+                    <option name="1" xsi:type="array">
+                        <item name="value" xsi:type="number">1</item>
+                        <item name="label" xsi:type="string" translate="true">Yes</item>
+                    </option>
+                </options>
+                <dataType>select</dataType>
+                <label translate="true">Popular Brand</label>
+            </settings>
         </column>
         <column name="promotional_banners" class="Formula\Brand\Ui\Component\Listing\Column\PromotionalBanners">
             <settings>

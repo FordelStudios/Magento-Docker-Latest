@@ -17,6 +17,10 @@ class Brand extends AbstractModel implements BrandInterface
     const LOGO = 'logo';
     const PROMOTIONAL_BANNERS = 'promotional_banners';
     const TAGS = 'tags';
+    const IS_KOREAN = 'is_korean';
+    const IS_HOMEGROWN = 'is_homegrown';
+    const IS_TRENDING = 'is_trending';
+    const IS_POPULAR = 'is_popular';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
@@ -214,6 +218,47 @@ class Brand extends AbstractModel implements BrandInterface
         }
         return $this->setData(self::TAGS, $tags);
     }
+
+
+    public function getIsKorean()
+    {
+        return $this->getData(self::IS_KOREAN);
+    }
+
+    public function setIsKorean($isKorean)
+    {
+        return $this->setData(self::IS_KOREAN, $isKorean);
+    }
+
+    public function getIsHomegrown()
+    {
+        return $this->getData(self::IS_HOMEGROWN);
+    }
+
+    public function setIsHomegrown($isHomegrown)
+    {
+        return $this->setData(self::IS_HOMEGROWN, $isHomegrown);
+    }
+
+    public function getIsTrending()
+    {
+        return $this->getData(self::IS_TRENDING);
+    }
+
+    public function setIsTrending($isTrending)
+    {
+        return $this->setData(self::IS_TRENDING, $isTrending);
+    }
+
+    public function getIsPopular()
+    {
+        return $this->getData(self::IS_POPULAR);
+    }
+
+    public function setIsPopular($isPopular)
+    {
+        return $this->setData(self::IS_POPULAR, $isPopular);
+    }   
 
 
     /**
