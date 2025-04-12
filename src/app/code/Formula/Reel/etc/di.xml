@@ -11,6 +11,9 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\MediaGalleryIntegration\Plugin\SaveImageInformation">
+        <plugin name="formula_reel_video_uploader_plugin" type="Formula\Reel\Plugin\VideoUploaderPlugin" sortOrder="10" />
+    </type>
     <virtualType name="Formula\Reel\Model\ResourceModel\Reel\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
         <arguments>
             <argument name="mainTable" xsi:type="string">
