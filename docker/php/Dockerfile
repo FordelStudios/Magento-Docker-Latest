@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libwebp-dev \
     libxslt1-dev \
-    libzip-dev
+    libzip-dev \
+    ffmpeg 
 
 # Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp

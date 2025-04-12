@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libonig-dev \
     libssl-dev \
-    curl
+    curl \
+    ffmpeg
 
 # Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg

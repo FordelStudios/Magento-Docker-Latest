@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="reel_details" resource="default" engine="innodb" comment="Formula Reels Table">
+        <column xsi:type="int" name="reel_id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Reel ID"/>
+        <column xsi:type="text" name="description" nullable="true" comment="Reel Description"/>
+        <column xsi:type="varchar" name="video" nullable="true" length="255" comment="Reel Video"/>
+        <column xsi:type="varchar" name="timer" nullable="true" length="50" comment="Reel Timer"/>
+        <column xsi:type="text" name="product_ids" nullable="true" comment="Related Product IDs"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Creation Time"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Update Time"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="reel_id"/>
+        </constraint>
+        <index referenceId="FORMULA_REEL_REEL_ID" indexType="btree">
+            <column name="reel_id"/>
+        </index>
+    </table>
+</schema>

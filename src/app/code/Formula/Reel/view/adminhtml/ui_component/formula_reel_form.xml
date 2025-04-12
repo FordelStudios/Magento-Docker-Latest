@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+	<argument name="data" xsi:type="array">
+		<item name="js_config" xsi:type="array">
+			<item name="provider" xsi:type="string">
+				formula_reel_form.formula_reel_form_data_source
+			</item>
+		</item>
+		<item name="label" xsi:type="string" translate="true">
+			Reel Information
+		</item>
+		<item name="config" xsi:type="array">
+			<item name="dataScope" xsi:type="string">
+				data
+			</item>
+			<item name="namespace" xsi:type="string">
+				formula_reel_form
+			</item>
+		</item>
+		<item name="template" xsi:type="string">
+			templates/form/collapsible
+		</item>
+	</argument>
+	<settings>
+		<buttons>
+			<button name="back" class="Formula\Reel\Block\Adminhtml\Reel\Edit\BackButton" />
+			<button name="save" class="Formula\Reel\Block\Adminhtml\Reel\Edit\SaveButton" />
+		</buttons>
+		<namespace>
+			formula_reel_form
+		</namespace>
+		<dataScope>
+			data
+		</dataScope>
+		<deps>
+			<dep>
+				formula_reel_form.formula_reel_form_data_source
+			</dep>
+		</deps>
+	</settings>
+	<dataSource name="formula_reel_form_data_source">
+		<argument name="data" xsi:type="array">
+			<item name="js_config" xsi:type="array">
+				<item name="component" xsi:type="string">
+					Magento_Ui/js/form/provider
+				</item>
+			</item>
+		</argument>
+		<settings>
+			<submitUrl path="*/*/save" />
+		</settings>
+		<dataProvider class="Formula\Reel\Model\Reel\DataProvider" name="formula_reel_form_data_source">
+			<settings>
+				<requestFieldName>
+					reel_id
+				</requestFieldName>
+				<primaryFieldName>
+					reel_id
+				</primaryFieldName>
+			</settings>
+		</dataProvider>
+	</dataSource>
+	<fieldset name="general">
+		<argument name="data" xsi:type="array">
+			<item name="config" xsi:type="array">
+				<item name="label" xsi:type="string">
+					Reel Information
+				</item>
+				<item name="collapsible" xsi:type="boolean">
+					false
+				</item>
+			</item>
+		</argument>
+		<field name="reel_id">
+			<argument name="data" xsi:type="array">
+				<item name="config" xsi:type="array">
+					<item name="visible" xsi:type="boolean">
+						false
+					</item>
+					<item name="dataType" xsi:type="string">
+						text
+					</item>
+					<item name="formElement" xsi:type="string">
+						input
+					</item>
+					<item name="source" xsi:type="string">
+						reel
+					</item>
+				</item>
+			</argument>
+		</field>
+		<!--
+		<field name="description">
+		<argument name="data" xsi:type="array">
+		<item name="config" xsi:type="array">
+		<item name="dataType" xsi:type="string">
+		text
+		</item>
+		<item name="label" xsi:type="string" translate="true">
+		Description
+		</item>
+		<item name="formElement" xsi:type="string">
+		input
+		</item>
+		<item name="source" xsi:type="string">
+		reel
+		</item>
+		<item name="sortOrder" xsi:type="number">
+		10
+		</item>
+		<item name="dataScope" xsi:type="string">
+		description
+		</item>
+		<item name="validation" xsi:type="array">
+		<item name="required-entry" xsi:type="boolean">
+		true
+		</item>
+		</item>
+		</item>
+		</argument>
+		</field>
+		-->
+		<field name="description" formElement="textarea">
+			<settings>
+				<dataType>
+					text
+				</dataType>
+				<label translate="true">
+					Description
+				</label>
+			</settings>
+		</field>
+		<field name="video" formElement="fileUploader">
+			<argument name="data" xsi:type="array">
+				<item name="config" xsi:type="array">
+					<item name="component" xsi:type="string">
+						Formula_Reel/js/form/element/file-uploader-fix
+					</item>
+					<item name="source" xsi:type="string">
+						reel
+					</item>
+					<item name="dataScope" xsi:type="string">
+						video
+					</item>
+					<item name="validation" xsi:type="array">
+						<item name="required-entry" xsi:type="boolean">
+							true
+						</item>
+					</item>
+					<item name="uploaderConfig" xsi:type="array">
+						<item name="url" xsi:type="url" path="formula_reel/reel/upload" />
+					</item>
+					<item name="elementTmpl" xsi:type="string">
+						ui/form/element/uploader/uploader
+					</item>
+					<item name="previewTmpl" xsi:type="string">
+						ui/form/element/uploader/preview
+					</item>
+				</item>
+			</argument>
+			<settings>
+				<notice translate="true">
+					Allowed file types: mp4, mkv, gif
+				</notice>
+				<label translate="true">
+					Reel Video
+				</label>
+			</settings>
+			<formElements>
+				<fileUploader>
+					<settings>
+						<allowedExtensions>
+							mp4 mkv gif
+						</allowedExtensions>
+						<maxFileSize>
+							20971520
+						</maxFileSize>
+					</settings>
+				</fileUploader>
+			</formElements>
+		</field>
+		<field name="product_ids">
+			<argument name="data" xsi:type="array">
+				<item name="options" xsi:type="object">
+					Formula\Reel\Model\Config\Source\Products
+				</item>
+				<item name="config" xsi:type="array">
+					<item name="dataType" xsi:type="string">
+						text
+					</item>
+					<item name="label" xsi:type="string" translate="true">
+						Related Products
+					</item>
+					<item name="formElement" xsi:type="string">
+						multiselect
+					</item>
+					<item name="source" xsi:type="string">
+						reel
+					</item>
+					<item name="sortOrder" xsi:type="number">
+						60
+					</item>
+					<item name="dataScope" xsi:type="string">
+						product_ids
+					</item>
+				</item>
+			</argument>
+		</field>
+	</fieldset>
+</form>

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+	<menu>
+		<add id="Formula_Reel::content_elements" title="Formula Reels" translate="title" module="Formula_Reel" sortOrder="10" parent="Magento_Backend::content" resource="Magento_Backend::admin" />
+		<add id="Formula_Reel::post" title="Reels" translate="title" module="Formula_Reel" sortOrder="0" parent="Formula_Reel::content_elements" action="formula_reel/reel" resource="Magento_Backend::admin" />
+	</menu>
+</config>

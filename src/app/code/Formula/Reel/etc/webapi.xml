@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/reel" method="POST">
+        <service class="Formula\Reel\Api\ReelRepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/reel/:reelId" method="GET">
+        <service class="Formula\Reel\Api\ReelRepositoryInterface" method="getById"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/reel" method="GET">
+        <service class="Formula\Reel\Api\ReelRepositoryInterface" method="getList"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+        <data>
+            <parameter name="searchCriteria" force="true">%searchCriteria%</parameter>
+        </data>
+    </route>
+    <route url="/V1/reel/:reelId" method="DELETE">
+        <service class="Formula\Reel\Api\ReelRepositoryInterface" method="deleteById"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/reel/:reelId" method="PUT">
+        <service class="Formula\Reel\Api\ReelRepositoryInterface" method="update"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+</routes>
+
+
+
+
