@@ -40,21 +40,7 @@ class AddCategoryImageAttributes implements DataPatchInterface
             ]
         );
 
-        // Add banner attribute
-        $eavSetup->addAttribute(
-            \Magento\Catalog\Model\Category::ENTITY,
-            'category_banner',
-            [
-                'type' => 'varchar',
-                'label' => 'Category Banner',
-                'input' => 'image',
-                'backend' => 'Magento\Catalog\Model\Category\Attribute\Backend\Image',
-                'required' => false,
-                'sort_order' => 110,
-                'global' => \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface::SCOPE_STORE,
-                'group' => 'Content',
-            ]
-        );
+       
 
         return $this;
     }

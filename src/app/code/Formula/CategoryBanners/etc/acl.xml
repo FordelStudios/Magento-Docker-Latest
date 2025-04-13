@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!-- app/code/Formula/CategoryBanners/etc/acl.xml -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+	<acl>
+		<resources>
+			<resource id="Magento_Backend::admin">
+				<resource id="Magento_Catalog::catalog">
+					<resource id="Formula_CategoryBanners::manage" title="Category Banners" translate="title" sortOrder="50">
+						<resource id="Formula_CategoryBanners::save" title="Save Banner" translate="title" sortOrder="10" />
+						<resource id="Formula_CategoryBanners::delete" title="Delete Banner" translate="title" sortOrder="20" />
+					</resource>
+				</resource>
+			</resource>
+		</resources>
+	</acl>
+</config>

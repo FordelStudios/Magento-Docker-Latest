@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!-- app/code/Formula/CategoryBanners/etc/webapi.xml -->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    
+    <!-- Get banner by ID -->
+    <route url="/V1/formula-category-banners/:id" method="GET">
+        <service class="Formula\CategoryBanners\Api\CategoryBannerRepositoryInterface" method="getById"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    
+    <!-- Get banners by category ID -->
+    <route url="/V1/formula-category-banners/category/:categoryId" method="GET">
+        <service class="Formula\CategoryBanners\Api\CategoryBannerRepositoryInterface" method="getByCategoryId"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    
+    <!-- Create/Update a banner -->
+    <route url="/V1/formula-category-banners" method="POST">
+        <service class="Formula\CategoryBanners\Api\CategoryBannerRepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    
+    <!-- Delete a banner -->
+    <route url="/V1/formula-category-banners/:id" method="DELETE">
+        <service class="Formula\CategoryBanners\Api\CategoryBannerRepositoryInterface" method="deleteById"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    
+    <!-- Upload an image for a banner -->
+    <route url="/V1/formula-category-banners/image/upload" method="POST">
+        <service class="Formula\CategoryBanners\Api\BannerImageUploaderInterface" method="uploadImage"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    
+</routes>

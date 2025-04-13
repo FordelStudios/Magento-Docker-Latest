@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- app/code/Formula/CategoryBanners/etc/adminhtml/menu.xml -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Formula_CategoryBanners::manage" 
+             title="Category Banners" 
+             translate="title" 
+             module="Formula_CategoryBanners" 
+             sortOrder="50" 
+             parent="Magento_Catalog::catalog" 
+             action="categorybanner/categorybanner/index" 
+             resource="Formula_CategoryBanners::manage"/>
+    </menu>
+</config>
