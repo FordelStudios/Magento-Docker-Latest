@@ -57,4 +57,13 @@
 			</argument>
 		</arguments>
 	</type>
+	<virtualType name="Magento\Ui\Component\Form\Field\ElementPool">
+		<arguments>
+			<argument name="elements" xsi:type="array">
+				<item name="categoryTree" xsi:type="string">
+					Formula\CategoryBanners\Ui\Component\Form\Element\CategoryTree
+				</item>
+			</argument>
+		</arguments>
+	</virtualType>
 </config>

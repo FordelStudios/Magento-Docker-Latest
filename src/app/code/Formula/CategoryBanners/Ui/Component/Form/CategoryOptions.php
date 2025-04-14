@@ -4,7 +4,6 @@ namespace Formula\CategoryBanners\Ui\Component\Form;
 
 use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory;
 use Magento\Framework\Data\OptionSourceInterface;
-use Magento\Catalog\Model\Category as CategoryModel;
 
 class CategoryOptions implements OptionSourceInterface
 {

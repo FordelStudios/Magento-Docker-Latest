@@ -66,8 +66,8 @@ class BannerActions extends Column
                             ),
                             'label' => __('Delete'),
                             'confirm' => [
-                                'title' => __('Delete "${ $.$data.title }"'),
-                                'message' => __('Are you sure you want to delete the banner "${ $.$data.title }"?')
+                                'title' => __('Delete %1', $item['entity_id']),
+                                'message' => __('Are you sure you want to delete the banner %1?', $item['entity_id'])
                             ]
                         ]
                     ];
