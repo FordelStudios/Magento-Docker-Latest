@@ -133,25 +133,24 @@
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="source" xsi:type="string">categorybanner</item>
-                    <item name="label" xsi:type="string" translate="true">Subcategories</item>
-                    <item name="dataScope" xsi:type="string">subcategories</item>
-                    <item name="size" xsi:type="string">10</item> <!-- Height in rows -->
-                    <item name="notice" xsi:type="string" translate="true">Select subcategories or leave empty to apply to all subcategories</item>
+                    <item name="elementTmpl" xsi:type="string">ui/form/element/multiselect</item>
+                    <item name="size" xsi:type="string">15</item> <!-- Increase the height -->
                 </item>
             </argument>
             <settings>
-                <validation>
-                    <rule name="validate-no-empty" xsi:type="boolean">false</rule>
-                </validation>
+                <dataType>text</dataType>
+                <label translate="true">Subcategories</label>
+                <dataScope>subcategories</dataScope>
+                <notice>Select subcategories or leave empty to apply to all subcategories</notice>
             </settings>
             <formElements>
                 <multiselect>
                     <settings>
-                        <options class="Formula\CategoryBanners\Ui\Component\Form\Categories"/>
+                        <options class="Formula\CategoryBanners\Ui\Component\Form\CategoryStructure"/>
                     </settings>
                 </multiselect>
             </formElements>
-        </field> 
+        </field>
 
         <field name="discount_percentage" formElement="input" sortOrder="40">
             <argument name="data" xsi:type="array">

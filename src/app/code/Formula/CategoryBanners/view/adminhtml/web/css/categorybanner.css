@@ -1,0 +1,10 @@
+/* app/code/Formula/CategoryBanners/view/adminhtml/web/css/categorybanner.css */
+select[multiple][name="data.subcategories"] {
+    height: 350px !important;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+select[multiple][name="data.subcategories"] option {
+    padding: 4px;
+}
