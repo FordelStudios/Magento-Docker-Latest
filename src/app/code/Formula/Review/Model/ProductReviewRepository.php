@@ -220,6 +220,11 @@ protected function getReviewRatings($reviewId)
                 
                 // Get ratings
                 $ratings = $this->getReviewRatings($reviewModel->getId());
+
+                $isRecommended = (bool)$reviewModel->getData('is_recommended');
+            
+                // Get images for this review
+                $images = $this->getReviewImages($reviewModel->getId());
                 
                 // Populate basic data
                 $data = [
@@ -230,6 +235,7 @@ protected function getReviewRatings($reviewId)
                     'product_sku' => $sku,
                     'ratings' => $ratings['average'],
                     'status' => $statusText,
+                    'is_recommended' => $isRecommended,
                     'created_at' => $reviewModel->getCreatedAt(),
                     'updated_at' => $reviewModel->getData('updated_at') ?: $reviewModel->getCreatedAt()
                 ];
@@ -238,6 +244,10 @@ protected function getReviewRatings($reviewId)
                 
                 // Set ratings_details separately to avoid type issues
                 $reviewData->setRatingsDetails($ratings['detailed']);
+
+                if (!empty($images)) {
+                    $reviewData->setImages($images);
+                }
                 
                 $reviews[] = $reviewData;
             }
@@ -268,6 +278,12 @@ protected function getReviewRatings($reviewId)
         
         // Get ratings
         $ratings = $this->getReviewRatings($reviewModel->getId());
+
+        // Get isRecommended value
+        $isRecommended = (bool)$reviewModel->getData('is_recommended');
+        
+        // Get images for this review
+        $images = $this->getReviewImages($reviewModel->getId());
         
         // Populate basic data
         $data = [
@@ -278,6 +294,7 @@ protected function getReviewRatings($reviewId)
             'product_sku' => $product->getSku(),
             'ratings' => $ratings['average'],
             'status' => $statusText,
+            'is_recommended' => $isRecommended,
             'created_at' => $reviewModel->getCreatedAt(),
             'updated_at' => $reviewModel->getData('updated_at') ?: $reviewModel->getCreatedAt()
         ];
@@ -286,6 +303,11 @@ protected function getReviewRatings($reviewId)
         
         // Set ratings_details separately to avoid type issues
         $reviewData->setRatingsDetails($ratings['detailed']);
+
+        // Set images if there are any
+        if (!empty($images)) {
+            $reviewData->setImages($images);
+        }
         
         return $reviewData;
     }
@@ -315,6 +337,8 @@ protected function getReviewRatings($reviewId)
                     // For any other value, keep it as pending
                 }
             }
+
+            $isRecommended = $review->getIsRecommended() !== null ? (bool)$review->getIsRecommended() : null;
             
             $reviewModel->setData([
                 'nickname' => $review->getNickname(),
@@ -327,7 +351,18 @@ protected function getReviewRatings($reviewId)
                 'stores' => [$this->storeManager->getStore()->getId()]
             ]);
 
+            // Add is_recommended if it was provided
+            if ($isRecommended !== null) {
+                $reviewModel->setData('is_recommended', $isRecommended ? 1 : 0);
+            }
+
             $this->reviewResource->save($reviewModel);
+
+            // Save images if provided
+            $images = $review->getImages();
+            if (!empty($images) && is_array($images)) {
+                $this->saveReviewImages($reviewModel->getId(), $images);
+            }
             
             // Array to store created votes for later inclusion in response
             $createdRatings = [];
@@ -412,6 +447,16 @@ protected function getReviewRatings($reviewId)
             
             // Include the rating details in the response
             $review->setRatingsDetails($createdRatings);
+
+            // Include the is_recommended value in the response
+            if ($isRecommended !== null) {
+                $review->setIsRecommended($isRecommended);
+            }
+            
+            // Include images in the response
+            if (!empty($images)) {
+                $review->setImages($images);
+            }
             
             return $review;
             
@@ -473,6 +518,11 @@ protected function getReviewRatings($reviewId)
                 $reviewModel->setDetail($review->getDetail());
             }
 
+            // Update is_recommended if provided
+            if ($review->getIsRecommended() !== null) {
+                $reviewModel->setData('is_recommended', (bool)$review->getIsRecommended() ? 1 : 0);
+            }
+
             $reviewModel->setStatusId($statusId);
             
             // Set updated_at timestamp
@@ -481,6 +531,18 @@ protected function getReviewRatings($reviewId)
 
             // Save the updated review
             $this->reviewResource->save($reviewModel);
+
+            // Update images if provided
+            $images = $review->getImages();
+            if ($images !== null) {
+                // Delete existing images first
+                $this->deleteReviewImages($reviewModel->getId());
+                
+                // Then save new images if any were provided
+                if (!empty($images) && is_array($images)) {
+                    $this->saveReviewImages($reviewModel->getId(), $images);
+                }
+            }
 
             // Update ratings if the ratings field is present in the request
             // We check if the field is set rather than just checking if > 0
@@ -587,6 +649,15 @@ protected function getReviewRatings($reviewId)
                 $data['ratings'] = $this->getReviewRatings($reviewModel->getId())['average'];
             }
 
+            // Set isRecommended
+            $data['is_recommended'] = (bool)$reviewModel->getData('is_recommended');
+            
+            // Get images for the review
+            $reviewImages = $this->getReviewImages($reviewModel->getId());
+            if (!empty($reviewImages)) {
+                $data['images'] = $reviewImages;
+            }
+
             $this->dataObjectHelper->populateWithArray($responseReview, $data, ReviewInterface::class);
             
             // Set ratings_details - use updated ratings if available
@@ -625,6 +696,8 @@ protected function getReviewRatings($reviewId)
             $connection = $this->reviewResource->getConnection();
             $voteTable = $connection->getTableName('rating_option_vote');
             $connection->delete($voteTable, ['review_id = ?' => $id]);
+
+            $this->deleteReviewImages($id);
 
             // Now delete the review
             $this->reviewResource->delete($reviewModel);
@@ -723,6 +796,86 @@ protected function getReviewRatings($reviewId)
                 default:
                     return 'unknown';
             }
+        }
+    }
+
+
+
+    /**
+     * Save images for a review
+     *
+     * @param int $reviewId
+     * @param array $images
+     * @return void
+     */
+    protected function saveReviewImages($reviewId, array $images)
+    {
+        try {
+            $connection = $this->reviewResource->getConnection();
+            $tableName = $connection->getTableName('review_images'); // You'll need to create this table
+            
+            foreach ($images as $imagePath) {
+                // Skip empty strings
+                if (empty($imagePath)) {
+                    continue;
+                }
+                
+                $connection->insert(
+                    $tableName,
+                    [
+                        'review_id' => $reviewId,
+                        'image_path' => $imagePath
+                    ]
+                );
+            }
+        } catch (\Exception $e) {
+            // Log error but continue
+            // We could log the error here if you have a logger injected
+        }
+    }
+
+    /**
+     * Get images for a review
+     *
+     * @param int $reviewId
+     * @return array
+     */
+    protected function getReviewImages($reviewId)
+    {
+        try {
+            $connection = $this->reviewResource->getConnection();
+            $tableName = $connection->getTableName('review_images');
+            
+            $select = $connection->select()
+                ->from($tableName, ['image_path'])
+                ->where('review_id = ?', $reviewId);
+            
+            $results = $connection->fetchCol($select);
+            
+            return $results ?: [];
+        } catch (\Exception $e) {
+            // Log error but return empty array
+            return [];
+        }
+    }
+
+
+    /**
+     * Delete images for a review
+     *
+     * @param int $reviewId
+     * @return void
+     */
+    protected function deleteReviewImages($reviewId)
+    {
+        try {
+            $connection = $this->reviewResource->getConnection();
+            $tableName = $connection->getTableName('review_images');
+            
+            $connection->delete($tableName, ['review_id = ?' => $reviewId]);
+        } catch (\Exception $e) {
+            // Log error but continue
+            // We could log the error here if you have a logger injected
         }
     }
 }

@@ -112,4 +112,26 @@ interface ReviewInterface
      * @return $this
      */
     public function setUpdatedAt($updatedAt);
+
+    /**
+     * @return bool
+     */
+    public function getIsRecommended();
+
+    /**
+     * @param bool $isRecommended
+     * @return $this
+     */
+    public function setIsRecommended($isRecommended);
+
+    /**
+     * @return string[]
+     */
+    public function getImages();
+
+    /**
+     * @param string[] $images
+     * @return $this
+     */
+    public function setImages($images);
 }

@@ -36,4 +36,11 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+
+    <route url="/V1/reviews/image-upload" method="POST">
+        <service class="Formula\Review\Api\ReviewImageUploadInterface" method="upload" />
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

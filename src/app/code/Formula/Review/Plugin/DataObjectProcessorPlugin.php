@@ -25,6 +25,16 @@ class DataObjectProcessorPlugin
         if ($dataObject instanceof ReviewInterface && !empty($dataObject->getRatingsDetails())) {
             $result['ratings_details'] = $dataObject->getRatingsDetails();
         }
+
+        // Handle images array
+        if (!empty($dataObject->getImages())) {
+            $result['images'] = $dataObject->getImages();
+        }
+            
+        // Make sure is_recommended is included even if false
+        if ($dataObject->getIsRecommended() !== null) {
+            $result['is_recommended'] = (bool)$dataObject->getIsRecommended();
+        }            
         
         return $result;
     }

@@ -175,4 +175,38 @@ class Review extends AbstractExtensibleObject implements ReviewInterface
     {
         return $this->setData('updated_at', $updatedAt);
     }
+
+    /**
+     * @return bool
+     */
+    public function getIsRecommended()
+    {
+        return $this->_get('is_recommended');
+    }
+
+    /**
+     * @param bool $isRecommended
+     * @return $this
+     */
+    public function setIsRecommended($isRecommended)
+    {
+        return $this->setData('is_recommended', $isRecommended);
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getImages()
+    {
+        return $this->_get('images');
+    }
+
+    /**
+     * @param string[] $images
+     * @return $this
+     */
+    public function setImages($images)
+    {
+        return $this->setData('images', $images);
+    }
 }
