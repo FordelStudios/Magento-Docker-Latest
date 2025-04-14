@@ -61,6 +61,28 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
                     $data['tags'] = implode(',', $decodedTags);
                 }
             }
+
+            if (isset($data['promotional_banners']) && $data['promotional_banners']) {
+                try {
+                    $banners = json_decode($data['promotional_banners'], true);
+                    if (is_array($banners)) {
+                        $formattedBanners = [];
+                        $mediaUrl = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
+                        
+                        foreach ($banners as $banner) {
+                            $formattedBanners[] = [
+                                'name' => $banner,
+                                'url' => $mediaUrl . 'brand/banner/' . $banner,
+                                'type' => 'image'
+                            ];
+                        }
+                        
+                        $data['promotional_banners'] = $formattedBanners;
+                    }
+                } catch (\Exception $e) {
+                    // Handle error
+                }
+            }
             
             $this->loadedData[$brand->getId()] = $data;
         }

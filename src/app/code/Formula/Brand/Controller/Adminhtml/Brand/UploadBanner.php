@@ -21,6 +21,9 @@ class UploadBanner extends Action
     public function execute()
     {
         try {
+
+            $this->imageUploader->setBaseTmpPath("brand/tmp/banner");
+            $this->imageUploader->setBasePath("brand/banner");
             $result = $this->imageUploader->saveFileToTmpDir('promotional_banners');
             $result['cookie'] = [
                 'name' => $this->_getSession()->getName(),
