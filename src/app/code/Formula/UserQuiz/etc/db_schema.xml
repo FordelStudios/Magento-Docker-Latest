@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="formula_user_quiz" resource="default" engine="innodb" comment="Formula User Quiz Table">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="int" name="customer_id" padding="10" unsigned="true" nullable="false" comment="Customer ID"/>
+        <column xsi:type="int" name="question_id" padding="10" unsigned="true" nullable="false" comment="Question ID"/>
+        <column xsi:type="text" name="chosen_option_ids" nullable="true" comment="Chosen Option IDs (comma separated)"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="FORMULA_USER_QUIZ_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID" 
+                   table="formula_user_quiz" column="customer_id" 
+                   referenceTable="customer_entity" referenceColumn="entity_id" 
+                   onDelete="CASCADE"/>
+        <index referenceId="FORMULA_USER_QUIZ_CUSTOMER_ID" indexType="btree">
+            <column name="customer_id"/>
+        </index>
+        <index referenceId="FORMULA_USER_QUIZ_QUESTION_ID" indexType="btree">
+            <column name="question_id"/>
+        </index>
+        <index referenceId="FORMULA_USER_QUIZ_CUSTOMER_QUESTION" indexType="btree">
+            <column name="customer_id"/>
+            <column name="question_id"/>
+        </index>
+    </table>
+</schema>

@@ -142,10 +142,11 @@
             </settings>
         </column>
         
-        <column name="discount_percentage">
+        <column name="discount_percentage" >
             <settings>
                 <filter>textRange</filter>
                 <label translate="true">Discount %</label>
+
             </settings>
         </column>
         <actionsColumn name="actions" class="Formula\CategoryBanners\Ui\Component\Listing\Column\BannerActions">

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <!-- Create User Quiz -->
+    <route url="/V1/userquiz" method="POST">
+        <service class="Formula\UserQuiz\Api\UserQuizRepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="userQuiz" force="true">%request_body%</parameter>
+        </data>
+    </route>
+    
+    <!-- Get User Quiz by ID -->
+    <route url="/V1/userquiz/:entityId" method="GET">
+        <service class="Formula\UserQuiz\Api\UserQuizRepositoryInterface" method="getById"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+    
+    <!-- Get User Quizzes for Current Customer -->
+    <route url="/V1/userquiz/customer" method="GET">
+        <service class="Formula\UserQuiz\Api\UserQuizRepositoryInterface" method="getByCustomerId"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="customerId" force="true">%customer_id%</parameter>
+        </data>
+    </route>
+    
+    <!-- Get List of User Quizzes (filtered to current customer) -->
+    <route url="/V1/userquiz/search" method="GET">
+        <service class="Formula\UserQuiz\Api\UserQuizRepositoryInterface" method="getList"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+    
+    <!-- Update User Quiz -->
+    <route url="/V1/userquiz/:entityId" method="PUT">
+        <service class="Formula\UserQuiz\Api\UserQuizRepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="userQuiz.entity_id" force="true">%entityId%</parameter>
+        </data>
+    </route>
+    
+    <!-- Delete User Quiz -->
+    <route url="/V1/userquiz/:entityId" method="DELETE">
+        <service class="Formula\UserQuiz\Api\UserQuizRepositoryInterface" method="deleteById"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+</routes>

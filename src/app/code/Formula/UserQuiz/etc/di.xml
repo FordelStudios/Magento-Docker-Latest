@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Preferences -->
+    <preference for="Formula\UserQuiz\Api\Data\UserQuizInterface" type="Formula\UserQuiz\Model\UserQuiz" />
+    <preference for="Formula\UserQuiz\Api\UserQuizRepositoryInterface" type="Formula\UserQuiz\Model\UserQuizRepository" />
+    
+    <!-- Type configuration -->
+    <type name="Magento\Framework\Model\Entity\RepositoryFactory">
+        <arguments>
+            <argument name="entities" xsi:type="array">
+                <item name="Formula\UserQuiz\Api\Data\UserQuizInterface" xsi:type="string">Formula\UserQuiz\Api\UserQuizRepositoryInterface</item>
+            </argument>
+        </arguments>
+    </type>
+    
+    <!-- UserQuiz Repository Plugin -->
+    <type name="Formula\UserQuiz\Api\UserQuizRepositoryInterface">
+        <plugin name="formula_userquiz_data_converter" 
+                type="Formula\UserQuiz\Plugin\UserQuizDataConverter" 
+                sortOrder="10" />
+    </type>
+
+</config>
