@@ -41,8 +41,8 @@ class Brand extends AbstractModel implements BrandInterface
         \Magento\Framework\Serialize\Serializer\Json $jsonSerializer,
         array $data = []
     ) {
-        parent::__construct($context, $registry);
         $this->jsonSerializer = $jsonSerializer;
+        parent::__construct($context, $registry);
     }
 
     protected function _construct()

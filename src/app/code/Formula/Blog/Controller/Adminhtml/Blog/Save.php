@@ -12,6 +12,7 @@ use Magento\MediaStorage\Model\File\UploaderFactory;
 use Magento\Framework\Filesystem;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Formula\Blog\Model\ImageUploader;
+use Magento\Framework\Serialize\Serializer\Json;
 
 class Save extends Action
 {
@@ -21,7 +22,8 @@ class Save extends Action
     protected $logger;
     protected $uploaderFactory;
     protected $filesystem;
-    protected $imageUploader;    
+    protected $imageUploader; 
+    protected $jsonSerializer;   
 
     public function __construct(
         Context $context,
@@ -31,7 +33,8 @@ class Save extends Action
         LoggerInterface $logger,
         UploaderFactory $uploaderFactory,
         Filesystem $filesystem,
-        ImageUploader $imageUploader
+        ImageUploader $imageUploader,
+        Json $jsonSerializer
     ) {
         $this->dataPersistor = $dataPersistor;
         $this->blogFactory = $blogFactory;
@@ -40,6 +43,7 @@ class Save extends Action
         $this->uploaderFactory = $uploaderFactory;
         $this->imageUploader = $imageUploader;
         $this->filesystem = $filesystem;
+        $this->jsonSerializer = $jsonSerializer;
         parent::__construct($context);
     }
 
@@ -93,6 +97,14 @@ class Save extends Action
                         unset($data['image']);
                     }
             }    
+
+                if (isset($data['tags']) && !empty($data['tags'])) {
+                    if (is_string($data['tags'])) {
+                        $tags = array_map('trim', explode(',', $data['tags']));
+                        $tags = array_filter($tags);
+                        $data['tags'] = $this->jsonSerializer->serialize($tags);
+                    }
+                }       
             
             // Handle product_ids if it's an array
             if (isset($data['product_ids']) && is_array($data['product_ids'])) {

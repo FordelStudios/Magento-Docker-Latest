@@ -16,13 +16,14 @@
             </argument>
         </arguments>
     </virtualType>
+    
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
-        <arguments>
-            <argument name="collections" xsi:type="array">
-                <item name="categorybanner_listing_data_source" xsi:type="string">Formula\CategoryBanners\Model\ResourceModel\CategoryBanner\Grid\Collection</item>
-            </argument>
-        </arguments>
+        <plugin name="formula_categorybanner_collection_factory" 
+                type="Formula\CategoryBanners\Plugin\AddCategoryBannerDataSource" 
+                sortOrder="10" />
     </type>
+
+
     <virtualType name="Formula\CategoryBanners\Model\ResourceModel\CategoryBanner\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
         <arguments>
             <argument name="mainTable" xsi:type="string">formula_category_banners</argument>

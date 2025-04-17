@@ -55,6 +55,13 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
                     ]
                 ];
             }
+
+            if (isset($data['tags']) && !empty($data['tags'])) {
+                $decodedTags = json_decode($data['tags'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedTags)) {
+                    $data['tags'] = implode(',', $decodedTags);
+                }
+            }
             
             // Format product_ids
             if (isset($data['product_ids']) && !is_array($data['product_ids']) && !empty($data['product_ids'])) {

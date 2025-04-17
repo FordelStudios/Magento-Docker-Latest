@@ -10,6 +10,7 @@ namespace Formula\Blog\Model;
 use Formula\Blog\Api\Data\BlogInterface;
 use Magento\Framework\DataObject\IdentityInterface;
 use Magento\Framework\Model\AbstractModel;
+use Magento\Framework\Serialize\Serializer\Json;
 
 class Blog extends AbstractModel implements BlogInterface, IdentityInterface
 {
@@ -27,6 +28,33 @@ class Blog extends AbstractModel implements BlogInterface, IdentityInterface
      * @var string
      */
     protected $_eventPrefix = 'formula_blog_post';
+
+    /**
+     * @var Json
+     */
+    private $jsonSerializer;
+
+    /**
+     * Blog constructor.
+     *
+     * @param \Magento\Framework\Model\Context $context
+     * @param \Magento\Framework\Registry $registry
+     * @param Json $jsonSerializer
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
+     * @param array $data
+     */
+    public function __construct(
+        \Magento\Framework\Model\Context $context,
+        \Magento\Framework\Registry $registry,
+        Json $jsonSerializer,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        array $data = []
+    ) {
+        $this->jsonSerializer = $jsonSerializer;
+        parent::__construct($context, $registry, $resource, $resourceCollection, $data);
+    }
 
     /**
      * Initialize resource model
@@ -240,5 +268,37 @@ class Blog extends AbstractModel implements BlogInterface, IdentityInterface
     public function setProductIds($productIds)
     {
         return $this->setData(self::PRODUCT_IDS, $productIds);
+    }
+
+    /**
+     * Get Tags
+     * 
+     * @return string[]|null
+     */
+    public function getTags()
+    {
+        $tags = $this->getData(self::TAGS);
+        if ($tags && is_string($tags)) {
+            try {
+                return $this->jsonSerializer->unserialize($tags);
+            } catch (\Exception $e) {
+                return [];
+            }
+        }
+        return $tags ?: [];
+    }
+
+    /**
+     * Set Tags
+     * 
+     * @param string|mixed[] $tags
+     * @return $this
+     */
+    public function setTags($tags)
+    {
+        if (is_array($tags)) {
+            $tags = $this->jsonSerializer->serialize($tags);
+        }
+        return $this->setData(self::TAGS, $tags);
     }
 }

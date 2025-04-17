@@ -32,6 +32,16 @@
                 </item>
             </argument>
         </field>
+        <field name="text_description" formElement="textarea">
+			<settings>
+				<dataType>
+					text
+				</dataType>
+				<label translate="true">
+					Text Description
+				</label>
+			</settings>
+		</field>
         <!-- Add new toggle switches -->
         <field name="is_trending">
             <argument name="data" xsi:type="array">

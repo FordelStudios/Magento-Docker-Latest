@@ -93,6 +93,13 @@ class ListingDataProvider extends \Magento\Framework\View\Element\UiComponent\Da
                 $itemData['image_link'] = $mediaUrl . 'blog/image/' . $itemData['image'];
                 $itemData['image_orig_src'] = $mediaUrl . 'blog/image/' . $itemData['image'];
             }
+
+            if (isset($itemData['tags']) && !empty($itemData['tags'])) {
+                $decodedTags = json_decode($itemData['tags'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedTags)) {
+                    $itemData['tags'] = implode(',', $decodedTags);
+                }
+            }           
             
             $data['items'][] = $itemData;
         }

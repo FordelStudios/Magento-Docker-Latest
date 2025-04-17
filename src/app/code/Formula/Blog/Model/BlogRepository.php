@@ -142,7 +142,8 @@ class BlogRepository implements BlogRepositoryInterface
                     'created_at' => $item->getCreatedAt(),
                     'updated_at' => $item->getUpdatedAt(),
                     'isPublished' => $item->getIsPublished(),
-                    'product_ids' => $item->getProductIds()
+                    'product_ids' => $item->getProductIds(),
+                    'tags' => $item->getTags(),
                 ];
             }
 
@@ -215,6 +216,7 @@ class BlogRepository implements BlogRepositoryInterface
         $existingBlog->setAuthor($blog->getAuthor());
         $existingBlog->setIsPublished($blog->getIsPublished());
         $existingBlog->setProductIds($blog->getProductIds());
+        $existingBlog->setTags($blog->getTags());
         // Set the current timestamp for updated_at
         $existingBlog->setUpdatedAt(date('Y-m-d H:i:s'));
         

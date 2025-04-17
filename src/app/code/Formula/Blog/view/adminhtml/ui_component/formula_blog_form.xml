@@ -190,27 +190,6 @@
 				</label>
 			</settings>
 		</field>
-		<!--
-		<field name="image">
-		<argument name="data" xsi:type="array">
-		<item name="config" xsi:type="array">
-		<item name="dataType" xsi:type="string">string</item>
-		<item name="source" xsi:type="string">blog</item>
-		<item name="label" xsi:type="string" translate="true">Blog Image</item>
-		<item name="visible" xsi:type="boolean">true</item>
-		<item name="formElement" xsi:type="string">fileUploader</item>
-		<item name="elementTmpl" xsi:type="string">ui/form/element/uploader/uploader</item>
-		<item name="previewTmpl" xsi:type="string">Formula_Blog/image-preview</item>
-		<item name="required" xsi:type="boolean">false</item>
-		<item name="sortOrder" xsi:type="number">45</item>
-		<item name="uploaderConfig" xsi:type="array">
-		<item name="url" xsi:type="url" path="formula_blog/blog/upload"/>
-		</item>
-		<item name="dataScope" xsi:type="string">image</item>
-		</item>
-		</argument>
-		</field>
-		-->
 		<field name="image" formElement="imageUploader">
 			<settings>
 				<label translate="true">
@@ -238,6 +217,18 @@
 				</imageUploader>
 			</formElements>
 		</field>
+        <field name="tags" formElement="textarea">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">blog</item>
+                    <item name="notice" xsi:type="string">Enter tags separated by commas</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Tags</label>
+            </settings>
+        </field>		
 		<field name="product_ids">
 			<argument name="data" xsi:type="array">
 				<item name="options" xsi:type="object">
