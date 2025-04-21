@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Catalog\Api\ProductRepositoryInterface">
+        <plugin name="add_stock_information_to_products_api" type="Formula\StockExtension\Plugin\AddStockInformationToProducts" />
+    </type>
+</config>
