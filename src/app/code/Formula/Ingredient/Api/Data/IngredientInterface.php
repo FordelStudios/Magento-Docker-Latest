@@ -8,6 +8,7 @@ interface IngredientInterface
     const DESCRIPTION = 'description';
     const LOGO = 'logo';
     const BENEFITS = 'benefits';
+    const IS_KOREAN = 'is_korean';
 
     /**
      * @return int|null
@@ -66,6 +67,18 @@ interface IngredientInterface
      * @return $this
      */
     public function setBenefits($benefits);
+
+
+    /**
+     * @return bool|null
+     */
+    public function getIsKorean();
+
+    /**
+     * @param bool $isKorean
+     * @return $this
+     */
+    public function setIsKorean($isKorean);
 
 
 }

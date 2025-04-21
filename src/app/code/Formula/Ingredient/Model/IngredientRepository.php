@@ -68,7 +68,8 @@ class IngredientRepository implements IngredientRepositoryInterface
                     'logo' => $item->getLogo(),
                     'benefits' => $item->getBenefits(),
                     'created_at' => $item->getCreatedAt(),
-                    'updated_at' => $item->getUpdatedAt()
+                    'updated_at' => $item->getUpdatedAt(),
+                    'is_korean' => $item->getIsKorean(),
                 ];
             }
             

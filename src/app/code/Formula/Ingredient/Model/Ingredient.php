@@ -17,6 +17,7 @@ class Ingredient extends AbstractModel implements IngredientInterface
     const BENEFITS = 'benefits';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
+    const IS_KOREAN = 'is_korean';
 
     /**
      * @var \Magento\Framework\Serialize\Serializer\Json
@@ -205,5 +206,20 @@ class Ingredient extends AbstractModel implements IngredientInterface
     public function setUpdatedAt($updatedAt)
     {
         return $this->setData(self::UPDATED_AT, $updatedAt);
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getIsKorean(){
+        return $this->getData(self::IS_KOREAN);
+    }
+
+    /**
+     * @param bool $isKorean
+     * @return $this
+     */
+    public function setIsKorean($isKorean){
+        return $this->setData(self::IS_KOREAN, $isKorean);
     }
 }

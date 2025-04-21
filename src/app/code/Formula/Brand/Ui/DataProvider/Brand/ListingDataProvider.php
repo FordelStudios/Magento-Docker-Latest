@@ -113,11 +113,7 @@ class ListingDataProvider extends \Magento\Framework\View\Element\UiComponent\Da
         parent::addFilter($filter);
     }
 
-     /**
-     * Returns Search result
-     *
-     * @return SearchResultInterface
-     */
+
     public function getSearchResult()
     {
         return $this->searchResultToOutput(
