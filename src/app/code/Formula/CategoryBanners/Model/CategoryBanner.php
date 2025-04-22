@@ -11,7 +11,7 @@ class CategoryBanner extends AbstractModel implements CategoryBannerInterface
      * Constant for is_active field value
      */
     const STATUS_ENABLED = 1;
-    
+
     /**
      * Initialize resource model
      *
@@ -75,7 +75,7 @@ class CategoryBanner extends AbstractModel implements CategoryBannerInterface
      */
     public function isActive()
     {
-        return (bool)$this->getData(self::IS_ACTIVE);
+        return (bool) $this->getData(self::IS_ACTIVE);
     }
 
     /**
@@ -93,7 +93,7 @@ class CategoryBanner extends AbstractModel implements CategoryBannerInterface
         } else if (is_bool($isActive)) {
             $isActive = $isActive ? 1 : 0;
         }
-        
+
         return $this->setData(self::IS_ACTIVE, $isActive);
     }
 
@@ -160,7 +160,56 @@ class CategoryBanner extends AbstractModel implements CategoryBannerInterface
     {
         return $this->setData(self::DISCOUNT_PERCENTAGE, $percentage);
     }
-    
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIsCarouselBanner()
+    {
+        return $this->getData(self::IS_CAROUSEL_BANNER);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setIsCarouselBanner($isCarouselBanner)
+    {
+        return $this->setData(self::IS_CAROUSEL_BANNER, $isCarouselBanner);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIsDiscountBanner()
+    {
+        return $this->getData(self::IS_DISCOUNT_BANNER);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setIsDiscountBanner($isDiscountBanner)
+    {
+        return $this->setData(self::IS_DISCOUNT_BANNER, $isDiscountBanner);
+    }
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    public function getIsSaleBanner()
+    {
+        return $this->getData(self::IS_SALE_BANNER);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setIsSaleBanner($isSaleBanner)
+    {
+        return $this->setData(self::IS_SALE_BANNER, $isSaleBanner);
+    }
+
     /**
      * Process data before saving
      *
@@ -170,18 +219,18 @@ class CategoryBanner extends AbstractModel implements CategoryBannerInterface
     {
         // Handle the current date
         if ($this->isObjectNew()) {
-            if (!$this->getCreatedAt()) {
+            if (! $this->getCreatedAt()) {
                 $this->setCreatedAt(date('Y-m-d H:i:s'));
             }
         }
-        
+
         $this->setUpdatedAt(date('Y-m-d H:i:s'));
-        
+
         // Set default value for is_active if not provided
         if ($this->getData(self::IS_ACTIVE) === null) {
             $this->setIsActive(true);
         }
-        
+
         return parent::beforeSave();
     }
 }

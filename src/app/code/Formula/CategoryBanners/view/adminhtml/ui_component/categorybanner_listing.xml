@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- app/code/Formula/CategoryBanners/view/adminhtml/ui_component/categorybanner_listing.xml -->
-<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
     <argument name="data" xsi:type="array">
         <item name="js_config" xsi:type="array">
             <item name="provider" xsi:type="string">categorybanner_listing.categorybanner_listing_data_source</item>
@@ -135,20 +134,75 @@
                 <label translate="true">Updated</label>
             </settings>
         </column>
-         <column name="subcategories">
+        <column name="subcategories">
             <settings>
                 <filter>text</filter>
                 <label translate="true">Subcategories</label>
             </settings>
         </column>
-        
-        <column name="discount_percentage" >
+
+        <column name="discount_percentage">
             <settings>
                 <filter>textRange</filter>
                 <label translate="true">Discount %</label>
 
             </settings>
         </column>
+
+        <column name="is_carousel_banner" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <filter>select</filter>
+                <options>
+                    <option name="0" xsi:type="array">
+                        <item name="value" xsi:type="number">0</item>
+                        <item name="label" xsi:type="string" translate="true">No</item>
+                    </option>
+                    <option name="1" xsi:type="array">
+                        <item name="value" xsi:type="number">1</item>
+                        <item name="label" xsi:type="string" translate="true">Yes</item>
+                    </option>
+                </options>
+                <dataType>select</dataType>
+                <label translate="true">Is Carousel Banner</label>
+            </settings>
+        </column>
+
+        <column name="is_discount_banner" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <filter>select</filter>
+                <options>
+                    <option name="0" xsi:type="array">
+                        <item name="value" xsi:type="number">0</item>
+                        <item name="label" xsi:type="string" translate="true">No</item>
+                    </option>
+                    <option name="1" xsi:type="array">
+                        <item name="value" xsi:type="number">1</item>
+                        <item name="label" xsi:type="string" translate="true">Yes</item>
+                    </option>
+                </options>
+                <dataType>select</dataType>
+                <label translate="true">Is Discount Banner</label>
+            </settings>
+        </column>
+
+        <column name="is_sale_banner" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <filter>select</filter>
+                <options>
+                    <option name="0" xsi:type="array">
+                        <item name="value" xsi:type="number">0</item>
+                        <item name="label" xsi:type="string" translate="true">No</item>
+                    </option>
+                    <option name="1" xsi:type="array">
+                        <item name="value" xsi:type="number">1</item>
+                        <item name="label" xsi:type="string" translate="true">Yes</item>
+                    </option>
+                </options>
+                <dataType>select</dataType>
+                <label translate="true">Is Sale Banner</label>
+            </settings>
+        </column>
+
         <actionsColumn name="actions" class="Formula\CategoryBanners\Ui\Component\Listing\Column\BannerActions">
             <settings>
                 <indexField>entity_id</indexField>
