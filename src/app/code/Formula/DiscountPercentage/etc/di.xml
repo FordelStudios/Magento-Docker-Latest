@@ -2,5 +2,6 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Magento\Catalog\Api\ProductRepositoryInterface">
         <plugin name="formula_add_discount_percentage_extension_attribute" type="Formula\DiscountPercentage\Plugin\ProductRepositoryPlugin" />
+        <plugin name="formula_filter_by_discount_percentage" type="Formula\DiscountPercentage\Plugin\ProductRepositorySearchPlugin" />
     </type>
 </config>
