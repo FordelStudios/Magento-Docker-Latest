@@ -3,15 +3,15 @@ namespace Formula\RazorpayApi\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer;
-use Magento\Framework\App\ResourceConnection;
+use Psr\Log\LoggerInterface;
 
 class SaveRazorpayOrder implements ObserverInterface
 {
-    protected $resource;
+    protected $logger;
 
-    public function __construct(ResourceConnection $resource)
+    public function __construct(LoggerInterface $logger)
     {
-        $this->resource = $resource;
+        $this->logger = $logger;
     }
 
     public function execute(Observer $observer)
@@ -19,18 +19,11 @@ class SaveRazorpayOrder implements ObserverInterface
         $order = $observer->getEvent()->getOrder();
         $payment = $order->getPayment();
 
+        $this->logger->debug('Observer triggered. Order ID: ' . $order->getIncrementId());
+
         if ($payment && $payment->getMethod() === 'razorpay') {
             $rzpOrderId = $payment->getAdditionalInformation('rzp_order_id');
-
-            if ($rzpOrderId) {
-                $connection = $this->resource->getConnection();
-                $table = $this->resource->getTableName('razorpay_sales_order');
-
-                $connection->insertOnDuplicate($table, [
-                    'order_id' => $order->getEntityId(),
-                    'rzp_order_id' => $rzpOrderId,
-                ]);
-            }
+            $this->logger->debug('Razorpay ID: ' . $rzpOrderId);
         }
     }
 }
