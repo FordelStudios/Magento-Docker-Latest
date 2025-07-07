@@ -20,6 +20,9 @@ class SaveRazorpayOrder implements ObserverInterface
         $payment = $order->getPayment();
 
         $this->logger->debug('Observer triggered. Order ID: ' . $order->getIncrementId());
+        $this->logger->debug('Payment method: ' . $payment->getMethod());
+        $this->logger->debug('Razorpay Order ID: ' . json_encode($payment->getAdditionalInformation()));
+
 
         if ($payment && $payment->getMethod() === 'razorpay') {
             $rzpOrderId = $payment->getAdditionalInformation('rzp_order_id');
