@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- app/code/Formula/CountryFormulaBanners/view/adminhtml/ui_component/countryformulabanner_form.xml -->
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">countryformulabanner_form.countryformulabanner_form_data_source</item>
+        </item>
+        <item name="label" xsi:type="string" translate="true">Country Formula Banner Information</item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="back" class="Formula\CountryFormulaBanners\Block\Adminhtml\CountryFormulaBanner\Edit\BackButton"/>
+            <button name="delete" class="Formula\CountryFormulaBanners\Block\Adminhtml\CountryFormulaBanner\Edit\DeleteButton"/>
+            <button name="save" class="Formula\CountryFormulaBanners\Block\Adminhtml\CountryFormulaBanner\Edit\SaveButton"/>
+            <button name="save_and_continue" class="Formula\CountryFormulaBanners\Block\Adminhtml\CountryFormulaBanner\Edit\SaveAndContinueButton"/>
+        </buttons>
+        <namespace>countryformulabanner_form</namespace>
+        <dataScope>data</dataScope>
+        <deps>
+            <dep>countryformulabanner_form.countryformulabanner_form_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="countryformulabanner_form_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
+            </item>
+        </argument>
+        <settings>
+            <submitUrl path="countryformulabanner/countryformulabanner/save"/>
+        </settings>
+        <dataProvider class="Formula\CountryFormulaBanners\Model\Banner\DataProvider" name="countryformulabanner_form_data_source">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>entity_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="general">
+        <settings>
+            <label translate="true">Country Formula Banner Information</label>
+        </settings>
+        
+        <!-- Hidden Entity ID Field -->
+        <field name="entity_id" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">country_formula_banner</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <visible>false</visible>
+                <dataScope>entity_id</dataScope>
+            </settings>
+        </field>
+
+        <!-- Country Dropdown Field -->
+        <field name="country_id" formElement="select" sortOrder="10">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">country_formula_banner</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Country</label>
+                <dataScope>country_id</dataScope>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Magento\Directory\Model\Config\Source\Country"/>
+                        <caption translate="true">-- Please Select Country --</caption>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+
+        <!-- Banner Image Upload Field -->
+        <field name="banner_image" formElement="fileUploader" sortOrder="20">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">country_formula_banner</item>
+                </item>
+            </argument>
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>string</dataType>
+                <label translate="true">Banner Image</label>
+                <dataScope>banner_image</dataScope>
+            </settings>
+            <formElements>
+                <fileUploader>
+                    <settings>
+                        <allowedExtensions>jpg jpeg gif png</allowedExtensions>
+                        <maxFileSize>4194304</maxFileSize>
+                        <uploaderConfig>
+                            <param xsi:type="string" name="url">countryformulabanner/countryformulabanner/upload</param>
+                        </uploaderConfig>
+                    </settings>
+                </fileUploader>
+            </formElements>
+        </field>
+
+        <!-- Active Status Field -->
+        <field name="is_active" formElement="checkbox" sortOrder="30">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">country_formula_banner</item>
+                    <item name="default" xsi:type="number">1</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>boolean</dataType>
+                <label translate="true">Enable Banner</label>
+                <dataScope>is_active</dataScope>
+            </settings>
+            <formElements>
+                <checkbox>
+                    <settings>
+                        <valueMap>
+                            <map name="false" xsi:type="number">0</map>
+                            <map name="true" xsi:type="number">1</map>
+                        </valueMap>
+                        <prefer>toggle</prefer>
+                    </settings>
+                </checkbox>
+            </formElements>
+        </field>
+    </fieldset>
+</form>

@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!-- app/code/Formula/CountryFormulaBanners/etc/di.xml -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+	<!-- Repository preferences -->
+	<preference for="Formula\CountryFormulaBanners\Api\Data\CountryFormulaBannerInterface" type="Formula\CountryFormulaBanners\Model\CountryFormulaBanner" />
+	<preference for="Formula\CountryFormulaBanners\Api\CountryFormulaBannerRepositoryInterface" type="Formula\CountryFormulaBanners\Model\CountryFormulaBannerRepository" />
+	<preference for="Formula\CountryFormulaBanners\Api\BannerImageUploaderInterface" type="Formula\CountryFormulaBanners\Model\BannerImageUploader" />
+	<!-- Data providers -->
+	<type name="Formula\CountryFormulaBanners\Model\Uploader">
+		<arguments>
+			<argument name="baseTmpPath" xsi:type="string">
+				formula/tmp/countryFormulaBanner
+			</argument>
+			<argument name="basePath" xsi:type="string">
+				formula/countryFormulaBanner
+			</argument>
+			<argument name="allowedExtensions" xsi:type="array">
+				<item name="jpg" xsi:type="string">
+					jpg
+				</item>
+				<item name="jpeg" xsi:type="string">
+					jpeg
+				</item>
+				<item name="gif" xsi:type="string">
+					gif
+				</item>
+				<item name="png" xsi:type="string">
+					png
+				</item>
+			</argument>
+		</arguments>
+	</type>
+	<!-- Add repository as a shared instance -->
+	<type name="Formula\CountryFormulaBanners\Model\CountryFormulaBannerRepository">
+		<arguments>
+			<argument name="resource" xsi:type="object">
+				Formula\CountryFormulaBanners\Model\ResourceModel\CountryFormulaBanner
+			</argument>
+			<argument name="countryFormulaBannerFactory" xsi:type="object">
+				Formula\CountryFormulaBanners\Model\CountryFormulaBannerFactory
+			</argument>
+			<argument name="countryFormulaBannerCollectionFactory" xsi:type="object">
+				Formula\CountryFormulaBanners\Model\ResourceModel\CountryFormulaBanner\CollectionFactory
+			</argument>
+			<argument name="dateTime" xsi:type="object">
+				Magento\Framework\Stdlib\DateTime\DateTime
+			</argument>
+		</arguments>
+	</type>
+
+</config>

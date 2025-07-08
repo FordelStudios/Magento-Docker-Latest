@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- app/code/Formula/CountryFormulaBanners/etc/adminhtml/menu.xml -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Formula_CountryFormulaBanners::manage" 
+             title="Country Formula Banners" 
+             translate="title" 
+             module="Formula_CountryFormulaBanners" 
+             sortOrder="50" 
+             parent="Magento_Catalog::catalog" 
+             action="countryformulabanner/countryformulabanner/index" 
+             resource="Formula_CountryFormulaBanners::manage"/>
+    </menu>
+</config>

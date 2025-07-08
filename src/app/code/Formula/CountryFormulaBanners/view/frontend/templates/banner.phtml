@@ -1,0 +1,39 @@
+<?php
+/**
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Formula\CategoryBanners\Model\ResourceModel\CategoryBanner\Collection $banners
+ */
+
+$categoryId = $block->getCategoryId();
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$bannerRepository = $objectManager->get(\Formula\CategoryBanners\Model\CategoryBannerRepository::class);
+$banners = $bannerRepository->getByCategoryId($categoryId);
+$mediaUrl = $objectManager->get(\Magento\Store\Model\StoreManagerInterface::class)
+    ->getStore()
+    ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+?>
+
+<?php if (count($banners)): ?>
+<div class="category-banners">
+    <?php foreach ($banners as $banner): ?>
+        <div class="category-banner-item">
+            <img src="<?= $mediaUrl . 'formula/categorybanner/' . $banner->getBannerImage() ?>" 
+                 alt="<?= $block->escapeHtml($banner->getTitle()) ?>"
+                 title="<?= $block->escapeHtml($banner->getTitle()) ?>"
+                 class="category-banner-image" />
+            
+            <?php if ($banner->getTitle()): ?>
+                <div class="category-banner-title">
+                    <?= $block->escapeHtml($banner->getTitle()) ?>
+                </div>
+            <?php endif; ?>
+            
+            <?php if ($banner->getDescription()): ?>
+                <div class="category-banner-description">
+                    <?= $block->escapeHtml($banner->getDescription()) ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
