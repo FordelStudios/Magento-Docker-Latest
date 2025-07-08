@@ -7,4 +7,7 @@
 
     <preference for="Formula\RazorpayApi\Api\Data\RazorpayOrderDataInterface"
                 type="Formula\RazorpayApi\Model\Data\RazorpayOrderData" />
+
+    <preference for="Formula\RazorpayApi\Api\OrderManagementInterface" type="Formula\RazorpayApi\Model\OrderManagement" />
+    <preference for="Formula\RazorpayApi\Api\Data\OrderResponseInterface" type="Formula\RazorpayApi\Model\Data\OrderResponse" />
 </config>

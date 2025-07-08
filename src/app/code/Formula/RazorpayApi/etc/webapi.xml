@@ -1,5 +1,12 @@
 <?xml version="1.0"?>
-<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi/etc/webapi.xsd">
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/razorpay/orders" method="POST">
+        <service class="Formula\RazorpayApi\Api\OrderManagementInterface" method="createOrder"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
     <route url="/V1/razorpay/order/:incrementId" method="GET">
         <service class="Formula\RazorpayApi\Api\RazorpayOrderInterface" method="getByIncrementId"/>
         <resources>
