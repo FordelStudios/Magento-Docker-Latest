@@ -9,7 +9,7 @@ class RazorpayOrderData extends AbstractModel implements RazorpayOrderDataInterf
     const RZP_ORDER_ID = 'razorpay_order_id';
     const AMOUNT = 'amount';
     const CURRENCY = 'currency';
-    const KEY = 'key';
+
 
     public function getRazorpayOrderId(): string
     {
@@ -41,13 +41,4 @@ class RazorpayOrderData extends AbstractModel implements RazorpayOrderDataInterf
         return $this->setData(self::CURRENCY, $currency);
     }
 
-    public function getKey(): string
-    {
-        return $this->getData(self::KEY);
-    }
-
-    public function setKey(string $key): self
-    {
-        return $this->setData(self::KEY, $key);
-    }
 }

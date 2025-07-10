@@ -48,18 +48,4 @@ interface RazorpayOrderDataInterface
      */
     public function setCurrency(string $currency): self;
 
-    /**
-     * Get Razorpay Public API Key
-     *
-     * @return string
-     */
-    public function getKey(): string;
-
-    /**
-     * Set Razorpay Public API Key
-     *
-     * @param string $key
-     * @return $this
-     */
-    public function setKey(string $key): self;
 }

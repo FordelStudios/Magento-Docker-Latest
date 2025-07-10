@@ -43,8 +43,7 @@ class RazorpayOrder implements RazorpayOrderInterface
 
             $model->setRazorpayOrderId($row['rzp_order_id'])
                 ->setAmount((int) ($order->getGrandTotal() * 100))
-                ->setCurrency($order->getOrderCurrencyCode())
-                ->setKey('rzp_test_X7LgvyRx65km1S');
+                ->setCurrency($order->getOrderCurrencyCode());
 
             return $model;
         } catch (\Exception $e) {
