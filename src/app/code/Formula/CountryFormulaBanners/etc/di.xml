@@ -9,10 +9,10 @@
 	<type name="Formula\CountryFormulaBanners\Model\Uploader">
 		<arguments>
 			<argument name="baseTmpPath" xsi:type="string">
-				formula/tmp/countryFormulaBanner
+				formula/tmp/countryformulabanner
 			</argument>
 			<argument name="basePath" xsi:type="string">
-				formula/countryFormulaBanner
+				formula/countryformulabanner
 			</argument>
 			<argument name="allowedExtensions" xsi:type="array">
 				<item name="jpg" xsi:type="string">
