@@ -69,7 +69,7 @@ class IngredientRepository implements IngredientRepositoryInterface
                     'benefits' => $item->getBenefits(),
                     'created_at' => $item->getCreatedAt(),
                     'updated_at' => $item->getUpdatedAt(),
-                    'is_korean' => $item->getIsKorean(),
+                    'country_id' => $item->getCountryId(),
                 ];
             }
             
@@ -114,6 +114,7 @@ class IngredientRepository implements IngredientRepositoryInterface
             $existingIngredient->setDescription($ingredient->getDescription());
             $existingIngredient->setLogo($ingredient->getLogo());
             $existingIngredient->setBenefits($ingredient->getBenefits());
+            $existingIngredient->setCountryId($ingredient->getCountryId());
 
             // Save the updated ingredient
             $this->resource->save($existingIngredient);

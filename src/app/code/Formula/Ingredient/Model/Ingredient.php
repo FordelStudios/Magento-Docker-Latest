@@ -17,7 +17,7 @@ class Ingredient extends AbstractModel implements IngredientInterface
     const BENEFITS = 'benefits';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
-    const IS_KOREAN = 'is_korean';
+    const COUNTRY_ID = 'country_id'; 
 
     /**
      * @var \Magento\Framework\Serialize\Serializer\Json
@@ -209,17 +209,19 @@ class Ingredient extends AbstractModel implements IngredientInterface
     }
 
     /**
-     * @return bool|null
+     * {@inheritdoc}
      */
-    public function getIsKorean(){
-        return $this->getData(self::IS_KOREAN);
+    public function getCountryId() 
+    {
+        return $this->getData(self::COUNTRY_ID);
     }
 
+
     /**
-     * @param bool $isKorean
-     * @return $this
+     * {@inheritdoc}
      */
-    public function setIsKorean($isKorean){
-        return $this->setData(self::IS_KOREAN, $isKorean);
+    public function setCountryId($countryId) 
+    {
+        return $this->setData(self::COUNTRY_ID, $countryId);
     }
 }

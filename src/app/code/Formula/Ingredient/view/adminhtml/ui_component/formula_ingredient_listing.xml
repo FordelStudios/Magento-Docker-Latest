@@ -88,21 +88,19 @@
                 <label translate="true">Benefits</label>
             </settings>
         </column>
-        <column name="is_korean" component="Magento_Ui/js/grid/columns/select">
+        <!-- Country Column -->
+        <column name="country_id" component="Magento_Ui/js/grid/columns/select">
             <settings>
+                <options class="Magento\Directory\Model\Config\Source\Country"/>
                 <filter>select</filter>
-                <options>
-                    <option name="0" xsi:type="array">
-                        <item name="value" xsi:type="number">0</item>
-                        <item name="label" xsi:type="string" translate="true">No</item>
-                    </option>
-                    <option name="1" xsi:type="array">
-                        <item name="value" xsi:type="number">1</item>
-                        <item name="label" xsi:type="string" translate="true">Yes</item>
-                    </option>
-                </options>
+                <editor>
+                    <validation>
+                        <rule name="required-entry" xsi:type="boolean">true</rule>
+                    </validation>
+                    <editorType>select</editorType>
+                </editor>
                 <dataType>select</dataType>
-                <label translate="true">Korean Ingredient</label>
+                <label translate="true">Country</label>
             </settings>
         </column>
         <actionsColumn name="actions" class="Formula\Ingredient\Ui\Component\Listing\Column\Actions">

@@ -34,15 +34,15 @@ interface CountryFormulaBannerInterface
      *
      * @return string
      */
-    public function getCountryId();  // Changed method name
+    public function getCountryId();  
 
     /**
      * Set country ID
      *
-     * @param string $countryId  // Changed parameter type to string for ISO codes
+     * @param string $countryId  
      * @return $this
      */
-    public function setCountryId($countryId);  // Changed method name
+    public function setCountryId($countryId);  
 
     /**
      * Get banner image
