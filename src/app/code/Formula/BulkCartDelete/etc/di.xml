@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    
+    <!-- API Interface Preference -->
+    <preference for="Formula\BulkCartDelete\Api\BulkCartDeleteInterface" 
+                type="Formula\BulkCartDelete\Model\BulkCartDelete" />
+    
+    <!-- Response Interface Preference -->
+    <preference for="Formula\BulkCartDelete\Api\Data\BulkDeleteResponseInterface" 
+                type="Formula\BulkCartDelete\Model\Data\BulkDeleteResponse" />
+    
+    <!-- Failed Item Interface Preference -->
+    <preference for="Formula\BulkCartDelete\Api\Data\FailedItemInterface" 
+                type="Formula\BulkCartDelete\Model\Data\FailedItem" />
+</config>

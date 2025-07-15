@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    
+    <!-- Customer Bulk Delete -->
+    <route url="/V1/carts/mine/items/bulk-delete" method="DELETE">
+        <service class="Formula\BulkCartDelete\Api\BulkCartDeleteInterface" method="deleteCustomerCartItems"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+    </route>
+</routes>
