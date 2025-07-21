@@ -148,6 +148,22 @@ class CategoryBanner extends AbstractModel implements CategoryBannerInterface
     /**
      * {@inheritdoc}
      */
+    public function getSubcategoryNames()
+    {
+        return $this->getData(self::SUBCATEGORY_NAMES);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setSubcategoryNames($subcategoryNames)
+    {
+        return $this->setData(self::SUBCATEGORY_NAMES, $subcategoryNames);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getDiscountPercentage()
     {
         return $this->getData(self::DISCOUNT_PERCENTAGE);

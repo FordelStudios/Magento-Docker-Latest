@@ -5,6 +5,7 @@
 	<preference for="Formula\CategoryBanners\Api\Data\CategoryBannerInterface" type="Formula\CategoryBanners\Model\CategoryBanner" />
 	<preference for="Formula\CategoryBanners\Api\CategoryBannerRepositoryInterface" type="Formula\CategoryBanners\Model\CategoryBannerRepository" />
 	<preference for="Formula\CategoryBanners\Api\BannerImageUploaderInterface" type="Formula\CategoryBanners\Model\BannerImageUploader" />
+	<preference for="Formula\CategoryBanners\Api\Data\SubcategoryInterface" type="Formula\CategoryBanners\Model\Subcategory" />
 	<!-- Data providers -->
 	<type name="Formula\CategoryBanners\Model\Uploader">
 		<arguments>
@@ -44,6 +45,12 @@
 			</argument>
 			<argument name="dateTime" xsi:type="object">
 				Magento\Framework\Stdlib\DateTime\DateTime
+			</argument>
+			<argument name="categoryCollectionFactory" xsi:type="object">
+				Magento\Catalog\Model\ResourceModel\Category\CollectionFactory
+			</argument>
+			<argument name="subcategoryFactory" xsi:type="object">
+				Formula\CategoryBanners\Model\SubcategoryFactory
 			</argument>
 		</arguments>
 	</type>

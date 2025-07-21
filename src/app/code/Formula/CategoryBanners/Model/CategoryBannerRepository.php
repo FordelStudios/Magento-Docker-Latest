@@ -10,6 +10,8 @@ use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory as CategoryCollectionFactory;
+use Formula\CategoryBanners\Model\SubcategoryFactory;
 
 class CategoryBannerRepository implements CategoryBannerRepositoryInterface
 {
@@ -34,21 +36,37 @@ class CategoryBannerRepository implements CategoryBannerRepositoryInterface
     private $dateTime;
 
     /**
+     * @var CategoryCollectionFactory
+     */
+    private $categoryCollectionFactory;
+
+    /**
+     * @var SubcategoryFactory
+     */
+    private $subcategoryFactory;
+
+    /**
      * @param ResourceCategoryBanner $resource
      * @param CategoryBannerFactory $categoryBannerFactory
      * @param CategoryBannerCollectionFactory $categoryBannerCollectionFactory
      * @param DateTime $dateTime
+     * @param CategoryCollectionFactory $categoryCollectionFactory
+     * @param SubcategoryFactory $subcategoryFactory
      */
     public function __construct(
         ResourceCategoryBanner $resource,
         CategoryBannerFactory $categoryBannerFactory,
         CategoryBannerCollectionFactory $categoryBannerCollectionFactory,
-        DateTime $dateTime
+        DateTime $dateTime,
+        CategoryCollectionFactory $categoryCollectionFactory,
+        SubcategoryFactory $subcategoryFactory
     ) {
         $this->resource = $resource;
         $this->categoryBannerFactory = $categoryBannerFactory;
         $this->categoryBannerCollectionFactory = $categoryBannerCollectionFactory;
         $this->dateTime = $dateTime;
+        $this->categoryCollectionFactory = $categoryCollectionFactory;
+        $this->subcategoryFactory = $subcategoryFactory;
     }
 
     /**
@@ -83,6 +101,10 @@ class CategoryBannerRepository implements CategoryBannerRepositoryInterface
         if (!$banner->getId()) {
             throw new NoSuchEntityException(__('The category banner with the "%1" ID doesn\'t exist.', $id));
         }
+        
+        // Load subcategory names
+        $this->loadSubcategoryNames($banner);
+        
         return $banner;
     }
 
@@ -95,7 +117,14 @@ class CategoryBannerRepository implements CategoryBannerRepositoryInterface
         $collection->addFieldToFilter('category_id', $categoryId);
         $collection->addFieldToFilter('is_active', 1);
         
-        return $collection->getItems();
+        $banners = $collection->getItems();
+        
+        // Load subcategory names for each banner
+        foreach ($banners as $banner) {
+            $this->loadSubcategoryNames($banner);
+        }
+        
+        return $banners;
     }
 
     /**
@@ -117,5 +146,36 @@ class CategoryBannerRepository implements CategoryBannerRepositoryInterface
     public function deleteById($id)
     {
         return $this->delete($this->getById($id));
+    }
+
+    /**
+     * Load subcategory names for a banner
+     *
+     * @param CategoryBannerInterface $banner
+     * @return void
+     */
+    private function loadSubcategoryNames(CategoryBannerInterface $banner)
+    {
+        $subcategories = $banner->getSubcategories();
+        if (!empty($subcategories)) {
+            $subcategoryIds = is_string($subcategories) ? explode(',', $subcategories) : $subcategories;
+            $subcategoryIds = array_filter(array_map('trim', $subcategoryIds));
+            
+            if (!empty($subcategoryIds)) {
+                $categoryCollection = $this->categoryCollectionFactory->create();
+                $categoryCollection->addAttributeToSelect('name')
+                    ->addFieldToFilter('entity_id', ['in' => $subcategoryIds]);
+                
+                $subcategoryNames = [];
+                foreach ($categoryCollection as $category) {
+                    $subcategoryObject = $this->subcategoryFactory->create();
+                    $subcategoryObject->setId($category->getId());
+                    $subcategoryObject->setName($category->getName());
+                    $subcategoryNames[] = $subcategoryObject;
+                }
+                
+                $banner->setSubcategoryNames($subcategoryNames);
+            }
+        }
     }
 }
