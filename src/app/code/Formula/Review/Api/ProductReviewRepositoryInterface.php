@@ -61,7 +61,7 @@ interface ProductReviewRepositoryInterface
      * Check if the authenticated customer has an existing review for a product
      *
      * @param string $sku
-     * @return array Returns array with review_id if exists, empty array otherwise
+     * @return \Formula\Review\Api\Data\CustomerReviewStatusInterface
      * @throws \Magento\Framework\Exception\AuthorizationException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */

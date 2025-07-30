@@ -76,6 +76,12 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
      */
     private $customerSession;
 
+
+    /**
+     * @var \Formula\Review\Api\Data\CustomerReviewStatusInterfaceFactory
+     */
+    protected $customerReviewStatusFactory;
+
     /**
      * @param ReviewFactory $reviewFactory
      * @param ReviewResource $reviewResource
@@ -88,6 +94,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
      * @param VoteCollectionFactory $voteCollectionFactory
      * @param CustomerRepositoryInterface $customerRepository
      * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Formula\Review\Api\Data\CustomerReviewStatusInterfaceFactory $customerReviewStatusFactory
      */
     public function __construct(
         ReviewFactory $reviewFactory,
@@ -100,7 +107,8 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
         VoteFactory $voteFactory,
         VoteCollectionFactory $voteCollectionFactory,
         CustomerRepositoryInterface $customerRepository,
-        \Magento\Customer\Model\Session $customerSession
+        \Magento\Customer\Model\Session $customerSession,
+        \Formula\Review\Api\Data\CustomerReviewStatusInterfaceFactory $customerReviewStatusFactory
     ) {
         $this->reviewFactory = $reviewFactory;
         $this->reviewResource = $reviewResource;
@@ -113,6 +121,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
         $this->voteCollectionFactory = $voteCollectionFactory;
         $this->customerRepository = $customerRepository;
         $this->customerSession = $customerSession;
+        $this->customerReviewStatusFactory = $customerReviewStatusFactory;
     }
 
     /**
@@ -256,22 +265,21 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             
             // Check if customer has existing review
             $reviewId = $this->getExistingReviewId($customerId, $product->getId());
+
+            $customerReviewStatus = $this->customerReviewStatusFactory->create();
+            $customerReviewStatus->setCustomerId($customerId);
+            $customerReviewStatus->setProductSku($sku);
             
             if ($reviewId) {
-                return [
-                    'has_review' => true,
-                    'review_id' => $reviewId,
-                    'product_sku' => $sku,
-                    'customer_id' => $customerId
-                ];
+                $customerReviewStatus->setHasReview(true);
+                $customerReviewStatus->setReviewId($reviewId);
             } else {
-                return [
-                    'has_review' => false,
-                    'review_id' => null,
-                    'product_sku' => $sku,
-                    'customer_id' => $customerId
-                ];
+                $customerReviewStatus->setHasReview(false);
+                $customerReviewStatus->setReviewId(null);
             }
+
+            return $customerReviewStatus;
+
             
         } catch (\Magento\Framework\Exception\AuthorizationException $e) {
             throw $e;

@@ -4,7 +4,7 @@
     <preference for="Formula\Review\Api\Data\ReviewInterface" type="Formula\Review\Model\Data\Review" />
     <preference for="Formula\Review\Api\ProductReviewRepositoryInterface" type="Formula\Review\Model\ProductReviewRepository" />
     <preference for="Formula\Review\Api\ReviewImageUploadInterface" type="Formula\Review\Model\ReviewImageUpload" />
-
+     <preference for="Formula\Review\Api\Data\CustomerReviewStatusInterface" type="Formula\Review\Model\Data\CustomerReviewStatus" />
     <!-- Plugin for API serialization -->
     <type name="Magento\Framework\Reflection\DataObjectProcessor">
         <plugin name="formula_review_add_rating_details" type="Formula\Review\Plugin\DataObjectProcessorPlugin" />
