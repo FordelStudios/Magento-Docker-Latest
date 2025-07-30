@@ -561,6 +561,14 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             $customer = $this->customerRepository->getById($customerId);
             $product = $this->productRepository->get($review->getProductSku());
 
+             // PURCHASE VERIFICATION - Check if customer has purchased this product
+            $purchaseData = $this->checkCustomerPurchaseHistory($customerId, $product->getId());
+            if (!$purchaseData['has_purchased']) {
+                throw new \Magento\Framework\Exception\AuthorizationException(
+                    __('You can only review products that you have purchased. Please purchase this product first before leaving a review.')
+                );
+            }
+
             // Check if customer already has a review for this product
             $existingReviewId = $this->getExistingReviewId($customerId, $product->getId());
             
@@ -745,6 +753,16 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                 $productSku = $review->getProductSku() ?: 'unknown';
             }
 
+
+            // PURCHASE VERIFICATION - Check if customer has purchased this product
+            // This ensures that even existing reviews can only be updated by customers who have purchased the product
+            $purchaseData = $this->checkCustomerPurchaseHistory($customerId, $productId);
+            if (!$purchaseData['has_purchased']) {
+                throw new \Magento\Framework\Exception\AuthorizationException(
+                    __('You can only update reviews for products that you have purchased.')
+                );
+            }
+
             // Update review status if provided
             $statusId = $reviewModel->getStatusId();
             if ($review->getStatus()) {
@@ -889,6 +907,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                 'nickname' => $reviewModel->getNickname(),
                 'detail' => $reviewModel->getDetail(),
                 'product_sku' => $productSku,
+                'customer_id' => $customerId,
                 'status' => $this->getStatusText($statusId),
                 'created_at' => $reviewModel->getCreatedAt(),
                 'updated_at' => $reviewModel->getData('updated_at')
