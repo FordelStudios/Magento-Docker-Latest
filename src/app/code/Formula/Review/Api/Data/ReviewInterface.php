@@ -134,4 +134,16 @@ interface ReviewInterface
      * @return $this
      */
     public function setImages($images);
+
+    /**
+     * @return int|null
+     */
+    public function getCustomerId();
+
+    /**
+     * @param int $customerId
+     * @return $this
+     */
+    public function setCustomerId($customerId);
+
 }

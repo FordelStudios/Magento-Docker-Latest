@@ -56,4 +56,14 @@ interface ProductReviewRepositoryInterface
      * @return \Formula\Review\Api\Data\ReviewInterface[]
      */
     public function getAllReviews();
+
+    /**
+     * Check if the authenticated customer has an existing review for a product
+     *
+     * @param string $sku
+     * @return array Returns array with review_id if exists, empty array otherwise
+     * @throws \Magento\Framework\Exception\AuthorizationException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getCustomerExistingReview($sku);
 }

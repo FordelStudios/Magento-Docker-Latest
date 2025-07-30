@@ -15,6 +15,9 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Api\DataObjectHelper;
 use Magento\Review\Model\Rating\Option\VoteFactory;
 use Magento\Review\Model\ResourceModel\Rating\Option\Vote\CollectionFactory as VoteCollectionFactory;
+use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Framework\Webapi\Rest\Request\Authentication as TokenAuth;
 
 class ProductReviewRepository implements ProductReviewRepositoryInterface
 {
@@ -64,6 +67,16 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
     protected $voteCollectionFactory;
 
     /**
+     * @var CustomerRepositoryInterface
+     */
+    protected $customerRepository;
+
+    /**
+     * @var \Magento\Customer\Model\Session
+     */
+    private $customerSession;
+
+    /**
      * @param ReviewFactory $reviewFactory
      * @param ReviewResource $reviewResource
      * @param ReviewCollectionFactory $reviewCollectionFactory
@@ -73,6 +86,8 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
      * @param DataObjectHelper $dataObjectHelper
      * @param VoteFactory $voteFactory
      * @param VoteCollectionFactory $voteCollectionFactory
+     * @param CustomerRepositoryInterface $customerRepository
+     * @param \Magento\Customer\Model\Session $customerSession
      */
     public function __construct(
         ReviewFactory $reviewFactory,
@@ -83,7 +98,9 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
         StoreManagerInterface $storeManager,
         DataObjectHelper $dataObjectHelper,
         VoteFactory $voteFactory,
-        VoteCollectionFactory $voteCollectionFactory
+        VoteCollectionFactory $voteCollectionFactory,
+        CustomerRepositoryInterface $customerRepository,
+        \Magento\Customer\Model\Session $customerSession
     ) {
         $this->reviewFactory = $reviewFactory;
         $this->reviewResource = $reviewResource;
@@ -94,105 +111,177 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
         $this->dataObjectHelper = $dataObjectHelper;
         $this->voteFactory = $voteFactory;
         $this->voteCollectionFactory = $voteCollectionFactory;
+        $this->customerRepository = $customerRepository;
+        $this->customerSession = $customerSession;
     }
 
     /**
- * Get the rating information for a review
- *
- * @param int $reviewId
- * @return array
- */
-protected function getReviewRatings($reviewId)
-{
-    try {
-        $connection = $this->reviewResource->getConnection();
+     * Get authenticated customer ID from session or API token context
+     *
+     * @return int
+     * @throws \Magento\Framework\Exception\AuthorizationException
+     */
+    protected function getAuthenticatedCustomerId()
+    {
+        $customerId = 0;
         
-        // Query to join rating_option_vote with rating to get all the ratings for this review
-        $select = $connection->select()
-            ->from(
-                ['vote' => $connection->getTableName('rating_option_vote')],
-                ['rating_id', 'value', 'percent']
-            )
-            ->join(
-                ['rating' => $connection->getTableName('rating')],
-                'vote.rating_id = rating.rating_id',
-                ['rating_code']
-            )
-            ->where('vote.review_id = ?', $reviewId);
-        
-        $ratings = $connection->fetchAll($select);
-        
-        // If we have detailed ratings, calculate average and format for API
-        if (!empty($ratings)) {
-            $totalValue = 0;
-            $detailedOutput = [];
+        if ($this->customerSession->isLoggedIn()) {
+            // Customer is logged in through session
+            $customerId = $this->customerSession->getCustomerId();
+        } else {
+            // Check if we have a valid token-based customer context
+            try {
+                // This gets the customer ID from the API authentication token context
+                $context = \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Magento\Authorization\Model\UserContextInterface::class);
+                
+                if ($context->getUserType() == \Magento\Authorization\Model\UserContextInterface::USER_TYPE_CUSTOMER) {
+                    $customerId = $context->getUserId();
+                }
+            } catch (\Exception $e) {
+                // Context not available or not a customer context
+            }
+        }
+
+        if (!$customerId) {
+            throw new \Magento\Framework\Exception\AuthorizationException(__('Customer must be logged in.'));
+        }
+
+        return $customerId;
+    }
+
+
+    /**
+     * Check if customer already has a review for this product
+     *
+     * @param int $customerId
+     * @param int $productId
+     * @return int|null Returns review ID if exists, null otherwise
+     */
+    protected function getExistingReviewId($customerId, $productId)
+    {
+        try {
+            $collection = $this->reviewCollectionFactory->create()
+                ->addFieldToFilter('customer_id', $customerId)
+                ->addFieldToFilter('entity_pk_value', $productId)
+                ->addFieldToFilter('entity_id', 1) // 1 = product entity
+                ->setPageSize(1)
+                ->setCurPage(1);
+
+            $review = $collection->getFirstItem();
             
-            foreach ($ratings as $rating) {
-                $totalValue += (int)$rating['value'];
-                $detailedOutput[] = [
-                    'rating_code' => $rating['rating_code'],
-                    'value' => (int)$rating['value'],
-                    'percent' => (int)$rating['percent']
-                ];
+            if ($review && $review->getId()) {
+                return $review->getId();
             }
             
-            $averageRating = count($ratings) > 0 ? round($totalValue / count($ratings)) : 0;
-            
-            return [
-                'average' => $averageRating,
-                'detailed' => $detailedOutput
-            ];
+            return null;
+        } catch (\Exception $e) {
+            return null;
         }
-        
-        // Return a default structure if no ratings found
-        return [
-            'average' => 0,
-            'detailed' => []
-        ];
-    } catch (\Exception $e) {
-        // Return a default structure if there's an error
-        return [
-            'average' => 0,
-            'detailed' => []
-        ];
     }
-}
 
     /**
-     * Get a simple average rating for a review (fallback method)
+     * Get the rating information for a review
      *
      * @param int $reviewId
      * @return array
      */
-    protected function getSimpleReviewRating($reviewId)
+    protected function getReviewRatings($reviewId)
     {
         try {
-            $votes = $this->voteCollectionFactory->create()
-                ->setReviewFilter($reviewId)
-                ->addRatingInfo($this->storeManager->getStore()->getId())
-                ->load();
-
-            if ($votes->getSize() == 0) {
-                return ['average' => 0];
-            }
-
-            $totalRating = 0;
-            $count = 0;
+            $connection = $this->reviewResource->getConnection();
             
-            foreach ($votes as $vote) {
-                // Make sure we have a valid value
-                if ($vote->getValue()) {
-                    $totalRating += $vote->getValue();
-                    $count++;
+            // Query to join rating_option_vote with rating to get all the ratings for this review
+            $select = $connection->select()
+                ->from(
+                    ['vote' => $connection->getTableName('rating_option_vote')],
+                    ['rating_id', 'value', 'percent']
+                )
+                ->join(
+                    ['rating' => $connection->getTableName('rating')],
+                    'vote.rating_id = rating.rating_id',
+                    ['rating_code']
+                )
+                ->where('vote.review_id = ?', $reviewId);
+            
+            $ratings = $connection->fetchAll($select);
+            
+            // If we have detailed ratings, calculate average and format for API
+            if (!empty($ratings)) {
+                $totalValue = 0;
+                $detailedOutput = [];
+                
+                foreach ($ratings as $rating) {
+                    $totalValue += (int)$rating['value'];
+                    $detailedOutput[] = [
+                        'rating_code' => $rating['rating_code'],
+                        'value' => (int)$rating['value'],
+                        'percent' => (int)$rating['percent']
+                    ];
                 }
+                
+                $averageRating = count($ratings) > 0 ? round($totalValue / count($ratings)) : 0;
+                
+                return [
+                    'average' => $averageRating,
+                    'detailed' => $detailedOutput
+                ];
             }
             
-            return ['average' => $count > 0 ? round($totalRating / $count) : 0];
+            // Return a default structure if no ratings found
+            return [
+                'average' => 0,
+                'detailed' => []
+            ];
         } catch (\Exception $e) {
-            // Log the error but don't fail the whole request
-            return ['average' => 0];
+            // Return a default structure if there's an error
+            return [
+                'average' => 0,
+                'detailed' => []
+            ];
         }
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getCustomerExistingReview($sku)
+    {
+        try {
+            // Get authenticated customer ID
+            $customerId = $this->getAuthenticatedCustomerId();
+            
+            // Get product by SKU
+            $product = $this->productRepository->get($sku);
+            
+            // Check if customer has existing review
+            $reviewId = $this->getExistingReviewId($customerId, $product->getId());
+            
+            if ($reviewId) {
+                return [
+                    'has_review' => true,
+                    'review_id' => $reviewId,
+                    'product_sku' => $sku,
+                    'customer_id' => $customerId
+                ];
+            } else {
+                return [
+                    'has_review' => false,
+                    'review_id' => null,
+                    'product_sku' => $sku,
+                    'customer_id' => $customerId
+                ];
+            }
+            
+        } catch (\Magento\Framework\Exception\AuthorizationException $e) {
+            throw $e;
+        } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+            throw new NoSuchEntityException(__('Product with SKU "%1" does not exist.', $sku));
+        } catch (\Exception $e) {
+            throw new \Magento\Framework\Exception\LocalizedException(__('Could not check existing review: %1', $e->getMessage()));
+        }
+    }
+
 
     /**
      * {@inheritdoc}
@@ -318,13 +407,27 @@ protected function getReviewRatings($reviewId)
     public function create(ReviewInterface $review)
     {
         try {
+            // For REST API with token, the customerId comes from the token context
+            // Get authenticated customer ID
+            $customerId = $this->getAuthenticatedCustomerId();
+
+            $customer = $this->customerRepository->getById($customerId);
             $product = $this->productRepository->get($review->getProductSku());
+
+            // Check if customer already has a review for this product
+            $existingReviewId = $this->getExistingReviewId($customerId, $product->getId());
             
+            if ($existingReviewId) {
+                // Update the existing review instead of creating a new one
+                return $this->update($existingReviewId, $review);
+            }
+
+            $nickname = $customer->getFirstname() . ' ' . $customer->getLastname();
+
             $reviewModel = $this->reviewFactory->create();
-            
-            // Default status is pending
+    
             $statusId = \Magento\Review\Model\Review::STATUS_PENDING;
-            
+    
             // If status was provided and valid, use it
             if ($review->getStatus()) {
                 switch ($review->getStatus()) {
@@ -341,10 +444,11 @@ protected function getReviewRatings($reviewId)
             $isRecommended = $review->getIsRecommended() !== null ? (bool)$review->getIsRecommended() : null;
             
             $reviewModel->setData([
-                'nickname' => $review->getNickname(),
+                'customer_id' => $customerId,
+                'nickname' => $nickname,
                 'title' => $review->getTitle(),
                 'detail' => $review->getDetail(),
-                'entity_id' => 1, // 1 = product
+                'entity_id' => 1, // product
                 'entity_pk_value' => $product->getId(),
                 'status_id' => $statusId,
                 'store_id' => $this->storeManager->getStore()->getId(),
@@ -465,7 +569,6 @@ protected function getReviewRatings($reviewId)
         }
     }
 
-
     /**
      * {@inheritdoc}
      */
@@ -478,6 +581,12 @@ protected function getReviewRatings($reviewId)
 
             if (!$reviewModel->getId()) {
                 throw new NoSuchEntityException(__('Review with ID "%1" does not exist.', $id));
+            }
+
+            $customerId = $this->getAuthenticatedCustomerId();
+
+            if ($reviewModel->getCustomerId() != $customerId) {
+                throw new \Magento\Framework\Exception\AuthorizationException(__('You are not authorized to access this review.'));
             }
 
             // Get the product
@@ -545,13 +654,9 @@ protected function getReviewRatings($reviewId)
             }
 
             // Update ratings if the ratings field is present in the request
-            // We check if the field is set rather than just checking if > 0
-            // This allows updating to a rating of 0
             $ratingValue = null;
             $updatedRatings = [];
             
-            // Check if ratings was explicitly set in the request
-            // We use property_exists to check if the field is present, not just if it has a value
             if ($review->getRatings() !== null) {
                 $ratingValue = (int)$review->getRatings();
                 
@@ -671,40 +776,6 @@ protected function getReviewRatings($reviewId)
         } catch (NoSuchEntityException $e) {
             throw $e;
         } catch (\Exception $e) {
-            throw new \Magento\Framework\Exception\CouldNotSaveException(
-                __('Could not update review: %1', $e->getMessage()),
-                $e
-            );
-        }
-    }
-
-
-    /**
-     * {@inheritdoc}
-     */
-    public function deleteById($id)
-    {
-        try {
-            $reviewModel = $this->reviewFactory->create();
-            $this->reviewResource->load($reviewModel, $id);
-
-            if (!$reviewModel->getId()) {
-                throw new NoSuchEntityException(__('Review with ID "%1" does not exist.', $id));
-            }
-
-            // Delete related votes first
-            $connection = $this->reviewResource->getConnection();
-            $voteTable = $connection->getTableName('rating_option_vote');
-            $connection->delete($voteTable, ['review_id = ?' => $id]);
-
-            $this->deleteReviewImages($id);
-
-            // Now delete the review
-            $this->reviewResource->delete($reviewModel);
-            return true;
-        } catch (NoSuchEntityException $e) {
-            throw $e;
-        } catch (\Exception $e) {
             throw new CouldNotDeleteException(__('Could not delete review: %1', $e->getMessage()), $e);
         }
     }
@@ -799,8 +870,6 @@ protected function getReviewRatings($reviewId)
         }
     }
 
-
-
     /**
      * Save images for a review
      *
@@ -859,7 +928,6 @@ protected function getReviewRatings($reviewId)
         }
     }
 
-
     /**
      * Delete images for a review
      *
@@ -878,4 +946,45 @@ protected function getReviewRatings($reviewId)
             // We could log the error here if you have a logger injected
         }
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function deleteById($id)
+    {
+        try {
+            $reviewModel = $this->reviewFactory->create();
+            $this->reviewResource->load($reviewModel, $id);
+
+            if (!$reviewModel->getId()) {
+                throw new NoSuchEntityException(__('Review with ID "%1" does not exist.', $id));
+            }
+
+            $customerId = $this->getAuthenticatedCustomerId();
+
+            if ($reviewModel->getCustomerId() != $customerId) {
+                throw new \Magento\Framework\Exception\AuthorizationException(__('You are not authorized to access this review.'));
+            }
+
+            // Delete related votes first
+            $connection = $this->reviewResource->getConnection();
+            $voteTable = $connection->getTableName('rating_option_vote');
+            $connection->delete($voteTable, ['review_id = ?' => $id]);
+
+            $this->deleteReviewImages($id);
+
+            // Now delete the review
+            $this->reviewResource->delete($reviewModel);
+            return true;
+        } catch (NoSuchEntityException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            throw new \Magento\Framework\Exception\CouldNotSaveException(
+                __('Could not update review: %1', $e->getMessage()),
+                $e
+            );
+        }
+    }
 }
+
+    

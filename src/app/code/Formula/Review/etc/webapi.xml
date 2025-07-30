@@ -1,46 +1,67 @@
-<?xml version="1.0"?>
-<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+
+    <!-- List product reviews (only the customer who created them can access) -->
     <route url="/V1/products/:sku/reviews" method="GET">
-        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="getList" />
+        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="getList"/>
         <resources>
-            <resource ref="anonymous" />
-        </resources>
-    </route>
-    <route url="/V1/reviews" method="POST">
-        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="create" />
-        <resources>
-            <resource ref="anonymous" />
-        </resources>
-    </route>
-    <route url="/V1/reviews/:id" method="GET">
-        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="get" />
-        <resources>
-            <resource ref="anonymous" />
-        </resources>
-    </route>
-    <route url="/V1/reviews/:id" method="PUT">
-        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="update" />
-        <resources>
-            <resource ref="anonymous" />
-        </resources>
-    </route>
-    <route url="/V1/reviews/:id" method="DELETE">
-        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="deleteById" />
-        <resources>
-            <resource ref="anonymous" />
-        </resources>
-    </route>
-    <route url="/V1/reviews/all" method="GET">
-        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="getAllReviews" />
-        <resources>
-            <resource ref="anonymous" />
+             <resource ref="anonymous"/>
         </resources>
     </route>
 
-    <route url="/V1/reviews/image-upload" method="POST">
-        <service class="Formula\Review\Api\ReviewImageUploadInterface" method="upload" />
+    <!-- Create review - only logged in customers -->
+    <route url="/V1/reviews" method="POST">
+        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="create"/>
         <resources>
-            <resource ref="anonymous" />
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <!-- Get review by ID - must belong to the logged in customer -->
+    <route url="/V1/reviews/:id" method="GET">
+        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="get"/>
+        <resources>
+             <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <!-- Update review -->
+    <route url="/V1/reviews/:id" method="PUT">
+        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="update"/>
+        <resources>
+             <resource ref="self"/>
+        </resources>
+    </route>
+
+    <!-- Delete review -->
+    <route url="/V1/reviews/:id" method="DELETE">
+        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="deleteById"/>
+        <resources>
+             <resource ref="self"/>
+        </resources>
+    </route>
+
+     <!-- Delete review -->
+    <route url="/V1/reviews/product/:sku" method="GET">
+        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="getCustomerExistingReview"/>
+        <resources>
+             <resource ref="self"/>
+        </resources>
+    </route>
+
+    <!-- Admin-only endpoint to fetch ALL reviews -->
+    <route url="/V1/reviews/all" method="GET">
+        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="getAllReviews"/>
+        <resources>
+            <resource ref="Magento_Backend::admin"/>
+        </resources>
+    </route>
+
+    <!-- Review image upload - must be a logged in customer -->
+    <route url="/V1/reviews/image-upload" method="POST">
+        <service class="Formula\Review\Api\ReviewImageUploadInterface" method="upload"/>
+        <resources>
+            <resource ref="self"/>
         </resources>
     </route>
 </routes>

@@ -209,4 +209,20 @@ class Review extends AbstractExtensibleObject implements ReviewInterface
     {
         return $this->setData('images', $images);
     }
+
+
+    /**
+     * @return int|null
+     */
+    public function getCustomerId(){
+        return $this->_get('customer_id');
+    }
+
+    /**
+     * @param int $customerId
+     * @return $this
+     */
+    public function setCustomerId($customerId){
+        return $this->setData('customer_id', $customerId);
+    }
 }

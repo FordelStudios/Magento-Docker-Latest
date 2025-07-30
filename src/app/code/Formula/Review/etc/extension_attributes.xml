@@ -7,5 +7,6 @@
 		<attribute code="ratings_details" type="mixed" />
 		<attribute code="is_recommended" type="boolean" />
 		<attribute code="images" type="mixed" />
+		<attribute code="customer_id" type="int" />
 	</extension_attributes>
 </config>

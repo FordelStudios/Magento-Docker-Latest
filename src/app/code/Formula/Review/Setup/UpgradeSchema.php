@@ -55,6 +55,19 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 ]
             );
         }
+
+        if (!$connection->tableColumnExists($tableName, 'customer_id')) {
+            $connection->addColumn(
+                $tableName,
+                'customer_id',
+                [
+                    'type' => Table::TYPE_INTEGER,
+                    'nullable' => false,
+                    'comment' => 'Customer ID'
+                ]
+            );
+        }
+        
     }
 
     /**

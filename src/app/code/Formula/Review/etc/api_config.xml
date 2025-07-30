@@ -9,6 +9,7 @@
 				<item name="ratings_details" />
 				<item name="is_recommended" />
 				<item name="images" />
+				<item name="customer_id" />
 			</interface_config>
 		</additional_data_interfaces>
 	</api>
