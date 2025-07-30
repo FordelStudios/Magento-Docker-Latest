@@ -469,6 +469,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                     'nickname' => $reviewModel->getNickname(),
                     'detail' => $reviewModel->getDetail(),
                     'product_sku' => $sku,
+                    'customer_id' => $reviewModel->getCustomerId(),
                     'ratings' => $ratings['average'],
                     'status' => $statusText,
                     'is_recommended' => $isRecommended,
@@ -528,6 +529,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             'nickname' => $reviewModel->getNickname(),
             'detail' => $reviewModel->getDetail(),
             'product_sku' => $product->getSku(),
+            'customer_id' => $reviewModel->getCustomerId(),
             'ratings' => $ratings['average'],
             'status' => $statusText,
             'is_recommended' => $isRecommended,
@@ -716,6 +718,8 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             if (!empty($images)) {
                 $review->setImages($images);
             }
+
+            $review->setCustomerId($customerId);
             
             return $review;
             
@@ -984,6 +988,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                     'nickname' => $reviewModel->getNickname(),
                     'detail' => $reviewModel->getDetail(),
                     'product_sku' => $productSku,
+                    'customer_id' => $reviewModel->getCustomerId(),
                     'ratings' => $ratings['average'],
                     'status' => $statusText,
                     'created_at' => $reviewModel->getCreatedAt(),
