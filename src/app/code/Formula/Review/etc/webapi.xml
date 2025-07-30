@@ -64,4 +64,20 @@
             <resource ref="self"/>
         </resources>
     </route>
+
+     <!-- Purchase Verification by SKU -->
+    <route url="/V1/reviews/customer/purchase-verification" method="GET">
+        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="verifyCustomerPurchase"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+    </route>
+    
+    <!-- Purchase Verification by Product ID -->
+    <route url="/V1/reviews/customer/purchase-verification/product/:productId" method="GET">
+        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="verifyCustomerPurchase"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+    </route>
 </routes>

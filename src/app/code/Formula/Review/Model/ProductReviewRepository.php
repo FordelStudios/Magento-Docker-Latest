@@ -76,11 +76,25 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
      */
     private $customerSession;
 
-
     /**
      * @var \Formula\Review\Api\Data\CustomerReviewStatusInterfaceFactory
      */
     protected $customerReviewStatusFactory;
+
+    /**
+     * @var \Formula\Review\Api\Data\CustomerPurchaseVerificationInterfaceFactory
+     */
+    protected $purchaseVerificationFactory;
+
+    /**
+     * @var \Magento\Sales\Model\ResourceModel\Order\CollectionFactory
+     */
+    protected $orderCollectionFactory;
+
+    /**
+     * @var \Magento\Sales\Model\ResourceModel\Order\Item\CollectionFactory
+     */
+    protected $orderItemCollectionFactory;
 
     /**
      * @param ReviewFactory $reviewFactory
@@ -108,7 +122,10 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
         VoteCollectionFactory $voteCollectionFactory,
         CustomerRepositoryInterface $customerRepository,
         \Magento\Customer\Model\Session $customerSession,
-        \Formula\Review\Api\Data\CustomerReviewStatusInterfaceFactory $customerReviewStatusFactory
+        \Formula\Review\Api\Data\CustomerReviewStatusInterfaceFactory $customerReviewStatusFactory,
+        \Formula\Review\Api\Data\CustomerPurchaseVerificationInterfaceFactory $purchaseVerificationFactory,
+        \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory,
+        \Magento\Sales\Model\ResourceModel\Order\Item\CollectionFactory $orderItemCollectionFactory
     ) {
         $this->reviewFactory = $reviewFactory;
         $this->reviewResource = $reviewResource;
@@ -122,6 +139,9 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
         $this->customerRepository = $customerRepository;
         $this->customerSession = $customerSession;
         $this->customerReviewStatusFactory = $customerReviewStatusFactory;
+        $this->purchaseVerificationFactory = $purchaseVerificationFactory;
+        $this->orderCollectionFactory = $orderCollectionFactory;
+        $this->orderItemCollectionFactory = $orderItemCollectionFactory;
     }
 
     /**
@@ -248,6 +268,125 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                 'average' => 0,
                 'detailed' => []
             ];
+        }
+    }
+
+
+    /**
+     * Check customer's purchase history for a specific product
+     *
+     * @param int $customerId
+     * @param int $productId
+     * @return array
+     */
+    protected function checkCustomerPurchaseHistory($customerId, $productId)
+    {
+        try {
+            // Get all completed orders for this customer
+            $orderCollection = $this->orderCollectionFactory->create()
+                ->addFieldToFilter('customer_id', $customerId)
+                ->addFieldToFilter('status', ['in' => ['complete', 'closed']]) // Only completed orders
+                ->setOrder('created_at', 'DESC');
+
+            $orderIds = [];
+            $purchaseCount = 0;
+            $lastPurchaseDate = null;
+
+            foreach ($orderCollection as $order) {
+                // Check if this order contains the specified product
+                $orderItemCollection = $this->orderItemCollectionFactory->create()
+                    ->addFieldToFilter('order_id', $order->getId())
+                    ->addFieldToFilter('product_id', $productId);
+
+                if ($orderItemCollection->getSize() > 0) {
+                    $orderIds[] = (int)$order->getId();
+                    
+                    // Count the total quantity purchased across all matching order items
+                    foreach ($orderItemCollection as $item) {
+                        $purchaseCount += (int)$item->getQtyOrdered();
+                    }
+                    
+                    // Set the last purchase date (from the most recent order)
+                    if (!$lastPurchaseDate) {
+                        $lastPurchaseDate = $order->getCreatedAt();
+                    }
+                }
+            }
+
+            return [
+                'has_purchased' => !empty($orderIds),
+                'purchase_count' => $purchaseCount,
+                'last_purchase_date' => $lastPurchaseDate,
+                'order_ids' => $orderIds
+            ];
+
+        } catch (\Exception $e) {
+            // Log error but return empty result
+            return [
+                'has_purchased' => false,
+                'purchase_count' => 0,
+                'last_purchase_date' => null,
+                'order_ids' => []
+            ];
+        }
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function verifyCustomerPurchase($sku = null, $productId = null)
+    {
+        try {
+            // Validate input parameters
+            if (!$sku && !$productId) {
+                throw new \Magento\Framework\Exception\InvalidArgumentException(
+                    __('Either product SKU or product ID must be provided.')
+                );
+            }
+
+            // Get authenticated customer ID
+            $customerId = $this->getAuthenticatedCustomerId();
+            
+            // Get product information
+            $product = null;
+            if ($sku) {
+                $product = $this->productRepository->get($sku);
+                $productId = $product->getId();
+                $productSku = $sku;
+            } else {
+                $product = $this->productRepository->getById($productId);
+                $productSku = $product->getSku();
+            }
+
+            // Create the response object
+            $verification = $this->purchaseVerificationFactory->create();
+            $verification->setCustomerId($customerId);
+            $verification->setProductSku($productSku);
+            $verification->setProductId($productId);
+
+            // Check for completed orders containing this product
+            $purchaseData = $this->checkCustomerPurchaseHistory($customerId, $productId);
+            
+            $verification->setHasPurchased($purchaseData['has_purchased']);
+            $verification->setPurchaseCount($purchaseData['purchase_count']);
+            $verification->setLastPurchaseDate($purchaseData['last_purchase_date']);
+            $verification->setOrderIds($purchaseData['order_ids']);
+
+            return $verification;
+            
+        } catch (\Magento\Framework\Exception\AuthorizationException $e) {
+            throw $e;
+        } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+            if ($sku) {
+                throw new \Magento\Framework\Exception\NoSuchEntityException(__('Product with SKU "%1" does not exist.', $sku));
+            } else {
+                throw new \Magento\Framework\Exception\NoSuchEntityException(__('Product with ID "%1" does not exist.', $productId));
+            }
+        } catch (\Magento\Framework\Exception\InvalidArgumentException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            throw new \Magento\Framework\Exception\LocalizedException(__('Could not verify customer purchase: %1', $e->getMessage()));
         }
     }
 

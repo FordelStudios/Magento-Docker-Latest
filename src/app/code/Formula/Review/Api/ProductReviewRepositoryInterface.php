@@ -66,4 +66,17 @@ interface ProductReviewRepositoryInterface
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getCustomerExistingReview($sku);
+
+
+    /**
+     * Verify if the authenticated customer has purchased a product
+     *
+     * @param string|null $sku Product SKU (optional if productId is provided)
+     * @param int|null $productId Product ID (optional if sku is provided)
+     * @return \Formula\Review\Api\Data\CustomerPurchaseVerificationInterface
+     * @throws \Magento\Framework\Exception\AuthorizationException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Magento\Framework\Exception\InvalidArgumentException
+     */
+    public function verifyCustomerPurchase($sku = null, $productId = null);
 }
