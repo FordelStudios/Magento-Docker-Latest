@@ -7,12 +7,13 @@ namespace Formula\Shiprocket\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Store\Model\ScopeInterface;
 
 class Data extends AbstractHelper
 {
+    const XML_PATH_SHIPROCKET = 'shiprocket/general/';
+
     /**
-     * Constructor
-     *
      * @param Context $context
      */
     public function __construct(Context $context)
@@ -21,29 +22,73 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Format courier data for frontend
+     * Get config value
      *
-     * @param array $courierData
-     * @return array
+     * @param string $field
+     * @param string|null $storeId
+     * @return mixed
      */
-    public function formatCourierData($courierData)
+    public function getConfigValue($field, $storeId = null)
     {
-        $formattedData = [];
-        
-        if (isset($courierData['data']['available_courier_companies'])) {
-            foreach ($courierData['data']['available_courier_companies'] as $courier) {
-                $formattedData[] = [
-                    'courier_name' => $courier['courier_name'] ?? '',
-                    'rate' => $courier['rate'] ?? 0,
-                    'estimated_delivery_days' => $courier['estimated_delivery_days'] ?? '',
-                    'etd' => $courier['etd'] ?? '',
-                    'cod_available' => $courier['cod'] ?? 0,
-                    'rating' => $courier['rating'] ?? 0,
-                    'delivery_performance' => $courier['delivery_performance'] ?? 0
-                ];
-            }
-        }
-        
-        return $formattedData;
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SHIPROCKET . $field,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    /**
+     * Check if module is enabled
+     *
+     * @param string|null $storeId
+     * @return bool
+     */
+    public function isEnabled($storeId = null)
+    {
+        return (bool) $this->getConfigValue('enabled', $storeId);
+    }
+
+    /**
+     * Get Shiprocket email
+     *
+     * @param string|null $storeId
+     * @return string
+     */
+    public function getEmail($storeId = null)
+    {
+        return $this->getConfigValue('email', $storeId);
+    }
+
+    /**
+     * Get Shiprocket password
+     *
+     * @param string|null $storeId
+     * @return string
+     */
+    public function getPassword($storeId = null)
+    {
+        return $this->getConfigValue('password', $storeId);
+    }
+
+    /**
+     * Get pickup postcode
+     *
+     * @param string|null $storeId
+     * @return string
+     */
+    public function getPickupPostcode($storeId = null)
+    {
+        return $this->getConfigValue('pickup_postcode', $storeId);
+    }
+
+    /**
+     * Check if debug mode is enabled
+     *
+     * @param string|null $storeId
+     * @return bool
+     */
+    public function isDebugMode($storeId = null)
+    {
+        return (bool) $this->getConfigValue('debug_mode', $storeId);
     }
 }

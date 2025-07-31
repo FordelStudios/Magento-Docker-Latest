@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="formulashiprocket" translate="label" sortOrder="100">
+            <label>Formula Shiprocket</label>
+        </tab>
+        <section id="shiprocket" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Shiprocket Configuration</label>
+            <tab>formulashiprocket</tab>
+            <resource>Formula_Shiprocket::config</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Settings</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Shiprocket Integration</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable or disable Shiprocket API integration</comment>
+                </field>
+                <field id="email" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Shiprocket Email</label>
+                    <comment>Enter your Shiprocket account email address</comment>
+                    <validate>required-entry validate-email</validate>
+                </field>
+                <field id="password" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Shiprocket Password</label>
+                    <comment>Enter your Shiprocket account password</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="pickup_postcode" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Pickup Postcode</label>
+                    <comment>Enter the postcode from where shipments will be picked up</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="debug_mode" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Debug Mode</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable debug logging for Shiprocket API calls</comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config> 

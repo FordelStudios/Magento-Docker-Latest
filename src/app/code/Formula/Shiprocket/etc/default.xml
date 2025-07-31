@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <shiprocket>
+            <general>
+                <enabled>0</enabled>
+                <email></email>
+                <password></password>
+                <pickup_postcode></pickup_postcode>
+                <debug_mode>0</debug_mode>
+            </general>
+        </shiprocket>
+    </default>
+</config> 
