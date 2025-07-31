@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi/etc/webapi.xsd">
+
+    <!-- Endpoint to refresh customer token -->
+    <route url="/V1/integration/customer/refreshtoken" method="POST">
+        <service class="Formula\RefreshToken\Api\RefreshTokenRepositoryInterface" method="refresh"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+</routes>
