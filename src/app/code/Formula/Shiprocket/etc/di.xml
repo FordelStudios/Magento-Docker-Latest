@@ -2,11 +2,17 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Formula\Shiprocket\Api\ServiceabilityInterface" type="Formula\Shiprocket\Model\Serviceability"/>
 
+    <!-- Plugin to add estimated delivery date to orders -->
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="formula_shiprocket_order_delivery_date" type="Formula\Shiprocket\Plugin\OrderRepositoryPlugin" sortOrder="100"/>
+    </type>
+
      <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="formula_shiprocket_test" xsi:type="object">Formula\Shiprocket\Console\Command\TestServiceability</item>
                 <item name="formula_shiprocket_test_config" xsi:type="object">Formula\Shiprocket\Console\Command\TestConfiguration</item>
+                <item name="formula_shiprocket_test_delivery_date" xsi:type="object">Formula\Shiprocket\Console\Command\TestOrderDeliveryDate</item>
             </argument>
         </arguments>
     </type>
