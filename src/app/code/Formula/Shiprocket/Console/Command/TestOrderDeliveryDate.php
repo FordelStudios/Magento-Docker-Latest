@@ -101,12 +101,20 @@ class TestOrderDeliveryDate extends Command
                 $output->writeln('Payment Method: ' . $payment->getMethod());
             }
 
-            // Check if estimated delivery date was added
+            // Check if estimated delivery date was stored in database
+            $storedDeliveryDate = $order->getData('est_delivery_date');
+            if ($storedDeliveryDate) {
+                $output->writeln('<info>Stored Delivery Date: ' . $storedDeliveryDate . '</info>');
+            } else {
+                $output->writeln('<comment>No stored delivery date found</comment>');
+            }
+
+            // Check if estimated delivery date was added to extension attributes
             $extensionAttributes = $order->getExtensionAttributes();
             if ($extensionAttributes && $extensionAttributes->getEstDeliveryDate()) {
-                $output->writeln('<info>Estimated Delivery Date: ' . $extensionAttributes->getEstDeliveryDate() . '</info>');
+                $output->writeln('<info>Extension Attribute Delivery Date: ' . $extensionAttributes->getEstDeliveryDate() . '</info>');
             } else {
-                $output->writeln('<error>No estimated delivery date found</error>');
+                $output->writeln('<comment>No extension attribute delivery date found</comment>');
             }
         }
 

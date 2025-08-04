@@ -7,12 +7,18 @@
         <plugin name="formula_shiprocket_order_delivery_date" type="Formula\Shiprocket\Plugin\OrderRepositoryPlugin" sortOrder="100"/>
     </type>
 
+    <!-- Plugin to calculate delivery date when order is saved -->
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="formula_shiprocket_calculate_delivery_date" type="Formula\Shiprocket\Plugin\OrderSavePlugin" sortOrder="10"/>
+    </type>
+
      <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="formula_shiprocket_test" xsi:type="object">Formula\Shiprocket\Console\Command\TestServiceability</item>
                 <item name="formula_shiprocket_test_config" xsi:type="object">Formula\Shiprocket\Console\Command\TestConfiguration</item>
                 <item name="formula_shiprocket_test_delivery_date" xsi:type="object">Formula\Shiprocket\Console\Command\TestOrderDeliveryDate</item>
+                <item name="formula_shiprocket_recalculate_delivery_dates" xsi:type="object">Formula\Shiprocket\Console\Command\RecalculateDeliveryDates</item>
             </argument>
         </arguments>
     </type>
