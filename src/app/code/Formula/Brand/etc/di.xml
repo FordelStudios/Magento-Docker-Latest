@@ -26,12 +26,21 @@
 			</argument>
 		</arguments>
 	</type>
-	<!-- Your existing configuration -->
+	<!-- Configure Grid Collection for UI Component -->
+	<virtualType name="FormulaBrandGridCollection" type="Formula\Brand\Model\ResourceModel\Brand\Grid\Collection">
+		<arguments>
+			<argument name="mainTable" xsi:type="string">brand_details</argument>
+			<argument name="eventPrefix" xsi:type="string">formula_brand_grid_collection</argument>
+			<argument name="eventObject" xsi:type="string">brand_grid_collection</argument>
+			<argument name="resourceModel" xsi:type="string">Formula\Brand\Model\ResourceModel\Brand</argument>
+		</arguments>
+	</virtualType>
+	<!-- Configure UI Component Data Provider -->
 	<type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
 		<arguments>
 			<argument name="collections" xsi:type="array">
 				<item name="formula_brand_listing_data_source" xsi:type="string">
-					Formula\Brand\Model\ResourceModel\Brand\Grid\Collection
+					FormulaBrandGridCollection
 				</item>
 			</argument>
 		</arguments>
