@@ -26,12 +26,21 @@
 			</argument>
 		</arguments>
 	</type>
-	<!-- Your existing configuration -->
+	<!-- Configure Grid Collection for UI Component -->
+	<virtualType name="FormulaIngredientGridCollection" type="Formula\Ingredient\Model\ResourceModel\Ingredient\Grid\Collection">
+		<arguments>
+			<argument name="mainTable" xsi:type="string">ingredient_details</argument>
+			<argument name="eventPrefix" xsi:type="string">formula_ingredient_grid_collection</argument>
+			<argument name="eventObject" xsi:type="string">ingredient_grid_collection</argument>
+			<argument name="resourceModel" xsi:type="string">Formula\Ingredient\Model\ResourceModel\Ingredient</argument>
+		</arguments>
+	</virtualType>
+	<!-- Configure UI Component Data Provider -->
 	<type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
 		<arguments>
 			<argument name="collections" xsi:type="array">
 				<item name="formula_ingredient_listing_data_source" xsi:type="string">
-					Formula\Ingredient\Model\ResourceModel\Ingredient\Grid\Collection
+					FormulaIngredientGridCollection
 				</item>
 			</argument>
 		</arguments>

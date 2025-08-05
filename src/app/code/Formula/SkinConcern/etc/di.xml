@@ -27,12 +27,21 @@
 			</argument>
 		</arguments>
 	</type>
-	<!-- Your existing configuration -->
+	<!-- Configure Grid Collection for UI Component -->
+	<virtualType name="FormulaSkinConcernGridCollection" type="Formula\SkinConcern\Model\ResourceModel\SkinConcern\Grid\Collection">
+		<arguments>
+			<argument name="mainTable" xsi:type="string">skinconcern_details</argument>
+			<argument name="eventPrefix" xsi:type="string">formula_skinconcern_grid_collection</argument>
+			<argument name="eventObject" xsi:type="string">skinconcern_grid_collection</argument>
+			<argument name="resourceModel" xsi:type="string">Formula\SkinConcern\Model\ResourceModel\SkinConcern</argument>
+		</arguments>
+	</virtualType>
+	<!-- Configure UI Component Data Provider -->
 	<type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
 		<arguments>
 			<argument name="collections" xsi:type="array">
 				<item name="formula_skinconcern_listing_data_source" xsi:type="string">
-					Formula\SkinConcern\Model\ResourceModel\SkinConcern\Grid\Collection
+					FormulaSkinConcernGridCollection
 				</item>
 			</argument>
 		</arguments>

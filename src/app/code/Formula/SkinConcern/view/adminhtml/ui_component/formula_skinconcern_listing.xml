@@ -42,6 +42,19 @@
         <columnsControls name="columns_controls"/>
         <filterSearch name="fulltext"/>
         <filters name="listing_filters"/>
+        <massaction name="listing_massaction">
+            <action name="delete">
+                <settings>
+                    <confirm>
+                        <message translate="true">Are you sure you want to delete selected skinconcerns?</message>
+                        <title translate="true">Delete skinconcerns</title>
+                    </confirm>
+                    <url path="formula_skinconcern/skinconcern/massDelete"/>
+                    <type>delete</type>
+                    <label translate="true">Delete</label>
+                </settings>
+            </action>
+        </massaction>
         <paging name="listing_paging"/>
     </listingToolbar>
     <columns name="formula_skinconcern_columns">
