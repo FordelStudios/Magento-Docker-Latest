@@ -8,7 +8,7 @@ class VideoUploaderPlugin
      * 
      * @param \Magento\MediaGalleryIntegration\Plugin\SaveImageInformation $subject
      * @param \Closure $proceed
-     * @param \Magento\MediaStorage\Model\File\Uploader $uploader
+     * @param \Magento\Framework\File\Uploader $uploader
      * @param mixed $result
      * @param string $path
      * @return mixed
@@ -16,7 +16,7 @@ class VideoUploaderPlugin
     public function aroundAfterSave(
         \Magento\MediaGalleryIntegration\Plugin\SaveImageInformation $subject,
         \Closure $proceed,
-        \Magento\MediaStorage\Model\File\Uploader $uploader,
+        \Magento\Framework\File\Uploader $uploader,
         $result,
         $path
     ) {
