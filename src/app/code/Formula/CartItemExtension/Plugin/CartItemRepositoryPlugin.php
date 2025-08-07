@@ -67,7 +67,7 @@ class CartItemRepositoryPlugin
     }
 
     /**
-     * Add brand_name to cart item
+     * Add brand_name and productId to cart item
      *
      * @param CartItemInterface $cartItem
      * @return void
@@ -79,10 +79,22 @@ class CartItemRepositoryPlugin
             $this->logger->info("[CartItemExtension] Processing SKU: $sku");
 
             $product = $this->productRepository->get($sku);
+            $productId = $product->getId();
             $brandId = $product->getCustomAttribute('brand') ? 
                 $product->getCustomAttribute('brand')->getValue() : null;
 
+            $this->logger->info("[CartItemExtension] Found product ID: $productId");
             $this->logger->info("[CartItemExtension] Found brand ID: " . ($brandId ?? 'null'));
+
+            $extensionAttributes = $cartItem->getExtensionAttributes();
+            if ($extensionAttributes === null) {
+                $this->logger->info("[CartItemExtension] Creating new extension attributes");
+                $extensionAttributes = $this->extensionFactory->create();
+            }
+
+            // Always set the productId
+            $extensionAttributes->setProductId($productId);
+            $this->logger->info("[CartItemExtension] productId set successfully");
 
             if ($brandId) {
                 try {
@@ -90,14 +102,7 @@ class CartItemRepositoryPlugin
                     $brandName = $brand->getName();
                     $this->logger->info("[CartItemExtension] Found brand name: $brandName");
 
-                    $extensionAttributes = $cartItem->getExtensionAttributes();
-                    if ($extensionAttributes === null) {
-                        $this->logger->info("[CartItemExtension] Creating new extension attributes");
-                        $extensionAttributes = $this->extensionFactory->create();
-                    }
-
                     $extensionAttributes->setBrandName($brandName);
-                    $cartItem->setExtensionAttributes($extensionAttributes);
                     $this->logger->info("[CartItemExtension] brand_name set successfully");
 
                 } catch (NoSuchEntityException $e) {
@@ -106,8 +111,11 @@ class CartItemRepositoryPlugin
             } else {
                 $this->logger->info("[CartItemExtension] No brand ID found for product");
             }
+
+            $cartItem->setExtensionAttributes($extensionAttributes);
+
         } catch (\Exception $e) {
-            $this->logger->error("[CartItemExtension] Error setting brand_name: " . $e->getMessage());
+            $this->logger->error("[CartItemExtension] Error setting extension attributes: " . $e->getMessage());
         }
     }
 }
