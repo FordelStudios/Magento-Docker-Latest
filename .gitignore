@@ -16,3 +16,5 @@ esdata/
 
 # System files
 .DS_Store
+# Ignore Magento media
+src/pub/media/
