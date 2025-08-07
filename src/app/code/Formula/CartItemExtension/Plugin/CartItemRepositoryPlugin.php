@@ -8,6 +8,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Quote\Api\Data\CartItemExtensionFactory;
 use Psr\Log\LoggerInterface;
+use Formula\CartItemExtension\Model\Data\ProductMediaFactory;
 
 class CartItemRepositoryPlugin
 {
@@ -15,17 +16,20 @@ class CartItemRepositoryPlugin
     protected $productRepository;
     protected $extensionFactory;
     protected $logger;
+    protected $productMediaFactory;
 
     public function __construct(
         BrandRepository $brandRepository,
         ProductRepositoryInterface $productRepository,
         CartItemExtensionFactory $extensionFactory,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ProductMediaFactory $productMediaFactory
     ) {
         $this->brandRepository = $brandRepository;
         $this->productRepository = $productRepository;
         $this->extensionFactory = $extensionFactory;
         $this->logger = $logger;
+        $this->productMediaFactory = $productMediaFactory;
     }
 
     /**
@@ -86,6 +90,11 @@ class CartItemRepositoryPlugin
             try {
                 $product = $this->productRepository->get($sku);
                 $productId = $product->getId();
+                $productExtensionAttributes = $product->getExtensionAttributes();
+                $productSalableQty = null;
+                if ($productExtensionAttributes && method_exists($productExtensionAttributes, 'getSalableQty')) {
+                    $productSalableQty = $productExtensionAttributes->getSalableQty();
+                }
                 $brandId = $product->getCustomAttribute('brand') ? 
                     $product->getCustomAttribute('brand')->getValue() : null;
 
@@ -120,6 +129,34 @@ class CartItemRepositoryPlugin
                     }
                 } else {
                     $this->logger->info("[CartItemExtension] No brand ID found for product");
+                }
+
+                // Set salable_qty if available
+                if ($productSalableQty !== null) {
+                    $extensionAttributes->setSalableQty((int) $productSalableQty);
+                    $this->logger->info('[CartItemExtension] salable_qty set: ' . (int)$productSalableQty);
+                } else {
+                    $this->logger->info('[CartItemExtension] salable_qty not available from product extension attributes');
+                }
+
+                // Populate product media (id and file only)
+                try {
+                    $mediaEntries = $product->getMediaGalleryEntries();
+                    if (is_array($mediaEntries) && !empty($mediaEntries)) {
+                        $mediaDataItems = [];
+                        foreach ($mediaEntries as $mediaEntry) {
+                            $mediaItem = $this->productMediaFactory->create();
+                            $mediaItem->setId($mediaEntry->getId());
+                            $mediaItem->setFile($mediaEntry->getFile());
+                            $mediaDataItems[] = $mediaItem;
+                        }
+                        $extensionAttributes->setProductMedia($mediaDataItems);
+                        $this->logger->info('[CartItemExtension] product_media set with ' . count($mediaDataItems) . ' entries');
+                    } else {
+                        $this->logger->info('[CartItemExtension] No media gallery entries for product');
+                    }
+                } catch (\Throwable $t) {
+                    $this->logger->warning('[CartItemExtension] Failed to set product_media: ' . $t->getMessage());
                 }
 
                 $cartItem->setExtensionAttributes($extensionAttributes);

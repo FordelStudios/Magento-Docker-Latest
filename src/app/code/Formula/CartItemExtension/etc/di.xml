@@ -6,4 +6,5 @@
     <type name="Magento\Quote\Api\GuestCartItemRepositoryInterface">
         <plugin name="formula_guest_cart_item_extension" type="Formula\CartItemExtension\Plugin\GuestCartItemRepositoryPlugin"/>
     </type>
+    <preference for="Formula\CartItemExtension\Api\Data\ProductMediaInterface" type="Formula\CartItemExtension\Model\Data\ProductMedia" />
 </config> 

@@ -3,5 +3,7 @@
     <extension_attributes for="Magento\Quote\Api\Data\CartItemInterface">
         <attribute code="brand_name" type="string"/>
         <attribute code="product_id_display" type="int"/>
+        <attribute code="salable_qty" type="int"/>
+        <attribute code="product_media" type="Formula\CartItemExtension\Api\Data\ProductMediaInterface[]"/>
     </extension_attributes>
 </config> 
