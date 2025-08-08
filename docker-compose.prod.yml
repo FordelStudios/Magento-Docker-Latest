@@ -9,7 +9,7 @@ services:
       - ./docker/nginx/default.prod.conf:/etc/nginx/conf.d/default.conf
       - ./ssl:/etc/nginx/ssl
     environment:
-      - VIRTUAL_HOST=magento.yellowchalk.dev
+      - VIRTUAL_HOST=admin.theformulashop.com
       - VIRTUAL_PORT=8080
     depends_on:
       - php
