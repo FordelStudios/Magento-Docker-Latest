@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Formula\BulkCartItemsAdd\Api\BulkCartItemsAddInterface"
+                type="Formula\BulkCartItemsAdd\Model\BulkCartItemsAdd" />
+
+    <preference for="Formula\BulkCartItemsAdd\Api\Data\BulkAddResponseInterface"
+                type="Formula\BulkCartItemsAdd\Model\Data\BulkAddResponse" />
+
+    <preference for="Formula\BulkCartItemsAdd\Api\Data\FailedItemInterface"
+                type="Formula\BulkCartItemsAdd\Model\Data\FailedItem" />
+</config>
