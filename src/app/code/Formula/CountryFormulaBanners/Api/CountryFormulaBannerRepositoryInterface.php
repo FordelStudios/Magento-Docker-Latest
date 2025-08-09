@@ -39,6 +39,13 @@ interface CountryFormulaBannerRepositoryInterface
     public function getByCountry($countryId);  // Changed parameter name for clarity
 
     /**
+     * Get all active banners
+     *
+     * @return CountryFormulaBannerInterface[]
+     */
+    public function getAll();
+
+    /**
      * Delete banner
      *
      * @param CountryFormulaBannerInterface $banner

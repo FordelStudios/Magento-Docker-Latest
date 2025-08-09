@@ -19,6 +19,14 @@
         </resources>
     </route>
     
+    <!-- Get all banners -->
+    <route url="/V1/formula-country-banners" method="GET">
+        <service class="Formula\CountryFormulaBanners\Api\CountryFormulaBannerRepositoryInterface" method="getAll"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
     <!-- Create/Update a banner -->
     <route url="/V1/formula-country-banners" method="POST">
         <service class="Formula\CountryFormulaBanners\Api\CountryFormulaBannerRepositoryInterface" method="save"/>

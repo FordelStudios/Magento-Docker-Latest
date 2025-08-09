@@ -106,6 +106,16 @@ class CountryFormulaBannerRepository implements CountryFormulaBannerRepositoryIn
     /**
      * {@inheritdoc}
      */
+    public function getAll()
+    {
+        $collection = $this->countryFormulaBannerCollectionFactory->create();
+        $collection->addFieldToFilter('is_active', 1);
+        return $collection->getItems();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function delete(CountryFormulaBannerInterface $banner)
     {
         try {
