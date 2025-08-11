@@ -33,7 +33,7 @@ class CustomerConfirmRedirect
         if ($result instanceof Redirect) {
             // Create our own redirect
             $redirect = $this->redirectFactory->create();
-            $redirect->setUrl('https://formula.yellowchalk.dev?verified=true');
+            $redirect->setUrl('https://theformulashop.com?verified=true');
             return $redirect;
         }
 
