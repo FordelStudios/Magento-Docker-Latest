@@ -190,21 +190,106 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
     protected function getExistingReviewId($customerId, $productId)
     {
         try {
+            $this->logDebug("getExistingReviewId called with customerId: $customerId, productId: $productId");
+            
             $collection = $this->reviewCollectionFactory->create()
                 ->addFieldToFilter('customer_id', $customerId)
                 ->addFieldToFilter('entity_pk_value', $productId)
                 ->addFieldToFilter('entity_id', 1) // 1 = product entity
+                ->addStoreFilter($this->storeManager->getStore()->getId()) // Add store filter like getList method
                 ->setPageSize(1)
                 ->setCurPage(1);
+
+            $this->logDebug("Review collection query created with filters:");
+            $this->logDebug("  - customer_id: $customerId");
+            $this->logDebug("  - entity_pk_value: $productId");
+            $this->logDebug("  - entity_id: 1");
+            $this->logDebug("  - store_id: " . $this->storeManager->getStore()->getId());
+            $this->logDebug("Collection size: " . $collection->getSize());
 
             $review = $collection->getFirstItem();
             
             if ($review && $review->getId()) {
+                $this->logDebug("Found review with ID: " . $review->getId());
+                $this->logDebug("Review data: " . json_encode($review->getData()));
                 return $review->getId();
+            } else {
+                $this->logDebug("No review found in collection");
+                if ($review) {
+                    $this->logDebug("Review object exists but no ID: " . json_encode($review->getData()));
+                }
+            }
+            
+            // Let's also check what's in the review table for debugging
+            $this->logDebug("Debugging: Checking all reviews for customer $customerId");
+            $allCustomerReviews = $this->reviewCollectionFactory->create()
+                ->addFieldToFilter('customer_id', $customerId)
+                ->addFieldToFilter('entity_id', 1);
+            
+            $this->logDebug("Total reviews for customer $customerId: " . $allCustomerReviews->getSize());
+            foreach ($allCustomerReviews as $review) {
+                $this->logDebug("  Review ID: " . $review->getId() . ", Product ID: " . $review->getEntityPkValue() . ", Status: " . $review->getStatusId());
+            }
+            
+            $this->logDebug("Debugging: Checking all reviews for product $productId");
+            $allProductReviews = $this->reviewCollectionFactory->create()
+                ->addFieldToFilter('entity_pk_value', $productId)
+                ->addFieldToFilter('entity_id', 1);
+            
+            $this->logDebug("Total reviews for product $productId: " . $allProductReviews->getSize());
+            foreach ($allProductReviews as $review) {
+                $this->logDebug("  Review ID: " . $review->getId() . ", Customer ID: " . $review->getCustomerId() . ", Status: " . $review->getStatusId());
+            }
+            
+            // Also check without store filter to see if that's the issue
+            $this->logDebug("Debugging: Checking reviews without store filter");
+            $noStoreFilterCollection = $this->reviewCollectionFactory->create()
+                ->addFieldToFilter('customer_id', $customerId)
+                ->addFieldToFilter('entity_pk_value', $productId)
+                ->addFieldToFilter('entity_id', 1);
+            
+            $this->logDebug("Reviews without store filter: " . $noStoreFilterCollection->getSize());
+            foreach ($noStoreFilterCollection as $review) {
+                $this->logDebug("  Review ID: " . $review->getId() . ", Store IDs: " . $review->getStoreId());
+            }
+            
+            // Check all reviews for this customer and product regardless of status
+            $this->logDebug("Debugging: Checking all reviews regardless of status");
+            $allStatusCollection = $this->reviewCollectionFactory->create()
+                ->addFieldToFilter('customer_id', $customerId)
+                ->addFieldToFilter('entity_pk_value', $productId)
+                ->addFieldToFilter('entity_id', 1);
+            
+            $this->logDebug("All reviews regardless of status: " . $allStatusCollection->getSize());
+            foreach ($allStatusCollection as $review) {
+                $this->logDebug("  Review ID: " . $review->getId() . ", Status: " . $review->getStatusId() . ", Store: " . $review->getStoreId());
+            }
+            
+            // Check the review_status table to see what statuses exist
+            try {
+                $connection = $this->reviewResource->getConnection();
+                $statusSelect = $connection->select()
+                    ->from($connection->getTableName('review_status'), ['status_id', 'status_code']);
+                $statuses = $connection->fetchAll($statusSelect);
+                $this->logDebug("Available review statuses: " . json_encode($statuses));
+            } catch (\Exception $e) {
+                $this->logDebug("Could not fetch review statuses: " . $e->getMessage());
+            }
+            
+            // Check current website and store context
+            try {
+                $currentWebsite = $this->storeManager->getWebsite();
+                $currentStore = $this->storeManager->getStore();
+                $this->logDebug("Current website: " . $currentWebsite->getCode() . " (ID: " . $currentWebsite->getId() . ")");
+                $this->logDebug("Current store: " . $currentStore->getCode() . " (ID: " . $currentStore->getId() . ")");
+            } catch (\Exception $e) {
+                $this->logDebug("Could not get website/store info: " . $e->getMessage());
             }
             
             return null;
         } catch (\Exception $e) {
+            $this->logDebug("Exception in getExistingReviewId: " . $e->getMessage());
+            $this->logDebug("Stack trace: " . $e->getTraceAsString());
             return null;
         }
     }
@@ -457,89 +542,6 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             throw $e;
         } catch (\Exception $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__('Could not check existing review: %1', $e->getMessage()));
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getCustomerExistingReviewByProductId($productId)
-    {
-        try {
-            // Get authenticated customer ID
-            $customerId = $this->getAuthenticatedCustomerId();
-            
-            // Log the product ID processing for debugging
-            $this->logDebug("getCustomerExistingReviewByProductId called with Product ID: $productId");
-            
-            // Get product by ID (this is more reliable than SKU)
-            try {
-                $product = $this->productRepository->getById($productId);
-                $this->logDebug("Found product with Product ID: " . $product->getId() . ", SKU: " . $product->getSku());
-            } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
-                $this->logDebug("Failed to find product with Product ID: " . $e->getMessage());
-                throw new NoSuchEntityException(__('Product with ID "%1" does not exist.', $productId));
-            }
-            
-            // Check if customer has existing review
-            $reviewId = $this->getExistingReviewId($customerId, $product->getId());
-            $this->logDebug("Existing review check for customer $customerId, product " . $product->getId() . ": " . ($reviewId ? "Found review ID $reviewId" : "No review found"));
-
-            $customerReviewStatus = $this->customerReviewStatusFactory->create();
-            $customerReviewStatus->setCustomerId($customerId);
-            $customerReviewStatus->setProductSku($product->getSku()); // Use the actual product SKU from database
-            
-            if ($reviewId) {
-                $customerReviewStatus->setHasReview(true);
-                $customerReviewStatus->setReviewId($reviewId);
-                $this->logDebug("Setting has_review = true for review ID: $reviewId");
-            } else {
-                $customerReviewStatus->setHasReview(false);
-                $customerReviewStatus->setReviewId(null);
-                $this->logDebug("Setting has_review = false - no existing review found");
-            }
-
-            return $customerReviewStatus;
-
-            
-        } catch (\Magento\Framework\Exception\AuthorizationException $e) {
-            throw $e;
-        } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Could not check existing review: %1', $e->getMessage()));
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getProductIdBySku($sku)
-    {
-        try {
-            // Decode URL-encoded characters and normalize the SKU
-            $decodedSku = urldecode($sku);
-            
-            // Try to get product by the decoded SKU first
-            try {
-                $product = $this->productRepository->get($decodedSku);
-                return $product->getId();
-            } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
-                // If that fails, try with the original SKU
-                try {
-                    $product = $this->productRepository->get($sku);
-                    return $product->getId();
-                } catch (\Magento\Framework\Exception\NoSuchEntityException $e2) {
-                    // If both fail, try to find the product by searching for a similar SKU
-                    $product = $this->findProductByMultipleSkuVariations($sku);
-                    if (!$product) {
-                        throw new NoSuchEntityException(__('Product with SKU "%1" does not exist.', $sku));
-                    }
-                    return $product->getId();
-                }
-            }
-        } catch (\Exception $e) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Could not get product ID from SKU: %1', $e->getMessage()));
         }
     }
 

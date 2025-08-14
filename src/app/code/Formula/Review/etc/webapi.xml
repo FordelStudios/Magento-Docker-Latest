@@ -41,25 +41,9 @@
         </resources>
     </route>
 
-
+     <!-- Delete review -->
     <route url="/V1/reviews/product/:sku" method="GET">
         <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="getCustomerExistingReview"/>
-        <resources>
-             <resource ref="self"/>
-        </resources>
-    </route>
-
-    <!-- Check existing review by product ID (more reliable than SKU) -->
-    <route url="/V1/reviews/product-id/:productId" method="GET">
-        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="getCustomerExistingReviewByProductId"/>
-        <resources>
-             <resource ref="self"/>
-        </resources>
-    </route>
-
-    <!-- Helper endpoint to get product ID from SKU -->
-    <route url="/V1/reviews/sku-to-product-id/:sku" method="GET">
-        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="getProductIdBySku"/>
         <resources>
              <resource ref="self"/>
         </resources>
