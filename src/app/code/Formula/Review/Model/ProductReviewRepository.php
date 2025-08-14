@@ -461,6 +461,89 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function getCustomerExistingReviewByProductId($productId)
+    {
+        try {
+            // Get authenticated customer ID
+            $customerId = $this->getAuthenticatedCustomerId();
+            
+            // Log the product ID processing for debugging
+            $this->logDebug("getCustomerExistingReviewByProductId called with Product ID: $productId");
+            
+            // Get product by ID (this is more reliable than SKU)
+            try {
+                $product = $this->productRepository->getById($productId);
+                $this->logDebug("Found product with Product ID: " . $product->getId() . ", SKU: " . $product->getSku());
+            } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+                $this->logDebug("Failed to find product with Product ID: " . $e->getMessage());
+                throw new NoSuchEntityException(__('Product with ID "%1" does not exist.', $productId));
+            }
+            
+            // Check if customer has existing review
+            $reviewId = $this->getExistingReviewId($customerId, $product->getId());
+            $this->logDebug("Existing review check for customer $customerId, product " . $product->getId() . ": " . ($reviewId ? "Found review ID $reviewId" : "No review found"));
+
+            $customerReviewStatus = $this->customerReviewStatusFactory->create();
+            $customerReviewStatus->setCustomerId($customerId);
+            $customerReviewStatus->setProductSku($product->getSku()); // Use the actual product SKU from database
+            
+            if ($reviewId) {
+                $customerReviewStatus->setHasReview(true);
+                $customerReviewStatus->setReviewId($reviewId);
+                $this->logDebug("Setting has_review = true for review ID: $reviewId");
+            } else {
+                $customerReviewStatus->setHasReview(false);
+                $customerReviewStatus->setReviewId(null);
+                $this->logDebug("Setting has_review = false - no existing review found");
+            }
+
+            return $customerReviewStatus;
+
+            
+        } catch (\Magento\Framework\Exception\AuthorizationException $e) {
+            throw $e;
+        } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            throw new \Magento\Framework\Exception\LocalizedException(__('Could not check existing review: %1', $e->getMessage()));
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getProductIdBySku($sku)
+    {
+        try {
+            // Decode URL-encoded characters and normalize the SKU
+            $decodedSku = urldecode($sku);
+            
+            // Try to get product by the decoded SKU first
+            try {
+                $product = $this->productRepository->get($decodedSku);
+                return $product->getId();
+            } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+                // If that fails, try with the original SKU
+                try {
+                    $product = $this->productRepository->get($sku);
+                    return $product->getId();
+                } catch (\Magento\Framework\Exception\NoSuchEntityException $e2) {
+                    // If both fail, try to find the product by searching for a similar SKU
+                    $product = $this->findProductByMultipleSkuVariations($sku);
+                    if (!$product) {
+                        throw new NoSuchEntityException(__('Product with SKU "%1" does not exist.', $sku));
+                    }
+                    return $product->getId();
+                }
+            }
+        } catch (\Exception $e) {
+            throw new \Magento\Framework\Exception\LocalizedException(__('Could not get product ID from SKU: %1', $e->getMessage()));
+        }
+    }
+
+    /**
      * Find product by similar SKU when exact match fails
      * This handles cases where special characters might be encoded differently
      *

@@ -49,6 +49,22 @@
         </resources>
     </route>
 
+    <!-- Check existing review by product ID (more reliable than SKU) -->
+    <route url="/V1/reviews/product-id/:productId" method="GET">
+        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="getCustomerExistingReviewByProductId"/>
+        <resources>
+             <resource ref="self"/>
+        </resources>
+    </route>
+
+    <!-- Helper endpoint to get product ID from SKU -->
+    <route url="/V1/reviews/sku-to-product-id/:sku" method="GET">
+        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="getProductIdBySku"/>
+        <resources>
+             <resource ref="self"/>
+        </resources>
+    </route>
+
     <!-- Admin-only endpoint to fetch ALL reviews -->
     <route url="/V1/reviews/all" method="GET">
         <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="getAllReviews"/>

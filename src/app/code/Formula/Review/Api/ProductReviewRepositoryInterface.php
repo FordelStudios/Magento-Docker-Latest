@@ -67,6 +67,25 @@ interface ProductReviewRepositoryInterface
      */
     public function getCustomerExistingReview($sku);
 
+    /**
+     * Check if the authenticated customer has an existing review for a product by product ID
+     *
+     * @param int $productId
+     * @return \Formula\Review\Api\Data\CustomerReviewStatusInterface
+     * @throws \Magento\Framework\Exception\AuthorizationException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getCustomerExistingReviewByProductId($productId);
+
+    /**
+     * Get product ID from SKU (helper method)
+     *
+     * @param string $sku
+     * @return int
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getProductIdBySku($sku);
+
 
     /**
      * Verify if the authenticated customer has purchased a product
