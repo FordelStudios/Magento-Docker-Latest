@@ -80,4 +80,12 @@
             <resource ref="self" />
         </resources>
     </route>
+
+    <!-- Debug SKU matching - for troubleshooting purposes -->
+    <route url="/V1/reviews/debug-sku/:sku" method="GET">
+        <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="debugSkuMatching"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+    </route>
 </routes>

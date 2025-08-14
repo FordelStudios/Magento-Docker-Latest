@@ -399,22 +399,53 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             // Get authenticated customer ID
             $customerId = $this->getAuthenticatedCustomerId();
             
-            // Get product by SKU
-            $product = $this->productRepository->get($sku);
+            // Decode URL-encoded characters and normalize the SKU
+            $decodedSku = urldecode($sku);
+            
+            // Log the SKU processing for debugging
+            $this->logDebug("getCustomerExistingReview called with SKU: '$sku'");
+            $this->logDebug("Decoded SKU: '$decodedSku'");
+            
+            // Try to get product by the decoded SKU first
+            try {
+                $product = $this->productRepository->get($decodedSku);
+                $this->logDebug("Found product with decoded SKU. Product ID: " . $product->getId());
+            } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+                $this->logDebug("Failed to find product with decoded SKU: " . $e->getMessage());
+                // If that fails, try with the original SKU
+                try {
+                    $product = $this->productRepository->get($sku);
+                    $this->logDebug("Found product with original SKU. Product ID: " . $product->getId());
+                } catch (\Magento\Framework\Exception\NoSuchEntityException $e2) {
+                    $this->logDebug("Failed to find product with original SKU: " . $e2->getMessage());
+                    // If both fail, try to find the product by searching for a similar SKU
+                    // This handles cases where special characters might be stored differently
+                    $product = $this->findProductBySimilarSku($sku);
+                    if (!$product) {
+                        $this->logDebug("Failed to find product with similar SKU search");
+                        throw new NoSuchEntityException(__('Product with SKU "%1" does not exist.', $sku));
+                    } else {
+                        $this->logDebug("Found product with similar SKU search. Product ID: " . $product->getId());
+                    }
+                }
+            }
             
             // Check if customer has existing review
             $reviewId = $this->getExistingReviewId($customerId, $product->getId());
+            $this->logDebug("Existing review check for customer $customerId, product " . $product->getId() . ": " . ($reviewId ? "Found review ID $reviewId" : "No review found"));
 
             $customerReviewStatus = $this->customerReviewStatusFactory->create();
             $customerReviewStatus->setCustomerId($customerId);
-            $customerReviewStatus->setProductSku($sku);
+            $customerReviewStatus->setProductSku($product->getSku()); // Use the actual product SKU from database
             
             if ($reviewId) {
                 $customerReviewStatus->setHasReview(true);
                 $customerReviewStatus->setReviewId($reviewId);
+                $this->logDebug("Setting has_review = true for review ID: $reviewId");
             } else {
                 $customerReviewStatus->setHasReview(false);
                 $customerReviewStatus->setReviewId(null);
+                $this->logDebug("Setting has_review = false - no existing review found");
             }
 
             return $customerReviewStatus;
@@ -423,10 +454,168 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
         } catch (\Magento\Framework\Exception\AuthorizationException $e) {
             throw $e;
         } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
-            throw new NoSuchEntityException(__('Product with SKU "%1" does not exist.', $sku));
+            throw $e;
         } catch (\Exception $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__('Could not check existing review: %1', $e->getMessage()));
         }
+    }
+
+    /**
+     * Find product by similar SKU when exact match fails
+     * This handles cases where special characters might be encoded differently
+     *
+     * @param string $sku
+     * @return \Magento\Catalog\Api\Data\ProductInterface|null
+     */
+    protected function findProductBySimilarSku($sku)
+    {
+        try {
+            // Try to find product by searching in the catalog
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $productCollection = $objectManager->create(\Magento\Catalog\Model\ResourceModel\Product\Collection::class);
+            
+            // Search for products with similar SKU
+            $productCollection->addFieldToFilter('sku', ['like' => '%' . $sku . '%']);
+            
+            if ($productCollection->getSize() > 0) {
+                // Return the first match
+                return $productCollection->getFirstItem();
+            }
+            
+            // If no like match, try to find by removing special characters
+            $cleanSku = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $sku);
+            if ($cleanSku !== $sku) {
+                $productCollection = $objectManager->create(\Magento\Catalog\Model\ResourceModel\Product\Collection::class);
+                $productCollection->addFieldToFilter('sku', ['like' => '%' . $cleanSku . '%']);
+                
+                if ($productCollection->getSize() > 0) {
+                    return $productCollection->getFirstItem();
+                }
+            }
+            
+            // Try to find by URL-decoded version
+            $decodedSku = urldecode($sku);
+            if ($decodedSku !== $sku) {
+                $productCollection = $objectManager->create(\Magento\Catalog\Model\ResourceModel\Product\Collection::class);
+                $productCollection->addFieldToFilter('sku', ['like' => '%' . $decodedSku . '%']);
+                
+                if ($productCollection->getSize() > 0) {
+                    return $productCollection->getFirstItem();
+                }
+            }
+            
+            // Last resort: try to find by partial match with common words
+            $words = explode(' ', $sku);
+            if (count($words) > 1) {
+                foreach ($words as $word) {
+                    if (strlen($word) > 2) { // Only search for words longer than 2 characters
+                        $productCollection = $objectManager->create(\Magento\Catalog\Model\ResourceModel\Product\Collection::class);
+                        $productCollection->addFieldToFilter('sku', ['like' => '%' . $word . '%']);
+                        
+                        if ($productCollection->getSize() > 0) {
+                            return $productCollection->getFirstItem();
+                        }
+                    }
+                }
+            }
+            
+            return null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Debug method to help troubleshoot SKU matching issues
+     * This can be called to see what's happening with SKU matching
+     *
+     * @param string $sku
+     * @return array
+     */
+    public function debugSkuMatching($sku)
+    {
+        $debug = [
+            'original_sku' => $sku,
+            'url_decoded' => urldecode($sku),
+            'clean_sku' => preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $sku),
+            'words' => explode(' ', $sku),
+            'attempts' => []
+        ];
+        
+        try {
+            // Try exact match
+            try {
+                $product = $this->productRepository->get($sku);
+                $debug['attempts']['exact_match'] = [
+                    'success' => true,
+                    'product_id' => $product->getId(),
+                    'product_sku' => $product->getSku()
+                ];
+            } catch (\Exception $e) {
+                $debug['attempts']['exact_match'] = [
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ];
+            }
+            
+            // Try URL decoded
+            try {
+                $decodedSku = urldecode($sku);
+                $product = $this->productRepository->get($decodedSku);
+                $debug['attempts']['url_decoded_match'] = [
+                    'success' => true,
+                    'product_id' => $product->getId(),
+                    'product_sku' => $product->getSku()
+                ];
+            } catch (\Exception $e) {
+                $debug['attempts']['url_decoded_match'] = [
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ];
+            }
+            
+            // Try similar SKU search
+            $similarProduct = $this->findProductBySimilarSku($sku);
+            if ($similarProduct) {
+                $debug['attempts']['similar_sku_search'] = [
+                    'success' => true,
+                    'product_id' => $similarProduct->getId(),
+                    'product_sku' => $similarProduct->getSku()
+                ];
+            } else {
+                $debug['attempts']['similar_sku_search'] = [
+                    'success' => false,
+                    'error' => 'No similar products found'
+                ];
+            }
+            
+        } catch (\Exception $e) {
+            $debug['error'] = $e->getMessage();
+        }
+        
+        return $debug;
+    }
+
+    /**
+     * Log debug information
+     *
+     * @param string $message
+     * @return void
+     */
+    protected function logDebug($message)
+    {
+        // You can customize this to use your preferred logging method
+        // For now, we'll use error_log to write to the Magento log
+        $logMessage = '[' . date('Y-m-d H:i:s') . '] Formula\Review: ' . $message;
+        
+        // Write to Magento log
+        $writer = new \Zend_Log_Writer_Stream(BP . '/var/log/formula_review_debug.log');
+        $logger = new \Zend_Log();
+        $logger->addWriter($writer);
+        $logger->info($message);
+        
+        // Also write to PHP error log for immediate visibility
+        error_log($logMessage);
     }
 
 
@@ -436,7 +625,24 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
     public function getList($sku)
     {
         try {
-            $product = $this->productRepository->get($sku);
+            // Decode URL-encoded characters and normalize the SKU
+            $decodedSku = urldecode($sku);
+            
+            // Try to get product by the decoded SKU first
+            try {
+                $product = $this->productRepository->get($decodedSku);
+            } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+                // If that fails, try with the original SKU
+                try {
+                    $product = $this->productRepository->get($sku);
+                } catch (\Magento\Framework\Exception\NoSuchEntityException $e2) {
+                    // If both fail, try to find the product by searching for a similar SKU
+                    $product = $this->findProductBySimilarSku($sku);
+                    if (!$product) {
+                        throw new \Magento\Framework\Exception\NoSuchEntityException(__('Product with SKU "%1" does not exist.', $sku));
+                    }
+                }
+            }
             
             $collection = $this->reviewCollectionFactory->create()
                 ->addEntityFilter('product', $product->getId())
@@ -468,7 +674,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                     'title' => $reviewModel->getTitle(),
                     'nickname' => $reviewModel->getNickname(),
                     'detail' => $reviewModel->getDetail(),
-                    'product_sku' => $sku,
+                    'product_sku' => $product->getSku(), // Use the actual product SKU from database
                     'customer_id' => $reviewModel->getCustomerId(),
                     'ratings' => $ratings['average'],
                     'status' => $statusText,
@@ -561,7 +767,26 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             $customerId = $this->getAuthenticatedCustomerId();
 
             $customer = $this->customerRepository->getById($customerId);
-            $product = $this->productRepository->get($review->getProductSku());
+            
+            // Handle SKU encoding/decoding for product lookup
+            $productSku = $review->getProductSku();
+            $decodedSku = urldecode($productSku);
+            
+            // Try to get product by the decoded SKU first
+            try {
+                $product = $this->productRepository->get($decodedSku);
+            } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+                // If that fails, try with the original SKU
+                try {
+                    $product = $this->productRepository->get($productSku);
+                } catch (\Magento\Framework\Exception\NoSuchEntityException $e2) {
+                    // If both fail, try to find the product by searching for a similar SKU
+                    $product = $this->findProductBySimilarSku($productSku);
+                    if (!$product) {
+                        throw new \Magento\Framework\Exception\NoSuchEntityException(__('Product with SKU "%1" does not exist.', $productSku));
+                    }
+                }
+            }
 
              // PURCHASE VERIFICATION - Check if customer has purchased this product
             $purchaseData = $this->checkCustomerPurchaseHistory($customerId, $product->getId());

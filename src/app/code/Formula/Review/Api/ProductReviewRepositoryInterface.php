@@ -79,4 +79,13 @@ interface ProductReviewRepositoryInterface
      * @throws \Magento\Framework\Exception\InvalidArgumentException
      */
     public function verifyCustomerPurchase($sku = null, $productId = null);
+
+    /**
+     * Debug method to help troubleshoot SKU matching issues
+     * This can be called to see what's happening with SKU matching
+     *
+     * @param string $sku
+     * @return array
+     */
+    public function debugSkuMatching($sku);
 }
