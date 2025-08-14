@@ -420,12 +420,12 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                     $this->logDebug("Failed to find product with original SKU: " . $e2->getMessage());
                     // If both fail, try to find the product by searching for a similar SKU
                     // This handles cases where special characters might be stored differently
-                    $product = $this->findProductBySimilarSku($sku);
+                    $product = $this->findProductByMultipleSkuVariations($sku);
                     if (!$product) {
-                        $this->logDebug("Failed to find product with similar SKU search");
+                        $this->logDebug("Failed to find product with multiple SKU variations");
                         throw new NoSuchEntityException(__('Product with SKU "%1" does not exist.', $sku));
                     } else {
-                        $this->logDebug("Found product with similar SKU search. Product ID: " . $product->getId());
+                        $this->logDebug("Found product with multiple SKU variations. Product ID: " . $product->getId());
                     }
                 }
             }
@@ -474,8 +474,35 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
             $productCollection = $objectManager->create(\Magento\Catalog\Model\ResourceModel\Product\Collection::class);
             
-            // Search for products with similar SKU
-            $productCollection->addFieldToFilter('sku', ['like' => '%' . $sku . '%']);
+            // First, try exact match
+            $productCollection->addFieldToFilter('sku', $sku);
+            if ($productCollection->getSize() > 0) {
+                return $productCollection->getFirstItem();
+            }
+            
+            // Try with URL-decoded version
+            $decodedSku = urldecode($sku);
+            if ($decodedSku !== $sku) {
+                $productCollection = $objectManager->create(\Magento\Catalog\Model\ResourceModel\Product\Collection::class);
+                $productCollection->addFieldToFilter('sku', $decodedSku);
+                if ($productCollection->getSize() > 0) {
+                    return $productCollection->getFirstItem();
+                }
+            }
+            
+            // Try to find by removing special characters and normalizing
+            $normalizedSku = $this->normalizeSku($sku);
+            if ($normalizedSku !== $sku) {
+                $productCollection = $objectManager->create(\Magento\Catalog\Model\ResourceModel\Product\Collection::class);
+                $productCollection->addFieldToFilter('sku', $normalizedSku);
+                if ($productCollection->getSize() > 0) {
+                    return $productCollection->getFirstItem();
+                }
+            }
+            
+            // Search for products with similar SKU using LIKE
+            $productCollection = $objectManager->create(\Magento\Catalog\Model\ResourceModel\Product\Collection::class);
+            $productCollection->addFieldToFilter('sku', ['like' => '%' . $normalizedSku . '%']);
             
             if ($productCollection->getSize() > 0) {
                 // Return the first match
@@ -487,17 +514,6 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             if ($cleanSku !== $sku) {
                 $productCollection = $objectManager->create(\Magento\Catalog\Model\ResourceModel\Product\Collection::class);
                 $productCollection->addFieldToFilter('sku', ['like' => '%' . $cleanSku . '%']);
-                
-                if ($productCollection->getSize() > 0) {
-                    return $productCollection->getFirstItem();
-                }
-            }
-            
-            // Try to find by URL-decoded version
-            $decodedSku = urldecode($sku);
-            if ($decodedSku !== $sku) {
-                $productCollection = $objectManager->create(\Magento\Catalog\Model\ResourceModel\Product\Collection::class);
-                $productCollection->addFieldToFilter('sku', ['like' => '%' . $decodedSku . '%']);
                 
                 if ($productCollection->getSize() > 0) {
                     return $productCollection->getFirstItem();
@@ -526,6 +542,120 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
     }
 
     /**
+     * Normalize SKU by handling common character encoding issues
+     *
+     * @param string $sku
+     * @return string
+     */
+    protected function normalizeSku($sku)
+    {
+        // Handle common character encoding issues
+        $normalized = $sku;
+        
+        // Replace common problematic characters
+        $replacements = [
+            '®' => '??',          // Registered trademark to double question mark (your specific case)
+            '™' => '??',          // Trademark to double question mark
+            '©' => '??',          // Copyright to double question mark
+            '°' => '??',          // Degree symbol to double question mark
+            '±' => '??',          // Plus-minus to double question mark
+            '²' => '2',           // Superscript 2 to regular 2
+            '³' => '3',           // Superscript 3 to regular 3
+            '¼' => '1/4',         // Fraction to text
+            '½' => '1/2',         // Fraction to text
+            '¾' => '3/4',         // Fraction to text
+            '×' => 'x',           // Multiplication to x
+            '÷' => '/',           // Division to slash
+            '≤' => '<=',          // Less than or equal to
+            '≥' => '>=',          // Greater than or equal to
+            '≠' => '!=',          // Not equal to
+            '≈' => '~',           // Approximately equal to
+            '∞' => 'infinity',    // Infinity symbol to text
+            '√' => 'sqrt',        // Square root to text
+            '∑' => 'sum',         // Summation to text
+            '∏' => 'product',     // Product to text
+            '∫' => 'integral',    // Integral to text
+            '∂' => 'partial',     // Partial derivative to text
+            '∇' => 'nabla',       // Nabla to text
+            '∆' => 'delta',       // Delta to text
+            'π' => 'pi',          // Pi to text
+            'θ' => 'theta',       // Theta to text
+            'φ' => 'phi',         // Phi to text
+            'λ' => 'lambda',      // Lambda to text
+            'μ' => 'mu',          // Mu to text
+            'σ' => 'sigma',       // Sigma to text
+            'τ' => 'tau',         // Tau to text
+            'ω' => 'omega',       // Omega to text
+        ];
+        
+        $normalized = str_replace(array_keys($replacements), array_values($replacements), $normalized);
+        
+        // Also try URL decoding
+        $decoded = urldecode($normalized);
+        if ($decoded !== $normalized) {
+            $normalized = $decoded;
+        }
+        
+        return $normalized;
+    }
+
+    /**
+     * Find product by trying multiple SKU variations
+     * This handles the specific case where ® becomes ?? in the database
+     *
+     * @param string $sku
+     * @return \Magento\Catalog\Api\Data\ProductInterface|null
+     */
+    protected function findProductByMultipleSkuVariations($sku)
+    {
+        try {
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $productCollection = $objectManager->create(\Magento\Catalog\Model\ResourceModel\Product\Collection::class);
+            
+            // Create multiple variations of the SKU to try
+            $skuVariations = [
+                $sku, // Original
+                urldecode($sku), // URL decoded
+                $this->normalizeSku($sku), // Normalized
+                str_replace('®', '??', $sku), // Replace ® with ??
+                str_replace('®', '?', $sku), // Replace ® with ?
+                str_replace('®', '', $sku), // Remove ® completely
+                preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $sku), // Remove all special chars
+            ];
+            
+            // Remove duplicates
+            $skuVariations = array_unique($skuVariations);
+            
+            foreach ($skuVariations as $variation) {
+                if (empty($variation)) continue;
+                
+                try {
+                    $product = $this->productRepository->get($variation);
+                    return $product;
+                } catch (\Exception $e) {
+                    // Continue to next variation
+                    continue;
+                }
+            }
+            
+            // If no exact match found, try LIKE search with the most likely variation
+            $mostLikelyVariation = $this->normalizeSku($sku);
+            if (!empty($mostLikelyVariation)) {
+                $productCollection = $objectManager->create(\Magento\Catalog\Model\ResourceModel\Product\Collection::class);
+                $productCollection->addFieldToFilter('sku', ['like' => '%' . $mostLikelyVariation . '%']);
+                
+                if ($productCollection->getSize() > 0) {
+                    return $productCollection->getFirstItem();
+                }
+            }
+            
+            return null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
      * Debug method to help troubleshoot SKU matching issues
      * This can be called to see what's happening with SKU matching
      *
@@ -537,6 +667,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
         $debug = [
             'original_sku' => $sku,
             'url_decoded' => urldecode($sku),
+            'normalized_sku' => $this->normalizeSku($sku),
             'clean_sku' => preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $sku),
             'words' => explode(' ', $sku),
             'attempts' => []
@@ -569,6 +700,22 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                 ];
             } catch (\Exception $e) {
                 $debug['attempts']['url_decoded_match'] = [
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ];
+            }
+            
+            // Try normalized SKU
+            try {
+                $normalizedSku = $this->normalizeSku($sku);
+                $product = $this->productRepository->get($normalizedSku);
+                $debug['attempts']['normalized_match'] = [
+                    'success' => true,
+                    'product_id' => $product->getId(),
+                    'product_sku' => $product->getSku()
+                ];
+            } catch (\Exception $e) {
+                $debug['attempts']['normalized_match'] = [
                     'success' => false,
                     'error' => $e->getMessage()
                 ];
@@ -637,7 +784,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                     $product = $this->productRepository->get($sku);
                 } catch (\Magento\Framework\Exception\NoSuchEntityException $e2) {
                     // If both fail, try to find the product by searching for a similar SKU
-                    $product = $this->findProductBySimilarSku($sku);
+                    $product = $this->findProductByMultipleSkuVariations($sku);
                     if (!$product) {
                         throw new \Magento\Framework\Exception\NoSuchEntityException(__('Product with SKU "%1" does not exist.', $sku));
                     }
@@ -781,7 +928,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                     $product = $this->productRepository->get($productSku);
                 } catch (\Magento\Framework\Exception\NoSuchEntityException $e2) {
                     // If both fail, try to find the product by searching for a similar SKU
-                    $product = $this->findProductBySimilarSku($productSku);
+                    $product = $this->findProductByMultipleSkuVariations($productSku);
                     if (!$product) {
                         throw new \Magento\Framework\Exception\NoSuchEntityException(__('Product with SKU "%1" does not exist.', $productSku));
                     }

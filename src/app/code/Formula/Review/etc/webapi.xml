@@ -41,7 +41,7 @@
         </resources>
     </route>
 
-     <!-- Delete review -->
+
     <route url="/V1/reviews/product/:sku" method="GET">
         <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="getCustomerExistingReview"/>
         <resources>
