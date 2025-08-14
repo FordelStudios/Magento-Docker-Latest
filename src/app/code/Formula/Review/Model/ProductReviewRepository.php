@@ -192,19 +192,18 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
         try {
             $this->logDebug("getExistingReviewId called with customerId: $customerId, productId: $productId");
             
+            // First try without store filter to avoid SQL ambiguity issues
             $collection = $this->reviewCollectionFactory->create()
-                ->addFieldToFilter('customer_id', $customerId)
-                ->addFieldToFilter('entity_pk_value', $productId)
-                ->addFieldToFilter('entity_id', 1) // 1 = product entity
-                ->addStoreFilter($this->storeManager->getStore()->getId()) // Add store filter like getList method
+                ->addFieldToFilter('main_table.customer_id', $customerId)
+                ->addFieldToFilter('main_table.entity_pk_value', $productId)
+                ->addFieldToFilter('main_table.entity_id', 1) // 1 = product entity
                 ->setPageSize(1)
                 ->setCurPage(1);
 
-            $this->logDebug("Review collection query created with filters:");
-            $this->logDebug("  - customer_id: $customerId");
-            $this->logDebug("  - entity_pk_value: $productId");
-            $this->logDebug("  - entity_id: 1");
-            $this->logDebug("  - store_id: " . $this->storeManager->getStore()->getId());
+            $this->logDebug("Review collection query created with filters (no store filter):");
+            $this->logDebug("  - main_table.customer_id: $customerId");
+            $this->logDebug("  - main_table.entity_pk_value: $productId");
+            $this->logDebug("  - main_table.entity_id: 1");
             $this->logDebug("Collection size: " . $collection->getSize());
 
             $review = $collection->getFirstItem();
@@ -212,7 +211,25 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             if ($review && $review->getId()) {
                 $this->logDebug("Found review with ID: " . $review->getId());
                 $this->logDebug("Review data: " . json_encode($review->getData()));
-                return $review->getId();
+                
+                // Now check if this review is available in the current store
+                $reviewStoreIds = $review->getStoreId();
+                if (is_string($reviewStoreIds)) {
+                    $reviewStoreIds = explode(',', $reviewStoreIds);
+                }
+                
+                $currentStoreId = $this->storeManager->getStore()->getId();
+                $this->logDebug("Review store IDs: " . json_encode($reviewStoreIds));
+                $this->logDebug("Current store ID: " . $currentStoreId);
+                
+                // Check if review is available in current store
+                if (in_array($currentStoreId, $reviewStoreIds) || in_array(0, $reviewStoreIds)) {
+                    $this->logDebug("Review is available in current store");
+                    return $review->getId();
+                } else {
+                    $this->logDebug("Review exists but not available in current store");
+                    return null;
+                }
             } else {
                 $this->logDebug("No review found in collection");
                 if ($review) {
@@ -223,8 +240,8 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             // Let's also check what's in the review table for debugging
             $this->logDebug("Debugging: Checking all reviews for customer $customerId");
             $allCustomerReviews = $this->reviewCollectionFactory->create()
-                ->addFieldToFilter('customer_id', $customerId)
-                ->addFieldToFilter('entity_id', 1);
+                ->addFieldToFilter('main_table.customer_id', $customerId)
+                ->addFieldToFilter('main_table.entity_id', 1);
             
             $this->logDebug("Total reviews for customer $customerId: " . $allCustomerReviews->getSize());
             foreach ($allCustomerReviews as $review) {
@@ -233,47 +250,12 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             
             $this->logDebug("Debugging: Checking all reviews for product $productId");
             $allProductReviews = $this->reviewCollectionFactory->create()
-                ->addFieldToFilter('entity_pk_value', $productId)
-                ->addFieldToFilter('entity_id', 1);
+                ->addFieldToFilter('main_table.entity_pk_value', $productId)
+                ->addFieldToFilter('main_table.entity_id', 1);
             
             $this->logDebug("Total reviews for product $productId: " . $allProductReviews->getSize());
             foreach ($allProductReviews as $review) {
                 $this->logDebug("  Review ID: " . $review->getId() . ", Customer ID: " . $review->getCustomerId() . ", Status: " . $review->getStatusId());
-            }
-            
-            // Also check without store filter to see if that's the issue
-            $this->logDebug("Debugging: Checking reviews without store filter");
-            $noStoreFilterCollection = $this->reviewCollectionFactory->create()
-                ->addFieldToFilter('customer_id', $customerId)
-                ->addFieldToFilter('entity_pk_value', $productId)
-                ->addFieldToFilter('entity_id', 1);
-            
-            $this->logDebug("Reviews without store filter: " . $noStoreFilterCollection->getSize());
-            foreach ($noStoreFilterCollection as $review) {
-                $this->logDebug("  Review ID: " . $review->getId() . ", Store IDs: " . $review->getStoreId());
-            }
-            
-            // Check all reviews for this customer and product regardless of status
-            $this->logDebug("Debugging: Checking all reviews regardless of status");
-            $allStatusCollection = $this->reviewCollectionFactory->create()
-                ->addFieldToFilter('customer_id', $customerId)
-                ->addFieldToFilter('entity_pk_value', $productId)
-                ->addFieldToFilter('entity_id', 1);
-            
-            $this->logDebug("All reviews regardless of status: " . $allStatusCollection->getSize());
-            foreach ($allStatusCollection as $review) {
-                $this->logDebug("  Review ID: " . $review->getId() . ", Status: " . $review->getStatusId() . ", Store: " . $review->getStoreId());
-            }
-            
-            // Check the review_status table to see what statuses exist
-            try {
-                $connection = $this->reviewResource->getConnection();
-                $statusSelect = $connection->select()
-                    ->from($connection->getTableName('review_status'), ['status_id', 'status_code']);
-                $statuses = $connection->fetchAll($statusSelect);
-                $this->logDebug("Available review statuses: " . json_encode($statuses));
-            } catch (\Exception $e) {
-                $this->logDebug("Could not fetch review statuses: " . $e->getMessage());
             }
             
             // Check current website and store context
