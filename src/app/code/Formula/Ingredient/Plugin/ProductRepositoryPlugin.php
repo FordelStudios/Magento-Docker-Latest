@@ -20,7 +20,33 @@ class ProductRepositoryPlugin
         ProductRepositoryInterface $subject,
         ProductInterface $product
     ) {
-        $ingredientAttribute = $product->getCustomAttribute('ingredient');
+        $extensionAttributes = $product->getExtensionAttributes();
+        if (!$extensionAttributes) {
+            return $product;
+        }
+
+        // Handle key_ingredients attribute
+        $this->processIngredientAttribute($product, 'key_ingredients', 'setKeyIngredientNames', $extensionAttributes);
+        
+        // Handle all_ingredients attribute
+        $this->processIngredientAttribute($product, 'all_ingredients', 'setAllIngredientNames', $extensionAttributes);
+        
+        $product->setExtensionAttributes($extensionAttributes);
+        return $product;
+    }
+
+    /**
+     * Process ingredient attribute and set extension attribute
+     *
+     * @param ProductInterface $product
+     * @param string $attributeCode
+     * @param string $setterMethod
+     * @param mixed $extensionAttributes
+     * @return void
+     */
+    private function processIngredientAttribute($product, $attributeCode, $setterMethod, $extensionAttributes)
+    {
+        $ingredientAttribute = $product->getCustomAttribute($attributeCode);
         if ($ingredientAttribute) {
             $ingredientValue = $ingredientAttribute->getValue();
             
@@ -34,18 +60,12 @@ class ProductRepositoryPlugin
                         $ingredientNames[] = $ingredient->getName();
                     }
                     
-                    $extensionAttributes = $product->getExtensionAttributes();
-                    if ($extensionAttributes) {
-                        $extensionAttributes->setIngredientNames(implode(', ', $ingredientNames));
-                        $product->setExtensionAttributes($extensionAttributes);
-                    }
+                    $extensionAttributes->$setterMethod(implode(', ', $ingredientNames));
                 } catch (NoSuchEntityException $e) {
                     // Ingredient not found
                 }
             }
         }
-        
-        return $product;
     }
     
     public function afterGetList(

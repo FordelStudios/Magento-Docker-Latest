@@ -8,7 +8,7 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
 use Magento\Catalog\Model\Product;
 
-class CreateIngredientProductAttribute implements DataPatchInterface
+class CreateAllIngredientsProductAttribute implements DataPatchInterface
 {
     /**
      * @var ModuleDataSetupInterface
@@ -44,11 +44,11 @@ class CreateIngredientProductAttribute implements DataPatchInterface
 
         $eavSetup->addAttribute(
             Product::ENTITY,
-            'ingredient',
+            'all_ingredients',
             [
-                'type' => 'int',
-                'label' => 'Ingredient',
-                'input' => 'select',
+                'type' => 'varchar',
+                'label' => 'All Ingredients',
+                'input' => 'multiselect',
                 'source' => \Formula\Ingredient\Model\Product\Attribute\Source\Ingredient::class,
                 'required' => false,
                 'global' => ScopedAttributeInterface::SCOPE_GLOBAL,
@@ -63,13 +63,13 @@ class CreateIngredientProductAttribute implements DataPatchInterface
                 'unique' => false,
                 'apply_to' => '',
                 'group' => 'General',
-                'sort_order' => 50,
+                'sort_order' => 52,
                 'is_used_in_grid' => true,
                 'is_visible_in_grid' => true,
                 'is_filterable_in_grid' => true,
                 'system' => false,
-                'position' => 50
-
+                'position' => 52,
+                'backend' => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend'
             ]
         );
 

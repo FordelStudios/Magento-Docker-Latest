@@ -8,7 +8,7 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
 use Magento\Catalog\Model\Product;
 
-class UpdateIngredientToMultiselect implements DataPatchInterface
+class CreateKeyIngredientsProductAttribute implements DataPatchInterface
 {
     /**
      * @var ModuleDataSetupInterface
@@ -42,21 +42,13 @@ class UpdateIngredientToMultiselect implements DataPatchInterface
         /** @var EavSetup $eavSetup */
         $eavSetup = $this->eavSetupFactory->create(['setup' => $this->moduleDataSetup]);
 
-        // Check if attribute exists
-        $attributeId = $eavSetup->getAttributeId(Product::ENTITY, 'ingredient');
-        if ($attributeId) {
-            // If exists, we'll delete it and recreate it as multiselect
-            $eavSetup->removeAttribute(Product::ENTITY, 'ingredient');
-        }
-
-        // Add the attribute as multiselect
         $eavSetup->addAttribute(
             Product::ENTITY,
-            'ingredient',
+            'key_ingredients',
             [
-                'type' => 'varchar', // Changed from int to varchar for multiselect
-                'label' => 'Ingredients',
-                'input' => 'multiselect', // Changed from select to multiselect
+                'type' => 'varchar',
+                'label' => 'Key Ingredients',
+                'input' => 'multiselect',
                 'source' => \Formula\Ingredient\Model\Product\Attribute\Source\Ingredient::class,
                 'required' => false,
                 'global' => ScopedAttributeInterface::SCOPE_GLOBAL,
@@ -71,13 +63,13 @@ class UpdateIngredientToMultiselect implements DataPatchInterface
                 'unique' => false,
                 'apply_to' => '',
                 'group' => 'General',
-                'sort_order' => 50,
+                'sort_order' => 51,
                 'is_used_in_grid' => true,
                 'is_visible_in_grid' => true,
                 'is_filterable_in_grid' => true,
                 'system' => false,
-                'position' => 50,
-                'backend' => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend' // Required for multiselect
+                'position' => 51,
+                'backend' => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend'
             ]
         );
 
@@ -89,9 +81,7 @@ class UpdateIngredientToMultiselect implements DataPatchInterface
      */
     public static function getDependencies()
     {
-        return [
-            CreateIngredientProductAttribute::class
-        ];
+        return [];
     }
 
     /**
