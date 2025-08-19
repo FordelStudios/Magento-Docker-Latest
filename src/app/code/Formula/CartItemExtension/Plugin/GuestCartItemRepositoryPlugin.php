@@ -8,6 +8,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Formula\CartItemExtension\Model\Data\ProductMediaFactory;
 use Magento\Quote\Api\Data\CartItemExtensionFactory;
+use Psr\Log\LoggerInterface;
 
 class GuestCartItemRepositoryPlugin
 {
@@ -15,17 +16,20 @@ class GuestCartItemRepositoryPlugin
     protected $productRepository;
     protected $productMediaFactory;
     protected $extensionFactory;
+    protected $logger;
     
     public function __construct(
         BrandRepository $brandRepository,
         ProductRepositoryInterface $productRepository,
         ProductMediaFactory $productMediaFactory,
-        CartItemExtensionFactory $extensionFactory
+        CartItemExtensionFactory $extensionFactory,
+        LoggerInterface $logger
     ) {
         $this->brandRepository = $brandRepository;
         $this->productRepository = $productRepository;
         $this->productMediaFactory = $productMediaFactory;
         $this->extensionFactory = $extensionFactory;
+        $this->logger = $logger;
     }
     
     /**
@@ -39,6 +43,7 @@ class GuestCartItemRepositoryPlugin
         GuestCartItemRepositoryInterface $subject,
         $result
     ) {
+        $this->logger->info('[CartItemExtension] Guest afterGetList triggered');
         if (is_array($result)) {
             foreach ($result as $cartItem) {
                 $this->addBrandNameToCartItem($cartItem);
@@ -59,6 +64,7 @@ class GuestCartItemRepositoryPlugin
         GuestCartItemRepositoryInterface $subject,
         $result
     ) {
+        $this->logger->info('[CartItemExtension] Guest afterGet triggered');
         if ($result instanceof CartItemInterface) {
             $this->addBrandNameToCartItem($result);
         }
@@ -67,7 +73,7 @@ class GuestCartItemRepositoryPlugin
     }
     
     /**
-     * Add brand_name to cart item
+     * Add brand_name and productId to cart item
      *
      * @param CartItemInterface $cartItem
      * @return void
@@ -75,54 +81,96 @@ class GuestCartItemRepositoryPlugin
     private function addBrandNameToCartItem(CartItemInterface $cartItem)
     {
         try {
-            $product = $this->productRepository->get($cartItem->getSku());
-            $brandId = $product->getCustomAttribute('brand') ? 
-                $product->getCustomAttribute('brand')->getValue() : null;
-            $productExtensionAttributes = $product->getExtensionAttributes();
-            $productSalableQty = null;
-            if ($productExtensionAttributes && method_exists($productExtensionAttributes, 'getSalableQuantity')) {
-                $productSalableQty = $productExtensionAttributes->getSalableQuantity();
-            }
-            
-            $extensionAttributes = $cartItem->getExtensionAttributes();
-            if ($extensionAttributes === null) {
-                $extensionAttributes = $this->extensionFactory->create();
+            $sku = $cartItem->getSku();
+            $this->logger->info("[CartItemExtension] Guest Processing SKU: $sku");
+
+            if (!$sku) {
+                $this->logger->warning("[CartItemExtension] Guest No SKU found for cart item");
+                return;
             }
 
-            if ($brandId) {
-                try {
-                    $brand = $this->brandRepository->getById($brandId);
-                    $extensionAttributes->setBrandName($brand->getName());
-                } catch (NoSuchEntityException $e) {
-                    // Brand not found
-                }
-            }
-
-            // Set product media entries
             try {
-                $mediaEntries = $product->getMediaGalleryEntries();
-                if (is_array($mediaEntries) && !empty($mediaEntries)) {
-                    $mediaDataItems = [];
-                    foreach ($mediaEntries as $mediaEntry) {
-                        $mediaItem = $this->productMediaFactory->create();
-                        $mediaItem->setId($mediaEntry->getId());
-                        $mediaItem->setFile($mediaEntry->getFile());
-                        $mediaDataItems[] = $mediaItem;
-                    }
-                    $extensionAttributes->setProductMedia($mediaDataItems);
+                $product = $this->productRepository->get($sku);
+                $productId = $product->getId();
+                $productExtensionAttributes = $product->getExtensionAttributes();
+                $productSalableQty = null;
+                if ($productExtensionAttributes && method_exists($productExtensionAttributes, 'getSalableQty')) {
+                    $productSalableQty = $productExtensionAttributes->getSalableQty();
                 }
-            } catch (\Throwable $t) {
-                // ignore silently for guests
+                $brandId = $product->getCustomAttribute('brand') ? 
+                    $product->getCustomAttribute('brand')->getValue() : null;
+
+                $this->logger->info("[CartItemExtension] Guest Found product ID: $productId");
+                $this->logger->info("[CartItemExtension] Guest Found brand ID: " . ($brandId ?? 'null'));
+
+                $extensionAttributes = $cartItem->getExtensionAttributes();
+                if ($extensionAttributes === null) {
+                    $this->logger->info("[CartItemExtension] Guest Creating new extension attributes");
+                    $extensionAttributes = $this->extensionFactory->create();
+                }
+
+                // Only set productId if it's valid and greater than 0
+                if ($productId && $productId > 0) {
+                    $extensionAttributes->setProductIdDisplay($productId);
+                    $this->logger->info("[CartItemExtension] Guest productId set successfully: $productId");
+                } else {
+                    $this->logger->warning("[CartItemExtension] Guest Invalid product ID: $productId");
+                }
+
+                if ($brandId) {
+                    try {
+                        $brand = $this->brandRepository->getById($brandId);
+                        $brandName = $brand->getName();
+                        $this->logger->info("[CartItemExtension] Guest Found brand name: $brandName");
+
+                        $extensionAttributes->setBrandName($brandName);
+                        $this->logger->info("[CartItemExtension] Guest brand_name set successfully");
+
+                    } catch (NoSuchEntityException $e) {
+                        $this->logger->warning("[CartItemExtension] Guest Brand not found: " . $e->getMessage());
+                    }
+                } else {
+                    $this->logger->info("[CartItemExtension] Guest No brand ID found for product");
+                }
+
+                // Set salable_qty if available
+                if ($productSalableQty !== null) {
+                    $extensionAttributes->setSalableQty((int) $productSalableQty);
+                    $this->logger->info('[CartItemExtension] Guest salable_qty set: ' . (int)$productSalableQty);
+                } else {
+                    $this->logger->info('[CartItemExtension] Guest salable_qty not available from product extension attributes');
+                }
+
+                // Populate product media (id and file only)
+                try {
+                    $mediaEntries = $product->getMediaGalleryEntries();
+                    if (is_array($mediaEntries) && !empty($mediaEntries)) {
+                        $mediaDataItems = [];
+                        foreach ($mediaEntries as $mediaEntry) {
+                            $mediaItem = $this->productMediaFactory->create();
+                            $mediaItem->setId($mediaEntry->getId());
+                            $mediaItem->setFile($mediaEntry->getFile());
+                            $mediaDataItems[] = $mediaItem;
+                        }
+                        $extensionAttributes->setProductMedia($mediaDataItems);
+                        $this->logger->info('[CartItemExtension] Guest product_media set with ' . count($mediaDataItems) . ' entries');
+                    } else {
+                        $this->logger->info('[CartItemExtension] Guest No media gallery entries for product');
+                    }
+                } catch (\Throwable $t) {
+                    $this->logger->warning('[CartItemExtension] Guest Failed to set product_media: ' . $t->getMessage());
+                }
+
+                $cartItem->setExtensionAttributes($extensionAttributes);
+
+            } catch (NoSuchEntityException $e) {
+                $this->logger->warning("[CartItemExtension] Guest Product not found for SKU: $sku - " . $e->getMessage());
+                // Don't set extension attributes if product doesn't exist
+                return;
             }
 
-            // Set salable_qty if available
-            if ($productSalableQty !== null) {
-                $extensionAttributes->setSalableQty((int)$productSalableQty);
-            }
-
-            $cartItem->setExtensionAttributes($extensionAttributes);
         } catch (\Exception $e) {
-            // Product not found or other error
+            $this->logger->error("[CartItemExtension] Guest Error setting extension attributes: " . $e->getMessage());
         }
     }
 } 

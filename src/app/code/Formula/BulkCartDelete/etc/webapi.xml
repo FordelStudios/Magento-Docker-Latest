@@ -9,4 +9,12 @@
             <resource ref="self" />
         </resources>
     </route>
+
+    <!-- Guest Cart Bulk Delete -->
+    <route url="/V1/guest-carts/:cartId/items/bulk-delete" method="DELETE">
+        <service class="Formula\BulkCartDelete\Api\BulkCartDeleteInterface" method="deleteGuestCartItems"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

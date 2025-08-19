@@ -192,7 +192,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
         try {
             $this->logDebug("getExistingReviewId called with customerId: $customerId, productId: $productId");
             
-            // First try without store filter to avoid SQL ambiguity issues
+            // Use the new schema: customer_id is in review table
             $collection = $this->reviewCollectionFactory->create()
                 ->addFieldToFilter('main_table.customer_id', $customerId)
                 ->addFieldToFilter('main_table.entity_pk_value', $productId)
@@ -200,7 +200,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                 ->setPageSize(1)
                 ->setCurPage(1);
 
-            $this->logDebug("Review collection query created with filters (no store filter):");
+            $this->logDebug("Review collection query created with filters:");
             $this->logDebug("  - main_table.customer_id: $customerId");
             $this->logDebug("  - main_table.entity_pk_value: $productId");
             $this->logDebug("  - main_table.entity_id: 1");

@@ -18,4 +18,13 @@ interface BulkCartDeleteInterface
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function deleteCustomerCartItems(): BulkDeleteResponseInterface;
+
+    /**
+     * Delete multiple cart items for guest cart
+     *
+     * @param string $cartId
+     * @return \Formula\BulkCartDelete\Api\Data\BulkDeleteResponseInterface
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function deleteGuestCartItems(string $cartId): BulkDeleteResponseInterface;
 }

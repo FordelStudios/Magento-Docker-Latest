@@ -113,6 +113,41 @@ class BulkCartDelete implements BulkCartDeleteInterface
     }
 
     /**
+     * Delete multiple cart items for guest cart
+     *
+     * @param string $cartId
+     * @return BulkDeleteResponseInterface
+     * @throws LocalizedException
+     */
+    public function deleteGuestCartItems(string $cartId): BulkDeleteResponseInterface
+    {
+        $startTime = microtime(true);
+        
+        // Get request body data
+        $requestData = $this->getRequestData();
+        
+        // Parse and validate request data
+        $data = $this->parseRequestData($requestData);
+        
+        try {
+            // Get guest cart by ID
+            $cart = $this->cartRepository->get($cartId);
+            
+            if ($data['delete_all']) {
+                return $this->deleteAllItems($cart, $startTime);
+            } else {
+                return $this->deleteSpecificItems($cart, $data['item_ids'], $startTime);
+            }
+            
+        } catch (NoSuchEntityException $e) {
+            throw new LocalizedException(__('Cart not found with ID: %1', $cartId));
+        } catch (\Exception $e) {
+            $this->logger->error('Guest bulk cart delete error: ' . $e->getMessage());
+            throw new LocalizedException(__('An error occurred while deleting cart items: %1', $e->getMessage()));
+        }
+    }
+
+    /**
      * Get customer ID from token context
      *
      * @return int
