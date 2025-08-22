@@ -32,7 +32,7 @@ class Categories implements OptionSourceInterface
     /**
      * @var array
      */
-    protected $categoryTree;
+    protected $categoryPaths = [];
 
     /**
      * @param CategoryCollectionFactory $categoryCollectionFactory
@@ -62,19 +62,55 @@ class Categories implements OptionSourceInterface
         }
         
         $collection = $this->categoryCollectionFactory->create();
-        $collection->addAttributeToSelect(['name', 'is_active', 'parent_id'])
-            ->addAttributeToFilter('level', ['gt' => 1])
+        $collection->addAttributeToSelect(['name', 'is_active', 'parent_id', 'path', 'level'])
+            ->addAttributeToFilter('level', ['gt' => 1]) // Skip root category
             ->addAttributeToFilter('is_active', 1)
+            ->setOrder('path', 'ASC')
             ->setOrder('position', 'ASC');
         
+        // First pass: build category paths
+        foreach ($collection as $category) {
+            $this->categoryPaths[$category->getId()] = [
+                'id' => $category->getId(),
+                'parent_id' => $category->getParentId(),
+                'name' => $category->getName(),
+                'path' => $category->getPath(),
+                'level' => $category->getLevel(),
+                'children' => []
+            ];
+        }
+        
+        // Second pass: build hierarchical structure
         $options = [];
         
         foreach ($collection as $category) {
+            $categoryId = $category->getId();
+            $level = $category->getLevel() - 2; // Adjust level for UI display
+            $indent = str_repeat('— ', $level);
+            
+            if ($level > 0) {
+                $pathParts = explode('/', $category->getPath());
+                $parentNames = [];
+                
+                // Collect names of parent categories in the path
+                for ($i = 2; $i < count($pathParts) - 1; $i++) {
+                    $parentId = $pathParts[$i];
+                    if (isset($this->categoryPaths[$parentId])) {
+                        $parentNames[] = $this->categoryPaths[$parentId]['name'];
+                    }
+                }
+                
+                $label = $indent . $category->getName();
+            } else {
+                $label = $category->getName();
+            }
+            
             $options[] = [
-                'value' => $category->getId(),
-                'label' => $this->buildCategoryLabel($category, $collection),
-                'is_active' => $category->getIsActive(),
-                'path' => $category->getPath()
+                'value' => $categoryId,
+                'label' => $label,
+                '__category_id' => $categoryId,
+                '__parent_id' => $category->getParentId(),
+                '__level' => $level
             ];
         }
         
@@ -85,21 +121,5 @@ class Categories implements OptionSourceInterface
         );
         
         return $options;
-    }
-    
-    /**
-     * Build category label with indentation
-     *
-     * @param \Magento\Catalog\Model\Category $category
-     * @param \Magento\Catalog\Model\ResourceModel\Category\Collection $collection
-     * @return string
-     */
-    protected function buildCategoryLabel($category, $collection)
-    {
-        $level = $category->getLevel();
-        $label = $category->getName();
-        
-        $indent = str_repeat('—', max(0, $level - 2)) . ' ';
-        return $indent . $label;
     }
 }
