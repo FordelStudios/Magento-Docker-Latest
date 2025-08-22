@@ -301,4 +301,36 @@ class Blog extends AbstractModel implements BlogInterface, IdentityInterface
         }
         return $this->setData(self::TAGS, $tags);
     }
+
+    /**
+     * Get category IDs
+     *
+     * @return int[]|null
+     */
+    public function getCategoryIds()
+    {
+        $categoryIds = $this->getData(self::CATEGORY_IDS);
+        if ($categoryIds && is_string($categoryIds)) {
+            try {
+                return $this->jsonSerializer->unserialize($categoryIds);
+            } catch (\Exception $e) {
+                return [];
+            }
+        }
+        return $categoryIds ?: [];
+    }
+
+    /**
+     * Set category IDs
+     *
+     * @param int[]|string $categoryIds
+     * @return $this
+     */
+    public function setCategoryIds($categoryIds)
+    {
+        if (is_array($categoryIds)) {
+            $categoryIds = $this->jsonSerializer->serialize($categoryIds);
+        }
+        return $this->setData(self::CATEGORY_IDS, $categoryIds);
+    }
 }

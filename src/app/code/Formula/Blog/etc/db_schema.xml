@@ -13,6 +13,7 @@
         <column xsi:type="varchar" name="meta_title" nullable="true" length="255" comment="Meta Title"/>
         <column xsi:type="text" name="product_ids" nullable="true" comment="Related Product IDs"/>
         <column xsi:type="text" name="tags" nullable="true" comment="Blog Tags (JSON)"/>
+        <column xsi:type="text" name="category_ids" nullable="true" comment="Related Category IDs (JSON)"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="blog_id"/>
         </constraint>

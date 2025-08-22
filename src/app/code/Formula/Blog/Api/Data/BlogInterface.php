@@ -26,6 +26,7 @@ interface BlogInterface
     const IS_PUBLISHED      = 'is_published';
     const PRODUCT_IDS    = 'product_ids';
     const TAGS = 'tags';
+    const CATEGORY_IDS = 'category_ids';
 
     /**
      * Get ID
@@ -176,4 +177,19 @@ interface BlogInterface
      * @return $this
      */
     public function setTags($tags);
+
+    /**
+     * Get category IDs
+     *
+     * @return int[]|null
+     */
+    public function getCategoryIds();
+
+    /**
+     * Set category IDs
+     *
+     * @param int[]|string $categoryIds
+     * @return $this
+     */
+    public function setCategoryIds($categoryIds);
 }

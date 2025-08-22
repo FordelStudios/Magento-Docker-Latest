@@ -18,6 +18,9 @@ use Magento\Framework\Api\SearchResultsInterfaceFactory;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\FilterBuilder;
 
 class BlogRepository implements BlogRepositoryInterface
 {
@@ -47,24 +50,48 @@ class BlogRepository implements BlogRepositoryInterface
     private $collectionProcessor;
 
     /**
+     * @var RequestInterface
+     */
+    private $request;
+
+    /**
+     * @var SearchCriteriaBuilder
+     */
+    private $searchCriteriaBuilder;
+
+    /**
+     * @var FilterBuilder
+     */
+    private $filterBuilder;
+
+    /**
      * @param BlogResource $resource
      * @param BlogFactory $blogFactory
      * @param BlogCollectionFactory $blogCollectionFactory
      * @param SearchResultsInterfaceFactory $searchResultsFactory
      * @param CollectionProcessorInterface $collectionProcessor
+     * @param RequestInterface $request
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param FilterBuilder $filterBuilder
      */
     public function __construct(
         BlogResource $resource,
         BlogFactory $blogFactory,
         BlogCollectionFactory $blogCollectionFactory,
         SearchResultsInterfaceFactory $searchResultsFactory,
-        CollectionProcessorInterface $collectionProcessor
+        CollectionProcessorInterface $collectionProcessor,
+        RequestInterface $request,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        FilterBuilder $filterBuilder
     ) {
         $this->resource = $resource;
         $this->blogFactory = $blogFactory;
         $this->blogCollectionFactory = $blogCollectionFactory;
         $this->searchResultsFactory = $searchResultsFactory;
         $this->collectionProcessor = $collectionProcessor;
+        $this->request = $request;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->filterBuilder = $filterBuilder;
     }
 
     /**
@@ -123,8 +150,15 @@ class BlogRepository implements BlogRepositoryInterface
         try {
             $collection = $this->blogCollectionFactory->create();
             
-            // Apply search criteria to the collection
-            $this->collectionProcessor->process($searchCriteria, $collection);
+            // Check if search criteria is empty (Web API parsing failed)
+            // If so, manually parse from request parameters
+            $finalSearchCriteria = $searchCriteria;
+            if (empty($searchCriteria->getFilterGroups()) && $this->request) {
+                $finalSearchCriteria = $this->parseSearchCriteriaFromRequest();
+            }
+            
+            // Use our custom collection processor to handle all search criteria including category filtering
+            $this->collectionProcessor->process($finalSearchCriteria, $collection);
             
             // Get raw items from collection
             $items = $collection->getItems();
@@ -144,6 +178,7 @@ class BlogRepository implements BlogRepositoryInterface
                     'isPublished' => $item->getIsPublished(),
                     'product_ids' => $item->getProductIds(),
                     'tags' => $item->getTags(),
+                    'category_ids' => $item->getCategoryIds(),
                 ];
             }
 
@@ -151,7 +186,7 @@ class BlogRepository implements BlogRepositoryInterface
             
             
             $searchResults = $this->searchResultsFactory->create();
-            $searchResults->setSearchCriteria($searchCriteria);
+            $searchResults->setSearchCriteria($finalSearchCriteria);
             $searchResults->setItems($blogItems);
             $searchResults->setTotalCount($collection->getSize());
             
@@ -217,10 +252,65 @@ class BlogRepository implements BlogRepositoryInterface
         $existingBlog->setIsPublished($blog->getIsPublished());
         $existingBlog->setProductIds($blog->getProductIds());
         $existingBlog->setTags($blog->getTags());
+        $existingBlog->setCategoryIds($blog->getCategoryIds());
         // Set the current timestamp for updated_at
         $existingBlog->setUpdatedAt(date('Y-m-d H:i:s'));
         
         // Save the updated blog
         return $this->save($existingBlog);
     }
+
+    /**
+     * Manually parse search criteria from request parameters
+     * This is a fallback when Magento's Web API doesn't parse search criteria properly
+     *
+     * @return SearchCriteriaInterface
+     */
+    private function parseSearchCriteriaFromRequest()
+    {
+        $requestParams = $this->request->getParams();
+        $searchCriteriaBuilder = $this->searchCriteriaBuilder;
+        
+        // Debug logging
+        error_log("BlogRepository: Manually parsing search criteria from request params: " . json_encode($requestParams));
+        
+        // Parse page size
+        if (isset($requestParams['searchCriteria']['pageSize'])) {
+            $searchCriteriaBuilder->setPageSize((int)$requestParams['searchCriteria']['pageSize']);
+        }
+        
+        // Parse current page
+        if (isset($requestParams['searchCriteria']['currentPage'])) {
+            $searchCriteriaBuilder->setCurrentPage((int)$requestParams['searchCriteria']['currentPage']);
+        }
+        
+        // Parse filter groups
+        if (isset($requestParams['searchCriteria']['filterGroups']) && is_array($requestParams['searchCriteria']['filterGroups'])) {
+            foreach ($requestParams['searchCriteria']['filterGroups'] as $filterGroup) {
+                if (isset($filterGroup['filters']) && is_array($filterGroup['filters'])) {
+                    foreach ($filterGroup['filters'] as $filterData) {
+                        if (isset($filterData['field']) && isset($filterData['value'])) {
+                            $field = $filterData['field'];
+                            $value = $filterData['value'];
+                            $conditionType = $filterData['conditionType'] ?? 'eq';
+                            
+                            // Debug logging
+                            error_log("BlogRepository: Adding filter - field: $field, value: $value, condition: $conditionType");
+                            
+                            $searchCriteriaBuilder->addFilter($field, $value, $conditionType);
+                        }
+                    }
+                }
+            }
+        }
+        
+        $searchCriteria = $searchCriteriaBuilder->create();
+        
+        // Debug logging
+        error_log("BlogRepository: Created search criteria with " . count($searchCriteria->getFilterGroups()) . " filter groups");
+        
+        return $searchCriteria;
+    }
+
+
 }

@@ -58,6 +58,15 @@ class Save extends Action
         $data = $this->getRequest()->getPostValue();
         $this->logger->debug('Blog Save Controller: Post data', ['data' => $data]);
         
+        // Debug category_ids specifically
+        if (isset($data['category_ids'])) {
+            $this->logger->debug('Blog Save Controller: category_ids before processing', [
+                'category_ids' => $data['category_ids'],
+                'type' => gettype($data['category_ids']),
+                'is_array' => is_array($data['category_ids'])
+            ]);
+        }
+        
         if ($data) {
             // Handle checkbox value
             if (isset($data['is_published']) && $data['is_published'] === 'true') {
@@ -109,6 +118,21 @@ class Save extends Action
             // Handle product_ids if it's an array
             if (isset($data['product_ids']) && is_array($data['product_ids'])) {
                 $data['product_ids'] = implode(',', $data['product_ids']);
+            }
+            
+            // Handle category_ids if it's an array
+            if (isset($data['category_ids']) && is_array($data['category_ids'])) {
+                $data['category_ids'] = $this->jsonSerializer->serialize($data['category_ids']);
+            } elseif (!isset($data['category_ids']) || empty($data['category_ids'])) {
+                $data['category_ids'] = $this->jsonSerializer->serialize([]);
+            }
+            
+            // Debug category_ids after processing
+            if (isset($data['category_ids'])) {
+                $this->logger->debug('Blog Save Controller: category_ids after processing', [
+                    'category_ids' => $data['category_ids'],
+                    'type' => gettype($data['category_ids'])
+                ]);
             }
             
             $model->setData($data);

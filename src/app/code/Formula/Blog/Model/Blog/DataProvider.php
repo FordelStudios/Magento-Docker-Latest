@@ -68,6 +68,23 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
                 $data['product_ids'] = explode(',', $data['product_ids']);
             }
             
+            // Format category_ids
+            if (isset($data['category_ids']) && !is_array($data['category_ids']) && !empty($data['category_ids'])) {
+                $decodedCategoryIds = json_decode($data['category_ids'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedCategoryIds)) {
+                    $data['category_ids'] = $decodedCategoryIds;
+                } else {
+                    $data['category_ids'] = [];
+                }
+            } else {
+                $data['category_ids'] = [];
+            }
+            
+            // Debug category_ids in DataProvider
+            if (isset($data['category_ids'])) {
+                error_log('DataProvider category_ids: ' . print_r($data['category_ids'], true));
+            }
+            
             $this->loadedData[$blog->getId()] = $data;
         }
         

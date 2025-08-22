@@ -2,6 +2,16 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Formula\Blog\Api\Data\BlogInterface" type="Formula\Blog\Model\Blog" />
     <preference for="Formula\Blog\Api\BlogRepositoryInterface" type="Formula\Blog\Model\BlogRepository" />
+    
+    <!-- Configure BlogRepository to use custom collection processor -->
+    <type name="Formula\Blog\Model\BlogRepository">
+        <arguments>
+            <argument name="collectionProcessor" xsi:type="object">Formula\Blog\Model\Api\SearchCriteria\BlogCollectionProcessor</argument>
+            <argument name="request" xsi:type="object">Magento\Framework\App\RequestInterface</argument>
+            <argument name="searchCriteriaBuilder" xsi:type="object">Magento\Framework\Api\SearchCriteriaBuilder</argument>
+            <argument name="filterBuilder" xsi:type="object">Magento\Framework\Api\FilterBuilder</argument>
+        </arguments>
+    </type>
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
             <argument name="collections" xsi:type="array">
@@ -21,4 +31,22 @@
             </argument>
         </arguments>
     </virtualType>
+    
+    <!-- Custom Collection Processor for Blog -->
+    <type name="Formula\Blog\Model\Api\SearchCriteria\CollectionProcessor\FilterProcessor">
+        <arguments>
+            <argument name="baseFilterProcessor" xsi:type="object">Magento\Framework\Api\SearchCriteria\CollectionProcessor\FilterProcessor</argument>
+        </arguments>
+    </type>
+    
+    <!-- Blog Collection Processor -->
+    <type name="Formula\Blog\Model\Api\SearchCriteria\BlogCollectionProcessor">
+        <arguments>
+            <argument name="categoryFilterProcessor" xsi:type="object">Formula\Blog\Model\Api\SearchCriteria\CollectionProcessor\CategoryFilterProcessor</argument>
+            <argument name="filterProcessor" xsi:type="object">Formula\Blog\Model\Api\SearchCriteria\CollectionProcessor\FilterProcessor</argument>
+            <argument name="sortingProcessor" xsi:type="object">Magento\Framework\Api\SearchCriteria\CollectionProcessor\SortingProcessor</argument>
+            <argument name="paginationProcessor" xsi:type="object">Magento\Framework\Api\SearchCriteria\CollectionProcessor\PaginationProcessor</argument>
+        </arguments>
+    </type>
+
 </config>

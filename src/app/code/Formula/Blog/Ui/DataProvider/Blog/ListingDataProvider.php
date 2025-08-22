@@ -10,11 +10,13 @@ use Magento\Framework\Api\Search\ReportingInterface;
 use Magento\Framework\Api\Search\SearchResultInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\UrlInterface;
+use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory as CategoryCollectionFactory;
 
 class ListingDataProvider extends \Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider
 {
     protected $collection;
     protected $storeManager;
+    protected $categoryCollectionFactory;
 
     public function __construct(
         $name,
@@ -26,11 +28,13 @@ class ListingDataProvider extends \Magento\Framework\View\Element\UiComponent\Da
         FilterBuilder $filterBuilder,
         CollectionFactory $collectionFactory,
         StoreManagerInterface $storeManager,
+        CategoryCollectionFactory $categoryCollectionFactory,
         array $meta = [],
         array $data = []
     ) {
         $this->collection = $collectionFactory->create();
         $this->storeManager = $storeManager;
+        $this->categoryCollectionFactory = $categoryCollectionFactory;
         parent::__construct(
             $name,
             $primaryFieldName,
@@ -99,7 +103,20 @@ class ListingDataProvider extends \Magento\Framework\View\Element\UiComponent\Da
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decodedTags)) {
                     $itemData['tags'] = implode(',', $decodedTags);
                 }
-            }           
+            }
+            
+            // Handle category_ids display
+            if (isset($itemData['category_ids']) && !empty($itemData['category_ids'])) {
+                $decodedCategoryIds = json_decode($itemData['category_ids'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedCategoryIds)) {
+                    $categoryNames = $this->getCategoryNames($decodedCategoryIds);
+                    $itemData['category_ids'] = implode(', ', $categoryNames);
+                } else {
+                    $itemData['category_ids'] = '';
+                }
+            } else {
+                $itemData['category_ids'] = '';
+            }
             
             $data['items'][] = $itemData;
         }
@@ -110,5 +127,29 @@ class ListingDataProvider extends \Magento\Framework\View\Element\UiComponent\Da
     public function getCollection()
     {
         return $this->collection;
+    }
+
+    /**
+     * Get category names by IDs
+     *
+     * @param array $categoryIds
+     * @return array
+     */
+    private function getCategoryNames(array $categoryIds)
+    {
+        if (empty($categoryIds)) {
+            return [];
+        }
+
+        $collection = $this->categoryCollectionFactory->create();
+        $collection->addAttributeToSelect('name')
+            ->addFieldToFilter('entity_id', ['in' => $categoryIds]);
+
+        $categoryNames = [];
+        foreach ($collection as $category) {
+            $categoryNames[] = $category->getName();
+        }
+
+        return $categoryNames;
     }
 }
