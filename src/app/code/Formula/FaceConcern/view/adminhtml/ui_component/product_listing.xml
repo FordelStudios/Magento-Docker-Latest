@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <columns name="product_columns">
+        <column name="faceconcern" class="Formula\FaceConcern\Ui\Component\Listing\Column\FaceConcern" sortOrder="140">
+            <settings>
+                <filter>select</filter>
+                <options class="Formula\FaceConcern\Model\Product\Attribute\Source\FaceConcern"/>
+                <dataType>select</dataType>
+                <label translate="true">FaceConcerns</label>
+            </settings>
+        </column>
+    </columns>
+</listing>

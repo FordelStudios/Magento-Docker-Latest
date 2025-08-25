@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+	<!-- Add these preference declarations -->
+	<preference for="Formula\FaceConcern\Api\FaceConcernRepositoryInterface" type="Formula\FaceConcern\Model\FaceConcernRepository" />
+	<preference for="Formula\FaceConcern\Api\Data\FaceConcernInterface" type="Formula\FaceConcern\Model\FaceConcern" />
+	<!-- Add Plugin for Product Repository -->
+	<type name="Magento\Catalog\Api\ProductRepositoryInterface">
+		<plugin name="formula_faceconcern_product_repository" type="Formula\FaceConcern\Plugin\ProductRepositoryPlugin" />
+	</type>
+	<type name="Magento\Catalog\Ui\DataProvider\Product\ProductDataProvider">
+		<plugin name="formula_faceconcern_data_provider" type="Formula\FaceConcern\Plugin\ProductDataProviderPlugin" />
+	</type>
+	
+	<!-- Configuration for FaceConcern Save controller -->
+	<type name="Formula\FaceConcern\Controller\Adminhtml\FaceConcern\Save">
+		<arguments>
+			<argument name="jsonSerializer" xsi:type="object">
+				Magento\Framework\Serialize\Serializer\Json
+			</argument>
+		</arguments>
+	</type>
+	<!-- Configuration for FaceConcern DataProvider -->
+	<type name="Formula\FaceConcern\Model\FaceConcern\DataProvider">
+		<arguments>
+			<argument name="jsonSerializer" xsi:type="object">
+				Magento\Framework\Serialize\Serializer\Json
+			</argument>
+		</arguments>
+	</type>
+	<!-- Configure Grid Collection for UI Component -->
+	<virtualType name="FormulaFaceConcernGridCollection" type="Formula\FaceConcern\Model\ResourceModel\FaceConcern\Grid\Collection">
+		<arguments>
+			<argument name="mainTable" xsi:type="string">faceconcern_details</argument>
+			<argument name="eventPrefix" xsi:type="string">formula_faceconcern_grid_collection</argument>
+			<argument name="eventObject" xsi:type="string">faceconcern_grid_collection</argument>
+			<argument name="resourceModel" xsi:type="string">Formula\FaceConcern\Model\ResourceModel\FaceConcern</argument>
+		</arguments>
+	</virtualType>
+	<!-- Configure UI Component Data Provider -->
+	<type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+		<arguments>
+			<argument name="collections" xsi:type="array">
+				<item name="formula_faceconcern_listing_data_source" xsi:type="string">
+					FormulaFaceConcernGridCollection
+				</item>
+			</argument>
+		</arguments>
+	</type>
+	<!-- Configuration for image types -->
+	<virtualType name="Formula\FaceConcern\FaceConcernImageUploader" type="Formula\FaceConcern\Model\ImageUploader">
+		<arguments>
+			<argument name="baseTmpPath" xsi:type="string">
+				faceconcern/tmp/logo
+			</argument>
+			<argument name="basePath" xsi:type="string">
+				faceconcern/logo
+			</argument>
+			<argument name="allowedExtensions" xsi:type="array">
+				<item name="jpg" xsi:type="string">
+					jpg
+				</item>
+				<item name="jpeg" xsi:type="string">
+					jpeg
+				</item>
+				<item name="gif" xsi:type="string">
+					gif
+				</item>
+				<item name="png" xsi:type="string">
+					png
+				</item>
+			</argument>
+		</arguments>
+	</virtualType>
+</config>

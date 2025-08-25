@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="faceconcern_details" resource="default" engine="innodb" comment="FaceConcern Details Table">
+        <column xsi:type="int" name="faceconcern_id" padding="10" unsigned="true" nullable="false" identity="true" comment="FaceConcern ID"/>
+        <column xsi:type="varchar" name="name" nullable="false" length="255" comment="FaceConcern Name"/>
+        <column xsi:type="text" name="description" nullable="true" comment="FaceConcern Description"/>
+        <column xsi:type="varchar" name="logo" nullable="true" length="255" comment="FaceConcern Logo Path"/>
+        <column xsi:type="text" name="tags" nullable="true" comment="FaceConcern Tags (JSON)"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Creation Time"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Update Time"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="faceconcern_id"/>
+        </constraint>
+    </table>
+</schema>
