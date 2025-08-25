@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+	<!-- Add these preference declarations -->
+	<preference for="Formula\BodyConcern\Api\BodyConcernRepositoryInterface" type="Formula\BodyConcern\Model\BodyConcernRepository" />
+	<preference for="Formula\BodyConcern\Api\Data\BodyConcernInterface" type="Formula\BodyConcern\Model\BodyConcern" />
+	<!-- Add Plugin for Product Repository -->
+	<type name="Magento\Catalog\Api\ProductRepositoryInterface">
+		<plugin name="formula_bodyconcern_product_repository" type="Formula\BodyConcern\Plugin\ProductRepositoryPlugin" />
+	</type>
+	<type name="Magento\Catalog\Ui\DataProvider\Product\ProductDataProvider">
+		<plugin name="formula_bodyconcern_data_provider" type="Formula\BodyConcern\Plugin\ProductDataProviderPlugin" />
+	</type>
+	
+	<!-- Configuration for BodyConcern Save controller -->
+	<type name="Formula\BodyConcern\Controller\Adminhtml\BodyConcern\Save">
+		<arguments>
+			<argument name="jsonSerializer" xsi:type="object">
+				Magento\Framework\Serialize\Serializer\Json
+			</argument>
+		</arguments>
+	</type>
+	<!-- Configuration for BodyConcern DataProvider -->
+	<type name="Formula\BodyConcern\Model\BodyConcern\DataProvider">
+		<arguments>
+			<argument name="jsonSerializer" xsi:type="object">
+				Magento\Framework\Serialize\Serializer\Json
+			</argument>
+		</arguments>
+	</type>
+	<!-- Configure Grid Collection for UI Component -->
+	<virtualType name="FormulaBodyConcernGridCollection" type="Formula\BodyConcern\Model\ResourceModel\BodyConcern\Grid\Collection">
+		<arguments>
+			<argument name="mainTable" xsi:type="string">bodyconcern_details</argument>
+			<argument name="eventPrefix" xsi:type="string">formula_bodyconcern_grid_collection</argument>
+			<argument name="eventObject" xsi:type="string">bodyconcern_grid_collection</argument>
+			<argument name="resourceModel" xsi:type="string">Formula\BodyConcern\Model\ResourceModel\BodyConcern</argument>
+		</arguments>
+	</virtualType>
+	<!-- Configure UI Component Data Provider -->
+	<type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+		<arguments>
+			<argument name="collections" xsi:type="array">
+				<item name="formula_bodyconcern_listing_data_source" xsi:type="string">
+					FormulaBodyConcernGridCollection
+				</item>
+			</argument>
+		</arguments>
+	</type>
+	<!-- Configuration for image types -->
+	<virtualType name="Formula\BodyConcern\BodyConcernImageUploader" type="Formula\BodyConcern\Model\ImageUploader">
+		<arguments>
+			<argument name="baseTmpPath" xsi:type="string">
+				bodyconcern/tmp/logo
+			</argument>
+			<argument name="basePath" xsi:type="string">
+				bodyconcern/logo
+			</argument>
+			<argument name="allowedExtensions" xsi:type="array">
+				<item name="jpg" xsi:type="string">
+					jpg
+				</item>
+				<item name="jpeg" xsi:type="string">
+					jpeg
+				</item>
+				<item name="gif" xsi:type="string">
+					gif
+				</item>
+				<item name="png" xsi:type="string">
+					png
+				</item>
+			</argument>
+		</arguments>
+	</virtualType>
+</config>

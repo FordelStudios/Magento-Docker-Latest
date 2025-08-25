@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <columns name="product_columns">
+        <column name="hairconcern" class="Formula\HairConcern\Ui\Component\Listing\Column\HairConcern" sortOrder="140">
+            <settings>
+                <filter>select</filter>
+                <options class="Formula\HairConcern\Model\Product\Attribute\Source\HairConcern"/>
+                <dataType>select</dataType>
+                <label translate="true">HairConcerns</label>
+            </settings>
+        </column>
+    </columns>
+</listing>

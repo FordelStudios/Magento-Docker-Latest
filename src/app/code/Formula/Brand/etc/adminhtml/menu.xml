@@ -6,5 +6,7 @@
 		<add id="Formula_Ingredient::post" title="Ingredients" translate="title" module="Formula_Ingredient" sortOrder="0" parent="Formula_Plugin::content_elements" action="formula_ingredient/ingredient" resource="Magento_Backend::admin" />
 		<add id="Formula_SkinType::post" title="SkinTypes" translate="title" module="Formula_SkinType" sortOrder="0" parent="Formula_Plugin::content_elements" action="formula_skintype/skintype" resource="Magento_Backend::admin" />
 		<add id="Formula_FaceConcern::post" title="FaceConcerns" translate="title" module="Formula_FaceConcern" sortOrder="0" parent="Formula_Plugin::content_elements" action="formula_faceconcern/faceconcern" resource="Magento_Backend::admin" />
+		<add id="Formula_BodyConcern::post" title="BodyConcerns" translate="title" module="Formula_BodyConcern" sortOrder="0" parent="Formula_Plugin::content_elements" action="formula_bodyconcern/bodyconcern" resource="Magento_Backend::admin" />
+		<add id="Formula_HairConcern::post" title="HairConcerns" translate="title" module="Formula_HairConcern" sortOrder="0" parent="Formula_Plugin::content_elements" action="formula_hairconcern/hairconcern" resource="Magento_Backend::admin" />	
 	</menu>
 </config>
