@@ -8,7 +8,7 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
 use Magento\Catalog\Model\Product;
 
-class CreateAllIngredientsProductAttribute implements DataPatchInterface
+class CreateAllIngredientsTextareaAttribute implements DataPatchInterface
 {
     /**
      * @var ModuleDataSetupInterface
@@ -46,10 +46,9 @@ class CreateAllIngredientsProductAttribute implements DataPatchInterface
             Product::ENTITY,
             'all_ingredients',
             [
-                'type' => 'varchar',
+                'type' => 'text',
                 'label' => 'All Ingredients',
-                'input' => 'multiselect',
-                'source' => \Formula\Ingredient\Model\Product\Attribute\Source\Ingredient::class,
+                'input' => 'textarea',
                 'required' => false,
                 'global' => ScopedAttributeInterface::SCOPE_GLOBAL,
                 'visible' => true,
@@ -68,8 +67,7 @@ class CreateAllIngredientsProductAttribute implements DataPatchInterface
                 'is_visible_in_grid' => true,
                 'is_filterable_in_grid' => true,
                 'system' => false,
-                'position' => 52,
-                'backend' => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend'
+                'position' => 52
             ]
         );
 
@@ -81,7 +79,9 @@ class CreateAllIngredientsProductAttribute implements DataPatchInterface
      */
     public static function getDependencies()
     {
-        return [];
+        return [
+            RemoveAllIngredientsAttribute::class
+        ];
     }
 
     /**
