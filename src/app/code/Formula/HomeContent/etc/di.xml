@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Formula\HomeContent\Api\HomeContentRepositoryInterface" type="Formula\HomeContent\Model\HomeContentRepository"/>
+    <preference for="Formula\HomeContent\Api\HomeContentManagementInterface" type="Formula\HomeContent\Model\HomeContentManagement"/>
+    <preference for="Formula\HomeContent\Api\Data\HomeContentInterface" type="Formula\HomeContent\Model\HomeContent"/>
+    <preference for="Formula\HomeContent\Api\Data\HomeContentResponseInterface" type="Formula\HomeContent\Model\Data\HomeContentResponse"/>
+    <preference for="Formula\HomeContent\Api\Data\KoreanIngredientInterface" type="Formula\HomeContent\Model\Data\KoreanIngredient"/>
+    
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="formula_homecontent_listing_data_source" xsi:type="string">Formula\HomeContent\Model\ResourceModel\HomeContent\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+    
+    <virtualType name="Formula\HomeContent\Model\ResourceModel\HomeContent\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">formula_home_content</argument>
+            <argument name="resourceModel" xsi:type="string">Formula\HomeContent\Model\ResourceModel\HomeContent</argument>
+        </arguments>
+    </virtualType>
+</config>

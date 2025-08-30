@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="formula_home_content" resource="default" engine="innodb" comment="Formula Home Content Table">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="text" name="hero_banners" nullable="true" comment="Hero Banners JSON"/>
+        <column xsi:type="varchar" name="five_step_routine_banner" nullable="true" length="255" comment="Five Step Routine Banner URL"/>
+        <column xsi:type="varchar" name="three_step_routine_banner" nullable="true" length="255" comment="Three Step Routine Banner URL"/>
+        <column xsi:type="varchar" name="discover_your_formula_banner" nullable="true" length="255" comment="Discover Your Formula Banner URL"/>
+        <column xsi:type="varchar" name="best_of_korean_formula_banner" nullable="true" length="255" comment="Best of Korean Formula Banner URL"/>
+        <column xsi:type="text" name="discover_korean_ingredients_banners" nullable="true" comment="Discover Korean Ingredients Banners JSON"/>
+        <column xsi:type="varchar" name="perfect_gift_image" nullable="true" length="255" comment="Perfect Gift Image URL"/>
+        <column xsi:type="varchar" name="bottom_banner" nullable="true" length="255" comment="Bottom Banner URL"/>
+        <column xsi:type="boolean" name="active" nullable="false" default="0" comment="Active Status"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+    </table>
+</schema>

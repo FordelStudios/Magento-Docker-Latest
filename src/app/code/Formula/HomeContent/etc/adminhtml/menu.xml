@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Formula_HomeContent::post" title="HomePage Content" translate="title" module="Formula_HomeContent" sortOrder="100" parent="Formula_Plugin::content_elements" action="formula_homecontent/homecontent" resource="Formula_HomeContent::home_content_manage" />
+    </menu>
+</config>

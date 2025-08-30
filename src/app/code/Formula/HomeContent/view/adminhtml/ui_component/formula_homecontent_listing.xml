@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">formula_homecontent_listing.formula_homecontent_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="add">
+                <url path="*/*/edit"/>
+                <class>primary</class>
+                <label translate="true">Add New HomePage Content</label>
+            </button>
+        </buttons>
+        <spinner>formula_homecontent_columns</spinner>
+        <deps>
+            <dep>formula_homecontent_listing.formula_homecontent_listing_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="formula_homecontent_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">entity_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Formula_HomeContent::home_content_manage</aclResource>
+        <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider" name="formula_homecontent_listing_data_source">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>entity_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filters name="listing_filters"/>
+        <paging name="listing_paging"/>
+        <massaction name="listing_massaction">
+            <action name="delete">
+                <settings>
+                    <confirm>
+                        <message translate="true">Are you sure you want to delete the selected items?</message>
+                        <title translate="true">Delete items</title>
+                    </confirm>
+                    <url path="formula_homecontent/homecontent/massDelete"/>
+                    <type>delete</type>
+                    <label translate="true">Delete</label>
+                </settings>
+            </action>
+        </massaction>
+    </listingToolbar>
+    <columns name="formula_homecontent_columns">
+        <settings>
+            <editorConfig>
+                <param name="clientConfig" xsi:type="array">
+                    <item name="saveUrl" xsi:type="url" path="formula_homecontent/homecontent/inlineEdit"/>
+                    <item name="validateBeforeSave" xsi:type="boolean">false</item>
+                </param>
+                <param name="indexField" xsi:type="string">entity_id</param>
+                <param name="enabled" xsi:type="boolean">true</param>
+                <param name="selectProvider" xsi:type="string">formula_homecontent_listing.formula_homecontent_listing.formula_homecontent_columns.ids</param>
+            </editorConfig>
+            <childDefaults>
+                <param name="fieldAction" xsi:type="array">
+                    <item name="provider" xsi:type="string">formula_homecontent_listing.formula_homecontent_listing.formula_homecontent_columns_editor</item>
+                    <item name="target" xsi:type="string">startEdit</item>
+                    <item name="params" xsi:type="array">
+                        <item name="0" xsi:type="string">${ $.$data.rowIndex }</item>
+                        <item name="1" xsi:type="boolean">true</item>
+                    </item>
+                </param>
+            </childDefaults>
+        </settings>
+        <selectionsColumn name="ids" sortOrder="0">
+            <settings>
+                <indexField>entity_id</indexField>
+            </settings>
+        </selectionsColumn>
+        <column name="entity_id" sortOrder="10">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">ID</label>
+                <sorting>asc</sorting>
+            </settings>
+        </column>
+        <column name="hero_banners" sortOrder="30" class="Formula\HomeContent\Ui\Component\Listing\Column\HeroBanners">
+            <settings>
+                <label translate="true">Hero Banners</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        
+        <column name="five_step_routine_banner" sortOrder="40" class="Formula\HomeContent\Ui\Component\Listing\Column\Thumbnail" component="Magento_Ui/js/grid/columns/thumbnail">
+            <settings>
+                <altField>five_step_routine_banner_alt</altField>
+                <hasPreview>1</hasPreview>
+            
+                <label translate="true">5-Step Routine Banner</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="three_step_routine_banner" sortOrder="50" class="Formula\HomeContent\Ui\Component\Listing\Column\Thumbnail" component="Magento_Ui/js/grid/columns/thumbnail">
+            <settings>
+                <altField>three_step_routine_banner_alt</altField>
+                <hasPreview>1</hasPreview>
+                <label translate="true">3-Step Routine Banner</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="discover_your_formula_banner" sortOrder="60" class="Formula\HomeContent\Ui\Component\Listing\Column\Thumbnail" component="Magento_Ui/js/grid/columns/thumbnail">
+            <settings>
+                <altField>discover_your_formula_banner_alt</altField>
+                <hasPreview>1</hasPreview>
+                <label translate="true">Discover Your Formula Banner</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="best_of_korean_formula_banner" sortOrder="70" class="Formula\HomeContent\Ui\Component\Listing\Column\Thumbnail" component="Magento_Ui/js/grid/columns/thumbnail">
+            <settings>
+                <altField>best_of_korean_formula_banner_alt</altField>
+                <hasPreview>1</hasPreview>
+                <label translate="true">Korean Formula Banner</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="perfect_gift_image" sortOrder="80" class="Formula\HomeContent\Ui\Component\Listing\Column\Thumbnail" component="Magento_Ui/js/grid/columns/thumbnail">
+            <settings>
+                <altField>perfect_gift_image_alt</altField>
+                <hasPreview>1</hasPreview>
+                <label translate="true">Perfect Gift Image</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="bottom_banner" sortOrder="90" class="Formula\HomeContent\Ui\Component\Listing\Column\Thumbnail" component="Magento_Ui/js/grid/columns/thumbnail">
+            <settings>
+                <altField>bottom_banner_alt</altField>
+                <hasPreview>1</hasPreview>
+                <label translate="true">Bottom Banner</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="active" component="Magento_Ui/js/grid/columns/select" sortOrder="20">
+            <settings>
+                <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                <filter>select</filter>
+                <editor>
+                    <validation>
+                        <rule name="required-entry" xsi:type="boolean">true</rule>
+                    </validation>
+                    <editorType>select</editorType>
+                </editor>
+                <dataType>select</dataType>
+                <label translate="true">Active</label>
+            </settings>
+        </column>
+        <actionsColumn name="actions" class="Formula\HomeContent\Ui\Component\Listing\Column\Actions" sortOrder="200">
+            <settings>
+                <indexField>entity_id</indexField>
+                <resizeEnabled>false</resizeEnabled>
+                <resizeDefaultWidth>107</resizeDefaultWidth>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>
