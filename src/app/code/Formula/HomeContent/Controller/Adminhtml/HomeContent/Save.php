@@ -164,63 +164,49 @@ class Save extends Action implements HttpPostActionInterface
         ];
 
         foreach ($imageFields as $field) {
-            if (isset($data[$field]) && is_array($data[$field])) {
-                if (!empty($data[$field][0]['name']) && !empty($data[$field][0]['tmp_name'])) {
-                    try {
-                        // Move file from tmp to final location
+            if (isset($data[$field])) {
+                if (is_array($data[$field]) && !empty($data[$field])) {
+                    if (!empty($data[$field][0]['name']) && !empty($data[$field][0]['tmp_name'])) {
+                        try {
+                            // Move file from tmp to final location
+                            $data[$field] = $data[$field][0]['name'];
+                            $this->imageUploader->moveFileFromTmp($data[$field]);
+                        } catch (\Exception $e) {
+                            // If move fails, keep the filename but log the error
+                            $data[$field] = $data[$field][0]['name'];
+                            $this->logger->error("Failed to move file {$data[$field]}: " . $e->getMessage());
+                        }
+                    } elseif (!empty($data[$field][0]['name']) && empty($data[$field][0]['tmp_name'])) {
+                        // File already exists, just use the name
                         $data[$field] = $data[$field][0]['name'];
-                        $this->imageUploader->moveFileFromTmp($data[$field]);
-                    } catch (\Exception $e) {
-                        // If move fails, keep the filename but log the error
-                        $data[$field] = $data[$field][0]['name'];
-                        $this->logger->error("Failed to move file {$data[$field]}: " . $e->getMessage());
+                    } else {
+                        // Image was deleted - set to null/empty
+                        $data[$field] = null;
+                        $this->logger->debug("processImageUploads - Field {$field} was deleted/empty, setting to null");
                     }
-                } elseif (!empty($data[$field][0]['name']) && empty($data[$field][0]['tmp_name'])) {
-                    // File already exists, just use the name
-                    $data[$field] = $data[$field][0]['name'];
                 } else {
-                    unset($data[$field]);
+                    // Field exists but is not a proper array or is empty - image was deleted
+                    $data[$field] = null;
+                    $this->logger->debug("processImageUploads - Field {$field} is not an array or empty, setting to null");
                 }
+            } else {
+                // Field doesn't exist in form data - image was deleted
+                $data[$field] = null;
+                $this->logger->debug("processImageUploads - Field {$field} not found in form data, setting to null");
             }
         }
 
         // Handle hero banners (dynamic rows)
-        if (isset($data['hero_banners']) && is_array($data['hero_banners'])) {
-            $heroBanners = [];
-            foreach ($data['hero_banners'] as $banner) {
-                $imageName = '';
-                if (isset($banner['image']) && is_array($banner['image'])) {
-                    if (!empty($banner['image'][0]['name']) && !empty($banner['image'][0]['tmp_name'])) {
-                        try {
-                            $imageName = $banner['image'][0]['name'];
-                            $this->imageUploader->moveFileFromTmp($imageName);
-                        } catch (\Exception $e) {
-                            $imageName = $banner['image'][0]['name'];
-                            $this->logger->error("Failed to move hero banner {$imageName}: " . $e->getMessage());
-                        }
-                    } elseif (!empty($banner['image'][0]['name'])) {
-                        $imageName = $banner['image'][0]['name'];
+        if (isset($data['hero_banners'])) {
+            if (is_array($data['hero_banners']) && !empty($data['hero_banners'])) {
+                $heroBanners = [];
+                foreach ($data['hero_banners'] as $banner) {
+                    // Skip rows marked for deletion or empty rows
+                    if (isset($banner['_delete']) && $banner['_delete']) {
+                        $this->logger->debug("processImageUploads - Hero banner row marked for deletion, skipping");
+                        continue;
                     }
-                } elseif (isset($banner['image']) && is_string($banner['image'])) {
-                    $imageName = $banner['image'];
-                }
-                
-                if (!empty($imageName)) {
-                    $heroBanners[] = $imageName;
-                }
-            }
-            if (!empty($heroBanners)) {
-                $data['hero_banners'] = $this->jsonSerializer->serialize($heroBanners);
-            } else {
-                unset($data['hero_banners']);
-            }
-        }
-
-        // Handle Korean ingredients banners
-        if (isset($data['discover_korean_ingredients_banners']) && is_array($data['discover_korean_ingredients_banners'])) {
-            $koreanBanners = [];
-            foreach ($data['discover_korean_ingredients_banners'] as $banner) {
-                if (isset($banner['ingredient_id']) && !empty($banner['ingredient_id'])) {
+                    
                     $imageName = '';
                     if (isset($banner['image']) && is_array($banner['image'])) {
                         if (!empty($banner['image'][0]['name']) && !empty($banner['image'][0]['tmp_name'])) {
@@ -229,7 +215,7 @@ class Save extends Action implements HttpPostActionInterface
                                 $this->imageUploader->moveFileFromTmp($imageName);
                             } catch (\Exception $e) {
                                 $imageName = $banner['image'][0]['name'];
-                                $this->logger->error("Failed to move Korean banner {$imageName}: " . $e->getMessage());
+                                $this->logger->error("Failed to move hero banner {$imageName}: " . $e->getMessage());
                             }
                         } elseif (!empty($banner['image'][0]['name'])) {
                             $imageName = $banner['image'][0]['name'];
@@ -238,17 +224,85 @@ class Save extends Action implements HttpPostActionInterface
                         $imageName = $banner['image'];
                     }
                     
-                    $koreanBanners[] = [
-                        'image' => $imageName,
-                        'ingredientId' => (int)$banner['ingredient_id']
-                    ];
+                    if (!empty($imageName)) {
+                        $heroBanners[] = $imageName;
+                        $this->logger->debug("processImageUploads - Added hero banner: {$imageName}");
+                    }
                 }
-            }
-            if (!empty($koreanBanners)) {
-                $data['discover_korean_ingredients_banners'] = $this->jsonSerializer->serialize($koreanBanners);
+                
+                if (!empty($heroBanners)) {
+                    $data['hero_banners'] = $this->jsonSerializer->serialize($heroBanners);
+                    $this->logger->debug("processImageUploads - Hero banners serialized: " . $data['hero_banners']);
+                } else {
+                    $data['hero_banners'] = null;
+                    $this->logger->debug("processImageUploads - No valid hero banners, setting to null");
+                }
             } else {
-                unset($data['discover_korean_ingredients_banners']);
+                // Field exists but is empty or not an array - all banners were deleted
+                $data['hero_banners'] = null;
+                $this->logger->debug("processImageUploads - Hero banners field empty, setting to null");
             }
+        } else {
+            // Field doesn't exist - all banners were deleted
+            $data['hero_banners'] = null;
+            $this->logger->debug("processImageUploads - Hero banners field not found, setting to null");
+        }
+
+        // Handle Korean ingredients banners
+        if (isset($data['discover_korean_ingredients_banners'])) {
+            if (is_array($data['discover_korean_ingredients_banners']) && !empty($data['discover_korean_ingredients_banners'])) {
+                $koreanBanners = [];
+                foreach ($data['discover_korean_ingredients_banners'] as $banner) {
+                    // Skip rows marked for deletion or empty rows
+                    if (isset($banner['_delete']) && $banner['_delete']) {
+                        $this->logger->debug("processImageUploads - Korean banner row marked for deletion, skipping");
+                        continue;
+                    }
+                    
+                    if (isset($banner['ingredient_id']) && !empty($banner['ingredient_id'])) {
+                        $imageName = '';
+                        if (isset($banner['image']) && is_array($banner['image'])) {
+                            if (!empty($banner['image'][0]['name']) && !empty($banner['image'][0]['tmp_name'])) {
+                                try {
+                                    $imageName = $banner['image'][0]['name'];
+                                    $this->imageUploader->moveFileFromTmp($imageName);
+                                } catch (\Exception $e) {
+                                    $imageName = $banner['image'][0]['name'];
+                                    $this->logger->error("Failed to move Korean banner {$imageName}: " . $e->getMessage());
+                                }
+                            } elseif (!empty($banner['image'][0]['name'])) {
+                                $imageName = $banner['image'][0]['name'];
+                            }
+                        } elseif (isset($banner['image']) && is_string($banner['image'])) {
+                            $imageName = $banner['image'];
+                        }
+                        
+                        if (!empty($imageName)) {
+                            $koreanBanners[] = [
+                                'image' => $imageName,
+                                'ingredientId' => (int)$banner['ingredient_id']
+                            ];
+                            $this->logger->debug("processImageUploads - Added Korean banner: {$imageName} for ingredient: " . $banner['ingredient_id']);
+                        }
+                    }
+                }
+                
+                if (!empty($koreanBanners)) {
+                    $data['discover_korean_ingredients_banners'] = $this->jsonSerializer->serialize($koreanBanners);
+                    $this->logger->debug("processImageUploads - Korean banners serialized: " . $data['discover_korean_ingredients_banners']);
+                } else {
+                    $data['discover_korean_ingredients_banners'] = null;
+                    $this->logger->debug("processImageUploads - No valid Korean banners, setting to null");
+                }
+            } else {
+                // Field exists but is empty or not an array - all banners were deleted
+                $data['discover_korean_ingredients_banners'] = null;
+                $this->logger->debug("processImageUploads - Korean banners field empty, setting to null");
+            }
+        } else {
+            // Field doesn't exist - all banners were deleted
+            $data['discover_korean_ingredients_banners'] = null;
+            $this->logger->debug("processImageUploads - Korean banners field not found, setting to null");
         }
 
         return $data;
