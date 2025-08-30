@@ -76,7 +76,7 @@
                                 <previewTmpl>Magento_Catalog/image-preview</previewTmpl>
                                 <openDialogTitle>Media Gallery</openDialogTitle>
                                 <allowedExtensions>jpg jpeg gif png</allowedExtensions>
-                                <maxFileSize>4194304</maxFileSize>
+                                <maxFileSize>20971520</maxFileSize>
                             </settings>
                         </imageUploader>
                     </formElements>
@@ -111,7 +111,7 @@
                         <previewTmpl>Magento_Catalog/image-preview</previewTmpl>
                         <openDialogTitle>Media Gallery</openDialogTitle>
                         <allowedExtensions>jpg jpeg gif png</allowedExtensions>
-                        <maxFileSize>4194304</maxFileSize>
+                        <maxFileSize>20971520</maxFileSize>
                     </settings>
                 </imageUploader>
             </formElements>
@@ -135,7 +135,7 @@
                         <previewTmpl>Magento_Catalog/image-preview</previewTmpl>
                         <openDialogTitle>Media Gallery</openDialogTitle>
                         <allowedExtensions>jpg jpeg gif png</allowedExtensions>
-                        <maxFileSize>4194304</maxFileSize>
+                        <maxFileSize>20971520</maxFileSize>
                     </settings>
                 </imageUploader>
             </formElements>
@@ -165,7 +165,7 @@
                         <previewTmpl>Magento_Catalog/image-preview</previewTmpl>
                         <openDialogTitle>Media Gallery</openDialogTitle>
                         <allowedExtensions>jpg jpeg gif png</allowedExtensions>
-                        <maxFileSize>4194304</maxFileSize>
+                        <maxFileSize>20971520</maxFileSize>
                     </settings>
                 </imageUploader>
             </formElements>
@@ -195,7 +195,7 @@
                         <previewTmpl>Magento_Catalog/image-preview</previewTmpl>
                         <openDialogTitle>Media Gallery</openDialogTitle>
                         <allowedExtensions>jpg jpeg gif png</allowedExtensions>
-                        <maxFileSize>4194304</maxFileSize>
+                        <maxFileSize>20971520</maxFileSize>
                     </settings>
                 </imageUploader>
             </formElements>
@@ -259,7 +259,7 @@
                                 <previewTmpl>Magento_Catalog/image-preview</previewTmpl>
                                 <openDialogTitle>Media Gallery</openDialogTitle>
                                 <allowedExtensions>jpg jpeg gif png</allowedExtensions>
-                                <maxFileSize>4194304</maxFileSize>
+                                <maxFileSize>20971520</maxFileSize>
                             </settings>
                         </imageUploader>
                     </formElements>
@@ -300,7 +300,7 @@
                         <previewTmpl>Magento_Catalog/image-preview</previewTmpl>
                         <openDialogTitle>Media Gallery</openDialogTitle>
                         <allowedExtensions>jpg jpeg gif png</allowedExtensions>
-                        <maxFileSize>4194304</maxFileSize>
+                        <maxFileSize>20971520</maxFileSize>
                     </settings>
                 </imageUploader>
             </formElements>
@@ -330,7 +330,7 @@
                         <previewTmpl>Magento_Catalog/image-preview</previewTmpl>
                         <openDialogTitle>Media Gallery</openDialogTitle>
                         <allowedExtensions>jpg jpeg gif png</allowedExtensions>
-                        <maxFileSize>4194304</maxFileSize>
+                        <maxFileSize>20971520</maxFileSize>
                     </settings>
                 </imageUploader>
             </formElements>
