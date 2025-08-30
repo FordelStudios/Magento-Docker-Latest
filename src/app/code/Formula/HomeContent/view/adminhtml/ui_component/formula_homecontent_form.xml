@@ -194,26 +194,49 @@
                     <argument name="data" xsi:type="array">
                         <item name="config" xsi:type="array">
                             <item name="source" xsi:type="string">homecontent</item>
-                            <item name="dataType" xsi:type="string">select</item>
-                            <item name="formElement" xsi:type="string">select</item>
-                            <item name="componentType" xsi:type="string">field</item>
-                            <item name="dataScope" xsi:type="string">ingredient_id</item>
-                            <item name="label" xsi:type="string" translate="true">Ingredient</item>
-                            <item name="options" xsi:type="object">Formula\HomeContent\Model\Source\Ingredient</item>
                         </item>
                     </argument>
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Ingredient</label>
+                        <dataScope>ingredient_id</dataScope>
+                        <visible>true</visible>
+                        <required>false</required>
+                    </settings>
+                    <formElements>
+                        <select>
+                            <settings>
+                                <options class="Formula\HomeContent\Model\Source\Ingredient"/>
+                            </settings>
+                        </select>
+                    </formElements>
                 </field>
-                <field name="image" formElement="input">
+                <field name="image" formElement="imageUploader">
                     <argument name="data" xsi:type="array">
                         <item name="config" xsi:type="array">
                             <item name="source" xsi:type="string">homecontent</item>
-                            <item name="dataType" xsi:type="string">text</item>
-                            <item name="formElement" xsi:type="string">input</item>
-                            <item name="componentType" xsi:type="string">field</item>
-                            <item name="dataScope" xsi:type="string">image</item>
-                            <item name="label" xsi:type="string" translate="true">Image URL</item>
                         </item>
                     </argument>
+                    <settings>
+                        <dataType>string</dataType>
+                        <label translate="true">Image</label>
+                        <visible>true</visible>
+                        <required>false</required>
+                    </settings>
+                    <formElements>
+                        <imageUploader>
+                            <settings>
+                                <required>false</required>
+                                <uploaderConfig>
+                                    <param xsi:type="url" name="url" path="formula_homecontent/homecontent/uploadIngredientImage"/>
+                                </uploaderConfig>
+                                <previewTmpl>Magento_Catalog/image-preview</previewTmpl>
+                                <openDialogTitle>Media Gallery</openDialogTitle>
+                                <allowedExtensions>jpg jpeg gif png</allowedExtensions>
+                                <maxFileSize>4194304</maxFileSize>
+                            </settings>
+                        </imageUploader>
+                    </formElements>
                 </field>
                 <actionDelete>
                     <argument name="data" xsi:type="array">

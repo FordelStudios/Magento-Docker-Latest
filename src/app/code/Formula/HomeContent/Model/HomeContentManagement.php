@@ -67,10 +67,13 @@ class HomeContentManagement implements HomeContentManagementInterface
         $koreanIngredientsObjects = [];
         foreach ($koreanIngredientsBanners as $banner) {
             $ingredient = $this->koreanIngredientFactory->create();
-            $ingredient->setIngredientId($banner['ingredient_id'] ?? '');
+            // Handle both 'ingredientId' and 'ingredient_id' field names
+            $ingredientId = $banner['ingredientId'] ?? $banner['ingredient_id'] ?? '';
+            $ingredient->setIngredientId($ingredientId);
             $image = $banner['image'] ?? '';
             if ($image && !filter_var($image, FILTER_VALIDATE_URL)) {
-                $image = $baseUrl . $image;
+                // Add the proper path for ingredient images
+                $image = $baseUrl . 'formula/homecontent/' . $image;
             }
             $ingredient->setImage($image);
             $koreanIngredientsObjects[] = $ingredient;

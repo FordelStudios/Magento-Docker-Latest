@@ -27,8 +27,8 @@ class Ingredient implements OptionSourceInterface
         $collection = $this->ingredientCollection->create();
         foreach ($collection as $ingredient) {
             $options[] = [
-                'value' => $ingredient->getEntityId(),
-                'label' => $ingredient->getTitle()
+                'value' => $ingredient->getIngredientId(),
+                'label' => $ingredient->getName()
             ];
         }
 

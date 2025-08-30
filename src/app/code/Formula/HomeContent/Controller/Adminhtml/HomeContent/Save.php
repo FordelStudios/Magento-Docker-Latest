@@ -197,7 +197,11 @@ class Save extends Action implements HttpPostActionInterface
                     ];
                 }
             }
-            $data['discover_korean_ingredients_banners'] = $this->jsonSerializer->serialize($koreanBanners);
+            if (!empty($koreanBanners)) {
+                $data['discover_korean_ingredients_banners'] = $this->jsonSerializer->serialize($koreanBanners);
+            } else {
+                unset($data['discover_korean_ingredients_banners']);
+            }
         }
 
         return $data;

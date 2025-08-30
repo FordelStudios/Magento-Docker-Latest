@@ -138,8 +138,9 @@ class DataProvider extends AbstractDataProvider
                     $koreanData = [];
                     foreach ($koreanBanners as $banner) {
                         if (isset($banner['image']) && isset($banner['ingredientId'])) {
-                            $finalPath = 'formula/homecontent/' . $banner['image'];
-                            $tmpPath = 'formula/tmp/homecontent/' . $banner['image'];
+                            $imageName = $banner['image'];
+                            $finalPath = 'formula/homecontent/' . $imageName;
+                            $tmpPath = 'formula/tmp/homecontent/' . $imageName;
                             
                             $usePath = $finalPath;
                             if (!$this->fileExists($finalPath) && $this->fileExists($tmpPath)) {
@@ -147,8 +148,15 @@ class DataProvider extends AbstractDataProvider
                             }
                             
                             $koreanData[] = [
-                                'image' => $baseUrl . $usePath,
-                                'ingredient_id' => $banner['ingredientId']
+                                'ingredient_id' => $banner['ingredientId'],
+                                'image' => [
+                                    [
+                                        'name' => basename($imageName),
+                                        'url' => $baseUrl . $usePath,
+                                        'size' => $this->getFileSize($usePath),
+                                        'type' => 'image'
+                                    ]
+                                ]
                             ];
                         }
                     }
