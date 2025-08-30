@@ -40,32 +40,58 @@
         </settings>
         
         <!-- Hero Banners -->
-        <field name="hero_banners" sortOrder="10" formElement="fileUploader">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="source" xsi:type="string">homecontent</item>
-                </item>
-            </argument>
+        <dynamicRows name="hero_banners" sortOrder="10">
             <settings>
-                <elementTmpl>ui/form/element/uploader/uploader</elementTmpl>
-                <dataType>string</dataType>
-                <label translate="true">Hero Banners (Multiple Images)</label>
-                <visible>true</visible>
-                <required>false</required>
+                <addButtonLabel translate="true">Add Hero Banner</addButtonLabel>
+                <label translate="true">Hero Banners</label>
+                <componentType>dynamicRows</componentType>
             </settings>
-            <formElements>
-                <fileUploader>
+            <container name="record" component="Magento_Ui/js/dynamic-rows/record">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="isTemplate" xsi:type="boolean">true</item>
+                        <item name="is_collection" xsi:type="boolean">true</item>
+                        <item name="componentType" xsi:type="string">container</item>
+                    </item>
+                </argument>
+                <field name="image" formElement="imageUploader">
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="source" xsi:type="string">homecontent</item>
+                        </item>
+                    </argument>
                     <settings>
+                        <dataType>string</dataType>
+                        <label translate="true">Hero Banner Image</label>
+                        <visible>true</visible>
                         <required>false</required>
-                        <uploaderConfig>
-                            <param xsi:type="url" name="url" path="formula_homecontent/homecontent/uploadHero"/>
-                        </uploaderConfig>
-                        <allowedExtensions>jpg jpeg gif png</allowedExtensions>
-                        <maxFileSize>4194304</maxFileSize>
                     </settings>
-                </fileUploader>
-            </formElements>
-        </field>
+                    <formElements>
+                        <imageUploader>
+                            <settings>
+                                <required>false</required>
+                                <uploaderConfig>
+                                    <param xsi:type="url" name="url" path="formula_homecontent/homecontent/uploadHeroImage"/>
+                                </uploaderConfig>
+                                <previewTmpl>Magento_Catalog/image-preview</previewTmpl>
+                                <openDialogTitle>Media Gallery</openDialogTitle>
+                                <allowedExtensions>jpg jpeg gif png</allowedExtensions>
+                                <maxFileSize>4194304</maxFileSize>
+                            </settings>
+                        </imageUploader>
+                    </formElements>
+                </field>
+                <actionDelete>
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="componentType" xsi:type="string">actionDelete</item>
+                            <item name="dataType" xsi:type="string">text</item>
+                            <item name="label" xsi:type="string">Actions</item>
+                        </item>
+                    </argument>
+                </actionDelete>
+            </container>
+        </dynamicRows>
 
         <!-- Five Step Routine Banner -->
         <field name="five_step_routine_banner" sortOrder="20" formElement="imageUploader">

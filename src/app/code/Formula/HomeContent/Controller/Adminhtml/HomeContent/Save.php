@@ -79,6 +79,44 @@ class Save extends Action implements HttpPostActionInterface
             $this->logger->debug('Save Controller - Raw active value: ' . var_export($data['active'] ?? 'NOT_SET', true));
             $this->logger->debug('Save Controller - Processed active value: ' . $activeValue);
             $this->logger->debug('Save Controller - Active value type: ' . gettype($activeValue));
+            $this->logger->debug('Save Controller - HomeContent active value: ' . $homeContent->getActive());
+            
+            // If this entity is being set to active, deactivate all others
+            if ($activeValue == 1) {
+                $collection = $this->collectionFactory->create();
+                $currentId = $homeContent->getEntityId();
+                if ($currentId) {
+                    $collection->addFieldToFilter('entity_id', ['neq' => $currentId]);
+                }
+                
+                foreach ($collection as $item) {
+                    if ($item->getActive()) {
+                        $item->setActive(0);
+                        $this->homeContentRepository->save($item);
+                        $this->logger->debug('Save Controller - Deactivated entity ID: ' . $item->getEntityId());
+                    }
+                }
+            }
+            
+            // If trying to deactivate, check if all other entities are already inactive
+            // if ($activeValue == 0 && $homeContent->getActive() == 1) {
+            //     $collection = $this->collectionFactory->create();
+            //     $currentId = $homeContent->getEntityId();
+            //     if ($currentId) {
+            //         $collection->addFieldToFilter('entity_id', ['neq' => $currentId]);
+            //     }
+            //     $collection->addFieldToFilter('active', 1);
+                
+            //     if ($collection->getSize() == 0) {
+            //         $this->messageManager->addError(__('At least one home content must remain active.'));
+            //         $id = $this->getRequest()->getParam('id');
+            //         if ($id) {
+            //             return $resultRedirect->setPath('*/*/edit', ['id' => $id]);
+            //         } else {
+            //             return $resultRedirect->setPath('*/*/index');
+            //         }
+            //     }
+            // }
             
             $homeContent->setActive($activeValue);
 
@@ -146,20 +184,29 @@ class Save extends Action implements HttpPostActionInterface
             }
         }
 
-        // Handle hero banners
+        // Handle hero banners (dynamic rows)
         if (isset($data['hero_banners']) && is_array($data['hero_banners'])) {
             $heroBanners = [];
             foreach ($data['hero_banners'] as $banner) {
-                if (!empty($banner['name']) && !empty($banner['tmp_name'])) {
-                    try {
-                        $this->imageUploader->moveFileFromTmp($banner['name']);
-                        $heroBanners[] = $banner['name'];
-                    } catch (\Exception $e) {
-                        $heroBanners[] = $banner['name'];
-                        $this->logger->error("Failed to move hero banner {$banner['name']}: " . $e->getMessage());
+                $imageName = '';
+                if (isset($banner['image']) && is_array($banner['image'])) {
+                    if (!empty($banner['image'][0]['name']) && !empty($banner['image'][0]['tmp_name'])) {
+                        try {
+                            $imageName = $banner['image'][0]['name'];
+                            $this->imageUploader->moveFileFromTmp($imageName);
+                        } catch (\Exception $e) {
+                            $imageName = $banner['image'][0]['name'];
+                            $this->logger->error("Failed to move hero banner {$imageName}: " . $e->getMessage());
+                        }
+                    } elseif (!empty($banner['image'][0]['name'])) {
+                        $imageName = $banner['image'][0]['name'];
                     }
-                } elseif (!empty($banner['name']) && empty($banner['tmp_name'])) {
-                    $heroBanners[] = $banner['name'];
+                } elseif (isset($banner['image']) && is_string($banner['image'])) {
+                    $imageName = $banner['image'];
+                }
+                
+                if (!empty($imageName)) {
+                    $heroBanners[] = $imageName;
                 }
             }
             if (!empty($heroBanners)) {

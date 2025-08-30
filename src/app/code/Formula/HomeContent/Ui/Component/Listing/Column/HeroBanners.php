@@ -7,20 +7,26 @@ use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Ui\Component\Listing\Columns\Column;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\UrlInterface;
 
 class HeroBanners extends Column
 {
+    const ALT_FIELD = 'name';
+
     protected $storeManager;
+    protected $urlBuilder;
 
     public function __construct(
         ContextInterface $context,
         UiComponentFactory $uiComponentFactory,
         StoreManagerInterface $storeManager,
+        UrlInterface $urlBuilder,
         array $components = [],
         array $data = []
     ) {
-        $this->storeManager = $storeManager;
         parent::__construct($context, $uiComponentFactory, $components, $data);
+        $this->storeManager = $storeManager;
+        $this->urlBuilder = $urlBuilder;
     }
 
     public function prepareDataSource(array $dataSource)
@@ -31,17 +37,51 @@ class HeroBanners extends Column
                 if (isset($item[$fieldName]) && $item[$fieldName]) {
                     $heroBanners = json_decode($item[$fieldName], true);
                     if (is_array($heroBanners) && !empty($heroBanners)) {
-                        $count = count($heroBanners);
-                        $item[$fieldName] = $count . ' image' . ($count > 1 ? 's' : '');
+                        // Use the first image for the thumbnail
+                        $firstBanner = $heroBanners[0];
+                        if ($firstBanner) {
+                            $item[$fieldName . '_src'] = $this->getImageUrl($firstBanner);
+                            $item[$fieldName . '_alt'] = basename($firstBanner);
+                            $item[$fieldName . '_orig_src'] = $this->getImageUrl($firstBanner);
+                            $item[$fieldName . '_link'] = $this->urlBuilder->getUrl(
+                                'formula_homecontent/homecontent/edit',
+                                ['id' => $item['entity_id']]
+                            );
+                        } else {
+                            $item[$fieldName . '_src'] = '';
+                            $item[$fieldName . '_alt'] = 'No Image';
+                            $item[$fieldName . '_orig_src'] = '';
+                            $item[$fieldName . '_link'] = '';
+                        }
                     } else {
-                        $item[$fieldName] = 'No images';
+                        $item[$fieldName . '_src'] = '';
+                        $item[$fieldName . '_alt'] = 'No Image';
+                        $item[$fieldName . '_orig_src'] = '';
+                        $item[$fieldName . '_link'] = '';
                     }
                 } else {
-                    $item[$fieldName] = 'No images';
+                    $item[$fieldName . '_src'] = '';
+                    $item[$fieldName . '_alt'] = 'No Image';
+                    $item[$fieldName . '_orig_src'] = '';
+                    $item[$fieldName . '_link'] = '';
                 }
             }
         }
 
         return $dataSource;
+    }
+
+    protected function getImageUrl($imagePath)
+    {
+        if (!$imagePath) {
+            return '';
+        }
+
+        if (filter_var($imagePath, FILTER_VALIDATE_URL)) {
+            return $imagePath;
+        }
+
+        $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+        return $baseUrl . 'formula/homecontent/' . ltrim($imagePath, '/');
     }
 }

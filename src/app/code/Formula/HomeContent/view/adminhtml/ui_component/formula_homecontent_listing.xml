@@ -89,8 +89,10 @@
                 <sorting>asc</sorting>
             </settings>
         </column>
-        <column name="hero_banners" sortOrder="30" class="Formula\HomeContent\Ui\Component\Listing\Column\HeroBanners">
+        <column name="hero_banners" sortOrder="30" class="Formula\HomeContent\Ui\Component\Listing\Column\HeroBanners" component="Magento_Ui/js/grid/columns/thumbnail">
             <settings>
+                <altField>hero_banners_alt</altField>
+                <hasPreview>1</hasPreview>
                 <label translate="true">Hero Banners</label>
                 <sortable>false</sortable>
             </settings>

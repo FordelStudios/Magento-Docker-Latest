@@ -59,7 +59,7 @@ class HomeContentManagement implements HomeContentManagementInterface
         $heroBanners = $homeContent->getHeroBanners();
         foreach ($heroBanners as $key => $banner) {
             if ($banner && !filter_var($banner, FILTER_VALIDATE_URL)) {
-                $heroBanners[$key] = $baseUrl . $banner;
+                $heroBanners[$key] = $baseUrl . 'formula/homecontent/' . $banner;
             }
         }
 

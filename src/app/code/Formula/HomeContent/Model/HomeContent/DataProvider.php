@@ -122,10 +122,14 @@ class DataProvider extends AbstractDataProvider
                         }
                         
                         $heroData[] = [
-                            'name' => basename($banner),
-                            'url' => $baseUrl . $usePath,
-                            'size' => $this->getFileSize($usePath),
-                            'type' => 'image'
+                            'image' => [
+                                [
+                                    'name' => basename($banner),
+                                    'url' => $baseUrl . $usePath,
+                                    'size' => $this->getFileSize($usePath),
+                                    'type' => 'image'
+                                ]
+                            ]
                         ];
                     }
                 }

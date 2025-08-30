@@ -8,24 +8,28 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Formula\HomeContent\Api\HomeContentRepositoryInterface;
+use Formula\HomeContent\Model\ResourceModel\HomeContent\CollectionFactory;
 use Psr\Log\LoggerInterface;
 
 class InlineEdit extends Action implements HttpPostActionInterface
 {
     protected $jsonFactory;
     protected $homeContentRepository;
+    protected $collectionFactory;
     protected $logger;
 
     public function __construct(
         Context $context,
         JsonFactory $jsonFactory,
         HomeContentRepositoryInterface $homeContentRepository,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        CollectionFactory $collectionFactory
     ) {
         parent::__construct($context);
         $this->jsonFactory = $jsonFactory;
         $this->homeContentRepository = $homeContentRepository;
         $this->logger = $logger;
+        $this->collectionFactory = $collectionFactory;
     }
 
     public function execute()
@@ -46,7 +50,35 @@ class InlineEdit extends Action implements HttpPostActionInterface
                         $homeContentData = $postItems[$entityId];
                         
                         if (isset($homeContentData['active'])) {
-                            $homeContent->setActive((bool)$homeContentData['active']);
+                            $activeValue = (bool)$homeContentData['active'];
+                            
+                            // If this entity is being set to active, deactivate all others
+                            if ($activeValue) {
+                                $collection = $this->collectionFactory->create();
+                                $collection->addFieldToFilter('entity_id', ['neq' => $entityId]);
+                                
+                                foreach ($collection as $item) {
+                                    if ($item->getActive()) {
+                                        $item->setActive(false);
+                                        $this->homeContentRepository->save($item);
+                                    }
+                                }
+                            }
+                            
+                            // // If trying to deactivate, check if all other entities are already inactive
+                            // if (!$activeValue && $homeContent->getActive()) {
+                            //     $collection = $this->collectionFactory->create();
+                            //     $collection->addFieldToFilter('entity_id', ['neq' => $entityId]);
+                            //     $collection->addFieldToFilter('active', 1);
+                                
+                            //     if ($collection->getSize() == 0) {
+                            //         $messages[] = __('At least one home content must remain active.');
+                            //         $error = true;
+                            //         continue;
+                            //     }
+                            // }
+                            
+                            $homeContent->setActive($activeValue);
                         }
                         
                         $this->homeContentRepository->save($homeContent);
