@@ -9,6 +9,7 @@ use Formula\HomeContent\Api\Data\KoreanIngredientInterfaceFactory;
 use Formula\HomeContent\Api\HomeContentManagementInterface;
 use Formula\HomeContent\Api\HomeContentRepositoryInterface;
 use Formula\HomeContent\Model\ResourceModel\HomeContent\CollectionFactory;
+use Formula\Ingredient\Api\IngredientRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class HomeContentManagement implements HomeContentManagementInterface
@@ -18,19 +19,22 @@ class HomeContentManagement implements HomeContentManagementInterface
     protected $storeManager;
     protected $homeContentResponseFactory;
     protected $koreanIngredientFactory;
+    protected $ingredientRepository;
 
     public function __construct(
         HomeContentRepositoryInterface $homeContentRepository,
         CollectionFactory $collectionFactory,
         StoreManagerInterface $storeManager,
         HomeContentResponseInterfaceFactory $homeContentResponseFactory,
-        KoreanIngredientInterfaceFactory $koreanIngredientFactory
+        KoreanIngredientInterfaceFactory $koreanIngredientFactory,
+        IngredientRepositoryInterface $ingredientRepository
     ) {
         $this->homeContentRepository = $homeContentRepository;
         $this->collectionFactory = $collectionFactory;
         $this->storeManager = $storeManager;
         $this->homeContentResponseFactory = $homeContentResponseFactory;
         $this->koreanIngredientFactory = $koreanIngredientFactory;
+        $this->ingredientRepository = $ingredientRepository;
     }
 
     public function getHomeContent()
@@ -76,6 +80,20 @@ class HomeContentManagement implements HomeContentManagementInterface
                 $image = $baseUrl . 'formula/homecontent/' . $image;
             }
             $ingredient->setImage($image);
+            
+            // Fetch ingredient name by ID
+            $ingredientName = '';
+            if ($ingredientId) {
+                try {
+                    $ingredientData = $this->ingredientRepository->getById($ingredientId);
+                    $ingredientName = $ingredientData->getName() ?? '';
+                } catch (\Exception $e) {
+                    // If ingredient not found, keep name empty
+                    $ingredientName = '';
+                }
+            }
+            $ingredient->setIngredientName($ingredientName);
+            
             $koreanIngredientsObjects[] = $ingredient;
         }
 

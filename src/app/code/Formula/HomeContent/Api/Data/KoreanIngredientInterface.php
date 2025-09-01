@@ -34,4 +34,19 @@ interface KoreanIngredientInterface
      * @return $this
      */
     public function setImage($image);
+
+    /**
+     * Get ingredient name
+     *
+     * @return string
+     */
+    public function getIngredientName();
+
+    /**
+     * Set ingredient name
+     *
+     * @param string $ingredientName
+     * @return $this
+     */
+    public function setIngredientName($ingredientName);
 }
