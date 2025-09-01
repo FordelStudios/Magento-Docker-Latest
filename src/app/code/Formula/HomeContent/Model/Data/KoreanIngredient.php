@@ -10,6 +10,7 @@ class KoreanIngredient extends AbstractExtensibleObject implements KoreanIngredi
 {
     const INGREDIENT_ID = 'ingredient_id';
     const IMAGE = 'image';
+    const INGREDIENT_NAME = 'ingredient_name';
 
     public function getIngredientId()
     {
@@ -29,5 +30,15 @@ class KoreanIngredient extends AbstractExtensibleObject implements KoreanIngredi
     public function setImage($image)
     {
         return $this->setData(self::IMAGE, $image);
+    }
+
+    public function getIngredientName()
+    {
+        return $this->_get(self::INGREDIENT_NAME) ?: '';
+    }
+
+    public function setIngredientName($ingredientName)
+    {
+        return $this->setData(self::INGREDIENT_NAME, $ingredientName);
     }
 }
