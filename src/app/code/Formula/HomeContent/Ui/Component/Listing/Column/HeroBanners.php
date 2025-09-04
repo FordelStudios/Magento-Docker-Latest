@@ -39,10 +39,11 @@ class HeroBanners extends Column
                     if (is_array($heroBanners) && !empty($heroBanners)) {
                         // Use the first image for the thumbnail
                         $firstBanner = $heroBanners[0];
-                        if ($firstBanner) {
-                            $item[$fieldName . '_src'] = $this->getImageUrl($firstBanner);
-                            $item[$fieldName . '_alt'] = basename($firstBanner);
-                            $item[$fieldName . '_orig_src'] = $this->getImageUrl($firstBanner);
+                        if ($firstBanner && isset($firstBanner['image'])) {
+                            $imagePath = $firstBanner['image'];
+                            $item[$fieldName . '_src'] = $this->getImageUrl($imagePath);
+                            $item[$fieldName . '_alt'] = basename($imagePath);
+                            $item[$fieldName . '_orig_src'] = $this->getImageUrl($imagePath);
                             $item[$fieldName . '_link'] = $this->urlBuilder->getUrl(
                                 'formula_homecontent/homecontent/edit',
                                 ['id' => $item['entity_id']]

@@ -8,14 +8,14 @@ interface HomeContentResponseInterface
     /**
      * Get hero banners
      *
-     * @return string[]
+     * @return \Formula\HomeContent\Api\Data\HeroBannerInterface[]
      */
     public function getHeroBanners();
 
     /**
      * Set hero banners
      *
-     * @param string[] $heroBanners
+     * @param \Formula\HomeContent\Api\Data\HeroBannerInterface[] $heroBanners
      * @return $this
      */
     public function setHeroBanners($heroBanners);

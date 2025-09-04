@@ -81,6 +81,26 @@
                         </imageUploader>
                     </formElements>
                 </field>
+                <field name="url" formElement="input">
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="source" xsi:type="string">homecontent</item>
+                        </item>
+                    </argument>
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Hero Banner URL</label>
+                        <visible>true</visible>
+                        <required>false</required>
+                    </settings>
+                    <formElements>
+                        <input>
+                            <settings>
+                                <!-- <placeholder translate="true">Enter URL (e.g., https://example.com)</placeholder> -->
+                            </settings>
+                        </input>
+                    </formElements>
+                </field>
                 <actionDelete>
                     <argument name="data" xsi:type="array">
                         <item name="config" xsi:type="array">

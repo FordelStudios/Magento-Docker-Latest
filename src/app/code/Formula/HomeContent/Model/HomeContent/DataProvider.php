@@ -113,24 +113,38 @@ class DataProvider extends AbstractDataProvider
                 $heroData = [];
                 foreach ($heroBanners as $banner) {
                     if ($banner) {
-                        $finalPath = 'formula/homecontent/' . $banner;
-                        $tmpPath = 'formula/tmp/homecontent/' . $banner;
-                        
-                        $usePath = $finalPath;
-                        if (!$this->fileExists($finalPath) && $this->fileExists($tmpPath)) {
-                            $usePath = $tmpPath;
+                        // Handle both old format (string) and new format (object)
+                        if (is_string($banner)) {
+                            // Old format: just image filename
+                            $imageName = $banner;
+                            $url = '';
+                        } else {
+                            // New format: object with image and url
+                            $imageName = $banner['image'] ?? '';
+                            $url = $banner['url'] ?? '';
                         }
                         
-                        $heroData[] = [
-                            'image' => [
-                                [
-                                    'name' => basename($banner),
-                                    'url' => $baseUrl . $usePath,
-                                    'size' => $this->getFileSize($usePath),
-                                    'type' => 'image'
-                                ]
-                            ]
-                        ];
+                        if ($imageName) {
+                            $finalPath = 'formula/homecontent/' . $imageName;
+                            $tmpPath = 'formula/tmp/homecontent/' . $imageName;
+                            
+                            $usePath = $finalPath;
+                            if (!$this->fileExists($finalPath) && $this->fileExists($tmpPath)) {
+                                $usePath = $tmpPath;
+                            }
+                            
+                            $heroData[] = [
+                                'image' => [
+                                    [
+                                        'name' => basename($imageName),
+                                        'url' => $baseUrl . $usePath,
+                                        'size' => $this->getFileSize($usePath),
+                                        'type' => 'image'
+                                    ]
+                                ],
+                                'url' => $url
+                            ];
+                        }
                     }
                 }
                 $data['hero_banners'] = $heroData;

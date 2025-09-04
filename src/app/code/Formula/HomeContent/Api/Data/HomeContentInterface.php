@@ -36,14 +36,14 @@ interface HomeContentInterface
     /**
      * Get hero banners
      *
-     * @return array
+     * @return \Formula\HomeContent\Api\Data\HeroBannerInterface[]
      */
     public function getHeroBanners();
 
     /**
      * Set hero banners
      *
-     * @param array|string $heroBanners
+     * @param \Formula\HomeContent\Api\Data\HeroBannerInterface[]|array|string $heroBanners
      * @return $this
      */
     public function setHeroBanners($heroBanners);

@@ -6,6 +6,7 @@ namespace Formula\HomeContent\Model;
 use Formula\HomeContent\Api\Data\HomeContentResponseInterface;
 use Formula\HomeContent\Api\Data\HomeContentResponseInterfaceFactory;
 use Formula\HomeContent\Api\Data\KoreanIngredientInterfaceFactory;
+use Formula\HomeContent\Api\Data\HeroBannerInterfaceFactory;
 use Formula\HomeContent\Api\HomeContentManagementInterface;
 use Formula\HomeContent\Api\HomeContentRepositoryInterface;
 use Formula\HomeContent\Model\ResourceModel\HomeContent\CollectionFactory;
@@ -19,6 +20,7 @@ class HomeContentManagement implements HomeContentManagementInterface
     protected $storeManager;
     protected $homeContentResponseFactory;
     protected $koreanIngredientFactory;
+    protected $heroBannerFactory;
     protected $ingredientRepository;
 
     public function __construct(
@@ -27,6 +29,7 @@ class HomeContentManagement implements HomeContentManagementInterface
         StoreManagerInterface $storeManager,
         HomeContentResponseInterfaceFactory $homeContentResponseFactory,
         KoreanIngredientInterfaceFactory $koreanIngredientFactory,
+        HeroBannerInterfaceFactory $heroBannerFactory,
         IngredientRepositoryInterface $ingredientRepository
     ) {
         $this->homeContentRepository = $homeContentRepository;
@@ -34,6 +37,7 @@ class HomeContentManagement implements HomeContentManagementInterface
         $this->storeManager = $storeManager;
         $this->homeContentResponseFactory = $homeContentResponseFactory;
         $this->koreanIngredientFactory = $koreanIngredientFactory;
+        $this->heroBannerFactory = $heroBannerFactory;
         $this->ingredientRepository = $ingredientRepository;
     }
 
@@ -61,9 +65,30 @@ class HomeContentManagement implements HomeContentManagementInterface
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
 
         $heroBanners = $homeContent->getHeroBanners();
-        foreach ($heroBanners as $key => $banner) {
-            if ($banner && !filter_var($banner, FILTER_VALIDATE_URL)) {
-                $heroBanners[$key] = $baseUrl . 'formula/homecontent/' . $banner;
+        $heroBannerObjects = [];
+        foreach ($heroBanners as $banner) {
+            if ($banner) {
+                $heroBannerObj = $this->heroBannerFactory->create();
+                
+                // Handle both old format (string) and new format (object)
+                if (is_string($banner)) {
+                    // Old format: just image filename
+                    $imageName = $banner;
+                    $url = '';
+                } else {
+                    // New format: object with image and url
+                    $imageName = $banner['image'] ?? '';
+                    $url = $banner['url'] ?? '';
+                }
+                
+                // Process image URL
+                if ($imageName && !filter_var($imageName, FILTER_VALIDATE_URL)) {
+                    $imageName = $baseUrl . 'formula/homecontent/' . $imageName;
+                }
+                
+                $heroBannerObj->setImage($imageName);
+                $heroBannerObj->setUrl($url);
+                $heroBannerObjects[] = $heroBannerObj;
             }
         }
 
@@ -97,7 +122,7 @@ class HomeContentManagement implements HomeContentManagementInterface
             $koreanIngredientsObjects[] = $ingredient;
         }
 
-        $response->setHeroBanners($heroBanners);
+        $response->setHeroBanners($heroBannerObjects);
         $response->setFiveStepRoutineBanner($this->getFullImageUrl($homeContent->getFiveStepRoutineBanner(), $baseUrl));
         $response->setThreeStepRoutineBanner($this->getFullImageUrl($homeContent->getThreeStepRoutineBanner(), $baseUrl));
         $response->setDiscoverYourFormulaBanner($this->getFullImageUrl($homeContent->getDiscoverYourFormulaBanner(), $baseUrl));

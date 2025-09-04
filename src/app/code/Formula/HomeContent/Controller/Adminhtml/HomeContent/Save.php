@@ -224,9 +224,14 @@ class Save extends Action implements HttpPostActionInterface
                         $imageName = $banner['image'];
                     }
                     
+                    $url = isset($banner['url']) ? trim($banner['url']) : '';
+                    
                     if (!empty($imageName)) {
-                        $heroBanners[] = $imageName;
-                        $this->logger->debug("processImageUploads - Added hero banner: {$imageName}");
+                        $heroBanners[] = [
+                            'image' => $imageName,
+                            'url' => $url
+                        ];
+                        $this->logger->debug("processImageUploads - Added hero banner: {$imageName} with URL: {$url}");
                     }
                 }
                 
