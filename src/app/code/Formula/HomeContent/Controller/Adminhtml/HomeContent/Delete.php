@@ -5,11 +5,10 @@ namespace Formula\HomeContent\Controller\Adminhtml\HomeContent;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\Action\HttpPostActionInterface;
 use Formula\HomeContent\Api\HomeContentRepositoryInterface;
 use Psr\Log\LoggerInterface;
 
-class Delete extends Action implements HttpPostActionInterface
+class Delete extends Action
 {
     protected $homeContentRepository;
     protected $logger;
