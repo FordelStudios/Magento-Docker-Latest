@@ -55,6 +55,17 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
                 ];
             }
 
+            if (isset($data['sale_page_banner']) && $data['sale_page_banner']) {
+                $mediaUrl = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
+                $data['sale_page_banner'] = [
+                    [
+                        'name' => $data['sale_page_banner'],
+                        'url' => $mediaUrl . 'brand/sale_page_banner/' . $data['sale_page_banner'],
+                        'type' => 'image'
+                    ]
+                ];
+            }
+
             if (isset($data['tags']) && !empty($data['tags'])) {
                 $decodedTags = json_decode($data['tags'], true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decodedTags)) {

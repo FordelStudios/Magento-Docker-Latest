@@ -9,6 +9,7 @@ interface BrandInterface
     const TAGLINE = 'tagline';
     const LOGO = 'logo';
     const PROMOTIONAL_BANNERS = 'promotional_banners';
+    const SALE_PAGE_BANNER = 'sale_page_banner';
     const TAGS = 'tags';
     const IS_KOREAN = 'is_korean';
     const IS_HOMEGROWN = 'is_homegrown';
@@ -82,6 +83,17 @@ interface BrandInterface
      * @return $this
      */
     public function setPromotionalBanners($banners);
+
+    /**
+     * @return string|null
+     */
+    public function getSalePageBanner();
+
+    /**
+     * @param string $salePageBanner
+     * @return $this
+     */
+    public function setSalePageBanner($salePageBanner);
 
     /**
      * @return string|null

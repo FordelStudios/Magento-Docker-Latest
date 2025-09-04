@@ -149,6 +149,24 @@
             </formElements>
         </field>
 
+        <field name="sale_page_banner" formElement="imageUploader">
+            <settings>
+                <label translate="true">Sale Page Banner</label>
+                <componentType>imageUploader</componentType>
+            </settings>
+            <formElements>
+                <imageUploader>
+                    <settings>
+                        <allowedExtensions>jpg jpeg gif png</allowedExtensions>
+                        <maxFileSize>2097152</maxFileSize>
+                        <uploaderConfig>
+                            <param xsi:type="string" name="url">formula_brand/brand/uploadSalePageBanner</param>
+                        </uploaderConfig>
+                    </settings>
+                </imageUploader>
+            </formElements>
+        </field>
+
         <fieldset name="brand_attributes">
             <settings>
                 <label translate="true">Brand Attributes</label>

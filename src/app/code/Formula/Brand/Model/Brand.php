@@ -16,6 +16,7 @@ class Brand extends AbstractModel implements BrandInterface
     const TAGLINE = 'tagline';
     const LOGO = 'logo';
     const PROMOTIONAL_BANNERS = 'promotional_banners';
+    const SALE_PAGE_BANNER = 'sale_page_banner';
     const TAGS = 'tags';
     const IS_KOREAN = 'is_korean';
     const IS_HOMEGROWN = 'is_homegrown';
@@ -185,6 +186,27 @@ class Brand extends AbstractModel implements BrandInterface
             $banners = $this->jsonSerializer->serialize($banners);
         }
         return $this->setData(self::PROMOTIONAL_BANNERS, $banners);
+    }
+
+    /**
+     * Get Sale Page Banner Path
+     * 
+     * @return string|null
+     */
+    public function getSalePageBanner()
+    {
+        return $this->getData(self::SALE_PAGE_BANNER);
+    }
+
+    /**
+     * Set Sale Page Banner Path
+     * 
+     * @param string|null $salePageBanner
+     * @return $this
+     */
+    public function setSalePageBanner($salePageBanner)
+    {
+        return $this->setData(self::SALE_PAGE_BANNER, $salePageBanner);
     }
 
     /**

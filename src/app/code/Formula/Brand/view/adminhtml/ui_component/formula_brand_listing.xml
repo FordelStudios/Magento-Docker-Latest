@@ -187,6 +187,14 @@
                 <filter>false</filter>
             </settings>
         </column>
+        <column name="sale_page_banner" class="Formula\Brand\Ui\Component\Listing\Column\SalePageBanner" component="Magento_Ui/js/grid/columns/thumbnail">
+            <settings>
+                <label translate="true">Sale Page Banner</label>
+                <bodyTmpl>ui/grid/cells/thumbnail</bodyTmpl>
+                <sortable>false</sortable>
+                <filter>false</filter>
+            </settings>
+        </column>
         <column name="tags">
             <settings>
                 <filter>text</filter>

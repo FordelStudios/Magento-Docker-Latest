@@ -110,6 +110,7 @@ class BrandRepository implements BrandRepositoryInterface
                     'description' => $item->getDescription(),
                     'tagline' => $item->getTagline(),
                     'logo' => $item->getLogo(),
+                    'sale_page_banner' => $item->getSalePageBanner(),
                     'tags' => $item->getTags(),
                     'promotional_banners' => $item->getPromotionalBanners(),
                     'is_korean' => (bool)$item->getIsKorean(),
@@ -180,6 +181,10 @@ class BrandRepository implements BrandRepositoryInterface
             
             if (isset($data['logo'])) {
                 $existingBrand->setLogo($brand->getLogo());
+            }
+            
+            if (isset($data['sale_page_banner'])) {
+                $existingBrand->setSalePageBanner($brand->getSalePageBanner());
             }
             
             // For JSON array fields, only update if they're explicitly in the request
