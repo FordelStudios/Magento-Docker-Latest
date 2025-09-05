@@ -80,9 +80,15 @@ class DataProvider extends AbstractDataProvider
             
             if (isset($data['banner_image']) && $data['banner_image']) {
                 $imageName = $data['banner_image'];
+                $imageUrl = $this->getMediaUrl() . $imageName;
                 unset($data['banner_image']);
-                $data['banner_image'][0]['name'] = $imageName;
-                $data['banner_image'][0]['url'] = $this->getMediaUrl() . $imageName;
+                $data['banner_image'][0] = [
+                    'name' => $imageName,
+                    'url' => $imageUrl,
+                    'size' => $this->getImageSize($imageName),
+                    'type' => $this->getImageMimeType($imageName),
+                    'file' => $imageName
+                ];
                 $this->logger->info('DataProvider getData: Processed image', ['image_data' => $data['banner_image']]);
             }
             
@@ -109,5 +115,51 @@ class DataProvider extends AbstractDataProvider
         $mediaUrl = $this->storeManager->getStore()
                          ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
         return $mediaUrl . 'formula/categorybentobanner/';
+    }
+
+    private function getImageSize($imageName)
+    {
+        try {
+            $mediaPath = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+            $fullPath = str_replace($mediaPath, '', $this->getMediaUrl()) . $imageName;
+            $directoryRead = \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Magento\Framework\Filesystem::class)
+                ->getDirectoryRead(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA);
+            
+            if ($directoryRead->isExist('formula/categorybentobanner/' . $imageName)) {
+                $stat = $directoryRead->stat('formula/categorybentobanner/' . $imageName);
+                return isset($stat['size']) ? $stat['size'] : 0;
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('Error getting image size: ' . $e->getMessage());
+        }
+        return 0;
+    }
+
+    private function getImageMimeType($imageName)
+    {
+        try {
+            $directoryRead = \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Magento\Framework\Filesystem::class)
+                ->getDirectoryRead(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA);
+            
+            if ($directoryRead->isExist('formula/categorybentobanner/' . $imageName)) {
+                $extension = strtolower(pathinfo($imageName, PATHINFO_EXTENSION));
+                switch ($extension) {
+                    case 'jpg':
+                    case 'jpeg':
+                        return 'image/jpeg';
+                    case 'png':
+                        return 'image/png';
+                    case 'gif':
+                        return 'image/gif';
+                    default:
+                        return 'application/octet-stream';
+                }
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('Error getting image mime type: ' . $e->getMessage());
+        }
+        return 'application/octet-stream';
     }
 }
