@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <!-- Get all bento banners -->
+    <route url="/V1/category-bento-banners" method="GET">
+        <service class="Formula\CategoryBentoBanners\Api\CategoryBentoBannerRepositoryInterface" method="getAllBentoBanners"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <!-- Get bento banners by category ID -->
+    <route url="/V1/category-bento-banners/category/:categoryId" method="GET">
+        <service class="Formula\CategoryBentoBanners\Api\CategoryBentoBannerRepositoryInterface" method="getByCategoryId"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <!-- Get bento banner by ID -->
+    <route url="/V1/category-bento-banners/:bentoBannerId" method="GET">
+        <service class="Formula\CategoryBentoBanners\Api\CategoryBentoBannerRepositoryInterface" method="getById"/>
+        <resources>
+            <resource ref="Magento_Backend::admin"/>
+        </resources>
+    </route>
+
+    <!-- Create bento banner -->
+    <route url="/V1/category-bento-banners" method="POST">
+        <service class="Formula\CategoryBentoBanners\Api\CategoryBentoBannerRepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="Magento_Backend::admin"/>
+        </resources>
+    </route>
+
+    <!-- Update bento banner -->
+    <route url="/V1/category-bento-banners/:bentoBannerId" method="PUT">
+        <service class="Formula\CategoryBentoBanners\Api\CategoryBentoBannerRepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="Magento_Backend::admin"/>
+        </resources>
+    </route>
+
+    <!-- Delete bento banner -->
+    <route url="/V1/category-bento-banners/:bentoBannerId" method="DELETE">
+        <service class="Formula\CategoryBentoBanners\Api\CategoryBentoBannerRepositoryInterface" method="deleteById"/>
+        <resources>
+            <resource ref="Magento_Backend::admin"/>
+        </resources>
+    </route>
+
+    <!-- Get list with search criteria -->
+    <route url="/V1/category-bento-banners/search" method="GET">
+        <service class="Formula\CategoryBentoBanners\Api\CategoryBentoBannerRepositoryInterface" method="getList"/>
+        <resources>
+            <resource ref="Magento_Backend::admin"/>
+        </resources>
+    </route>
+</routes>

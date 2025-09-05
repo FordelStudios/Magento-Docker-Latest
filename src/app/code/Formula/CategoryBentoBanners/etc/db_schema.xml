@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+	<table name="formula_category_bento_banners" resource="default" engine="innodb" comment="Category Bento Banners Table">
+		<column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity ID" />
+		<column xsi:type="int" name="category_id" padding="10" unsigned="true" nullable="false" comment="Category ID" />
+		<column xsi:type="varchar" name="banner_image" nullable="false" length="255" comment="Banner Image" />
+		<column xsi:type="varchar" name="url" nullable="false" length="255" comment="Banner URL" />
+		<column xsi:type="boolean" name="is_active" nullable="false" default="1" comment="Is Banner Active" />
+		<column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At" />
+		<column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At" />
+
+		<constraint xsi:type="primary" referenceId="PRIMARY">
+			<column name="entity_id" />
+		</constraint>
+		<constraint xsi:type="foreign" referenceId="FORMULA_CATEGORY_BENTO_BANNERS_CATEGORY_ID_CATALOG_CATEGORY_ENTITY_ENTITY_ID" table="formula_category_bento_banners" column="category_id" referenceTable="catalog_category_entity" referenceColumn="entity_id" onDelete="CASCADE" />
+		<index referenceId="FORMULA_CATEGORY_BENTO_BANNERS_CATEGORY_ID" indexType="btree">
+			<column name="category_id" />
+		</index>
+	</table>
+</schema>

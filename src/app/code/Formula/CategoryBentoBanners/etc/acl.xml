@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Magento_Backend::content">
+                    <resource id="Formula_CategoryBentoBanners::category_bento_banners" title="Category Bento Banners" sortOrder="50">
+                        <resource id="Formula_CategoryBentoBanners::save" title="Save Category Bento Banner" sortOrder="10" />
+                        <resource id="Formula_CategoryBentoBanners::delete" title="Delete Category Bento Banner" sortOrder="20" />
+                    </resource>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

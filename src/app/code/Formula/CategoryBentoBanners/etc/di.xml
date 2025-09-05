@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Formula\CategoryBentoBanners\Api\Data\CategoryBentoBannerInterface" type="Formula\CategoryBentoBanners\Model\CategoryBentoBanner" />
+    <preference for="Formula\CategoryBentoBanners\Api\Data\CategoryBentoBannerSearchResultsInterface" type="Formula\CategoryBentoBanners\Model\CategoryBentoBannerSearchResults" />
+    <preference for="Formula\CategoryBentoBanners\Api\CategoryBentoBannerRepositoryInterface" type="Formula\CategoryBentoBanners\Model\CategoryBentoBannerRepository" />
+</config>
