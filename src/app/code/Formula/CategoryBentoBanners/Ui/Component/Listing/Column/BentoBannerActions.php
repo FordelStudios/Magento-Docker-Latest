@@ -54,8 +54,8 @@ class BentoBannerActions extends Column
                             ),
                             'label' => __('Delete'),
                             'confirm' => [
-                                'title' => __('Delete "${ $.$data.entity_id }"'),
-                                'message' => __('Are you sure you want to delete a "${ $.$data.entity_id }" record?')
+                                'title' => __('Delete Bento Banner'),
+                                'message' => __('Are you sure you want to delete this bento banner?')
                             ]
                         ]
                     ];
