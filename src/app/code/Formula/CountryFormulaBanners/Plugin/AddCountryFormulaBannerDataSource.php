@@ -23,6 +23,7 @@ class AddCountryFormulaBannerDataSource
      * Add Country Formula Banner data source
      *
      * @param \Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory $subject
+     * @param \Closure $proceed
      * @param string $requestName
      * @return \Magento\Framework\Data\Collection
      */

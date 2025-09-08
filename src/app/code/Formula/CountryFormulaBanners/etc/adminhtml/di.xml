@@ -20,7 +20,7 @@
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <plugin name="formula_countryformulabanner_collection_factory" 
                 type="Formula\CountryFormulaBanners\Plugin\AddCountryFormulaBannerDataSource" 
-                sortOrder="10" />
+                sortOrder="30" />
     </type>
 
 
@@ -30,4 +30,13 @@
             <argument name="resourceModel" xsi:type="string">Formula\CountryFormulaBanners\Model\ResourceModel\CountryFormulaBanner</argument>
         </arguments>
     </virtualType>
+    
+    <!-- Add missing customer_listing_data_source -->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="customer_listing_data_source" xsi:type="string">Magento\Customer\Model\ResourceModel\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

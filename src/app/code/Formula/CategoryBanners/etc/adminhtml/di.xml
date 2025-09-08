@@ -20,7 +20,7 @@
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <plugin name="formula_categorybanner_collection_factory" 
                 type="Formula\CategoryBanners\Plugin\AddCategoryBannerDataSource" 
-                sortOrder="10" />
+                sortOrder="20" />
     </type>
 
 
