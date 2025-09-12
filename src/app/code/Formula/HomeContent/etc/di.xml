@@ -6,19 +6,37 @@
     <preference for="Formula\HomeContent\Api\Data\HomeContentResponseInterface" type="Formula\HomeContent\Model\Data\HomeContentResponse"/>
     <preference for="Formula\HomeContent\Api\Data\KoreanIngredientInterface" type="Formula\HomeContent\Model\Data\KoreanIngredient"/>
     <preference for="Formula\HomeContent\Api\Data\HeroBannerInterface" type="Formula\HomeContent\Model\Data\HeroBanner"/>
-    
-    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
-        <arguments>
-            <argument name="collections" xsi:type="array">
-                <item name="formula_homecontent_listing_data_source" xsi:type="string">Formula\HomeContent\Model\ResourceModel\HomeContent\Grid\Collection</item>
-            </argument>
-        </arguments>
-    </type>
-    
-    <virtualType name="Formula\HomeContent\Model\ResourceModel\HomeContent\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
-        <arguments>
-            <argument name="mainTable" xsi:type="string">formula_home_content</argument>
-            <argument name="resourceModel" xsi:type="string">Formula\HomeContent\Model\ResourceModel\HomeContent</argument>
-        </arguments>
-    </virtualType>
+	<!-- Configure Grid Collection for UI Component -->
+	<virtualType name="FormulaHomeContentGridCollection" type="Formula\HomeContent\Model\ResourceModel\HomeContent\Grid\Collection">
+		<arguments>
+			<argument name="mainTable" xsi:type="string">formula_home_content</argument>
+			<argument name="eventPrefix" xsi:type="string">formula_homecontent_grid_collection</argument>
+			<argument name="eventObject" xsi:type="string">homecontent_grid_collection</argument>
+			<argument name="resourceModel" xsi:type="string">Formula\HomeContent\Model\ResourceModel\HomeContent</argument>
+		</arguments>
+	</virtualType>
+	<!-- Configure UI Component Data Provider -->
+	<type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+		<arguments>
+			<argument name="collections" xsi:type="array">
+				<item name="formula_homecontent_listing_data_source" xsi:type="string">
+					FormulaHomeContentGridCollection
+				</item>
+				<item name="customer_listing_data_source" xsi:type="string">Magento\Customer\Model\ResourceModel\Grid\Collection</item>
+				<item name="sales_order_grid_data_source" xsi:type="string">Magento\Sales\Model\ResourceModel\Order\Grid\Collection</item>
+				<item name="sales_order_invoice_grid_data_source" xsi:type="string">Magento\Sales\Model\ResourceModel\Order\Invoice\Grid\Collection</item>
+				<item name="sales_order_shipment_grid_data_source" xsi:type="string">Magento\Sales\Model\ResourceModel\Order\Shipment\Grid\Collection</item>
+				<item name="sales_order_creditmemo_grid_data_source" xsi:type="string">Magento\Sales\Model\ResourceModel\Order\Creditmemo\Grid\Collection</item>
+				<item name="sales_order_view_invoice_grid_data_source" xsi:type="string">Magento\Sales\Model\ResourceModel\Order\Invoice\Grid\Collection</item>
+				<item name="sales_order_view_shipment_grid_data_source" xsi:type="string">Magento\Sales\Model\ResourceModel\Order\Shipment\Grid\Collection</item>
+				<item name="sales_order_view_creditmemo_grid_data_source" xsi:type="string">Magento\Sales\Model\ResourceModel\Order\Creditmemo\Grid\Collection</item>
+			</argument>
+		</arguments>
+	</type>
+
+	<!-- Plugin for Home Content Data Source -->
+	<type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+		<plugin name="add_homecontent_data_source" type="Formula\HomeContent\Plugin\AddHomeContentDataSource" sortOrder="10"/>
+	</type>
+
 </config>
