@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <walletpayment>
+                <active>1</active>
+                <model>Formula\Wallet\Model\Payment\WalletPayment</model>
+                <title>Wallet Payment</title>
+                <order_status>processing</order_status>
+                <payment_action>authorize_capture</payment_action>
+                <allowspecific>0</allowspecific>
+                <can_use_checkout>1</can_use_checkout>
+                <can_use_internal>1</can_use_internal>
+                <can_use_for_multishipping>0</can_use_for_multishipping>
+            </walletpayment>
+        </payment>
+    </default>
+</config>

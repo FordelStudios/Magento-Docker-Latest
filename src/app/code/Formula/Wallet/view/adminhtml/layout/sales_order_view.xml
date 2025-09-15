@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
+    <body>
+        <referenceBlock name="order_totals">
+            <block class="Formula\Wallet\Block\Adminhtml\Order\Totals\Wallet" name="wallet_total" template="Formula_Wallet::order/totals/wallet.phtml"/>
+        </referenceBlock>
+    </body>
+</layout>

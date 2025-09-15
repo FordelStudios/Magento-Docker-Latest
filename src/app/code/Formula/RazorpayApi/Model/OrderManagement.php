@@ -11,6 +11,8 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
 use Magento\Sales\Api\TransactionRepositoryInterface;
 use Magento\Framework\DB\Transaction;
+use Formula\Shiprocket\Service\ShiprocketShipmentService;
+use Psr\Log\LoggerInterface;
 
 class OrderManagement implements OrderManagementInterface
 {
@@ -21,6 +23,8 @@ class OrderManagement implements OrderManagementInterface
     protected $transactionRepository;
     protected $transaction;
     protected $orderResponseFactory;
+    protected $shiprocketShipmentService;
+    protected $logger;
 
     public function __construct(
         CartManagementInterface $cartManagement,
@@ -29,7 +33,9 @@ class OrderManagement implements OrderManagementInterface
         BuilderInterface $transactionBuilder,
         TransactionRepositoryInterface $transactionRepository,
         Transaction $transaction,
-        OrderResponseInterfaceFactory $orderResponseFactory
+        OrderResponseInterfaceFactory $orderResponseFactory,
+        ShiprocketShipmentService $shiprocketShipmentService,
+        LoggerInterface $logger
     ) {
         $this->cartManagement = $cartManagement;
         $this->cartRepository = $cartRepository;
@@ -38,6 +44,8 @@ class OrderManagement implements OrderManagementInterface
         $this->transactionRepository = $transactionRepository;
         $this->transaction = $transaction;
         $this->orderResponseFactory = $orderResponseFactory;
+        $this->shiprocketShipmentService = $shiprocketShipmentService;
+        $this->logger = $logger;
     }
 
     public function createOrder($cartId, $paymentData, $billingAddress)
@@ -86,6 +94,9 @@ class OrderManagement implements OrderManagementInterface
             // **IMPORTANT: Process the payment and update order status**
             $this->processPaymentAndUpdateOrder($order, $paymentData);
             
+            // Create Shiprocket shipment automatically
+            $shipmentData = $this->createShiprocketShipment($order);
+            
             // Update Razorpay table
             $this->updateRazorpayOrderData($order, $paymentData);
             
@@ -100,7 +111,19 @@ class OrderManagement implements OrderManagementInterface
             $response->setCreatedAt($order->getCreatedAt());
             $response->setRazorpayPaymentId($paymentData['razorpay_payment_id']);
             $response->setRazorpayOrderId($paymentData['razorpay_order_id']);
-            $response->setMessage('Order created and payment processed successfully!');
+            
+            // Add shipment information to response
+            if ($shipmentData && $shipmentData['success']) {
+                $response->setMessage('Order created, payment processed, and shipment scheduled successfully!');
+                
+                // Set shipment tracking fields
+                $response->setShiprocketOrderId($shipmentData['shiprocket_order_id'] ?? null);
+                $response->setShiprocketShipmentId($shipmentData['shipment_id'] ?? null);
+                $response->setShiprocketAwbNumber($shipmentData['awb_code'] ?? null);
+                $response->setShiprocketCourierName($shipmentData['courier_name'] ?? null);
+            } else {
+                $response->setMessage('Order created and payment processed successfully!');
+            }
             
         } catch (\Exception $e) {
             // Build error response
@@ -159,6 +182,56 @@ class OrderManagement implements OrderManagementInterface
         } catch (\Exception $e) {
             // Log error but don't fail the order creation
             error_log('Payment processing failed: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Create Shiprocket shipment for order
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @return array
+     */
+    private function createShiprocketShipment($order)
+    {
+        try {
+            // Create shipment through ShiprocketShipmentService
+            $shipmentResult = $this->shiprocketShipmentService->createShipment($order);
+            
+            if ($shipmentResult['success']) {
+                // Store shipment data in order
+                $order->setData('shiprocket_order_id', $shipmentResult['shiprocket_order_id']);
+                $order->setData('shiprocket_shipment_id', $shipmentResult['shipment_id']);
+                $order->setData('shiprocket_awb_number', $shipmentResult['awb_code']);
+                $order->setData('shiprocket_courier_name', $shipmentResult['courier_name']);
+                
+                // Update order status to shipment created
+                $order->setStatus('shipment_created');
+                
+                // Add order comment
+                $comment = sprintf(
+                    'Shiprocket shipment created successfully. Shipment ID: %s, AWB: %s, Courier: %s',
+                    $shipmentResult['shipment_id'],
+                    $shipmentResult['awb_code'] ?: 'TBD',
+                    $shipmentResult['courier_name'] ?: 'TBD'
+                );
+                $order->addStatusHistoryComment($comment, 'shipment_created');
+                
+                // Save order with shipment data
+                $this->orderRepository->save($order);
+                
+                $this->logger->info('Shiprocket shipment created for order: ' . $order->getIncrementId(), $shipmentResult);
+                
+                return $shipmentResult;
+            } else {
+                // Log error but don't fail the order creation
+                $this->logger->warning('Shiprocket shipment creation failed for order: ' . $order->getIncrementId(), $shipmentResult);
+                return ['success' => false, 'message' => 'Shipment creation failed'];
+            }
+            
+        } catch (\Exception $e) {
+            // Log error but don't fail the order creation
+            $this->logger->error('Exception during shipment creation for order: ' . $order->getIncrementId() . ' - ' . $e->getMessage());
+            return ['success' => false, 'message' => $e->getMessage()];
         }
     }
     

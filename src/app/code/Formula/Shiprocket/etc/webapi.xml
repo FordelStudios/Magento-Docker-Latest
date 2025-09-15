@@ -6,4 +6,12 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+
+        <!-- Unified Shiprocket webhook for all status updates (shipments and returns) -->
+    <route url="/V1/shiprocket/webhook/status-update" method="POST">
+        <service class="Formula\Shiprocket\Api\ShiprocketWebhookInterface" method="handleStatusUpdate"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>

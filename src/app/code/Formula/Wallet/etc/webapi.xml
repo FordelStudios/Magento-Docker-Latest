@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    
+    <!-- Get customer wallet balance -->
+    <route url="/V1/customers/me/wallet" method="GET">
+        <service class="Formula\Wallet\Api\WalletManagementInterface" method="getWalletBalance"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="customerId" force="true">%customer_id%</parameter>
+        </data>
+    </route>
+
+    <!-- Apply wallet balance to cart -->
+    <route url="/V1/carts/mine/wallet/apply" method="POST">
+        <service class="Formula\Wallet\Api\WalletManagementInterface" method="applyWalletToCart"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="customerId" force="true">%customer_id%</parameter>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
+        </data>
+    </route>
+
+    <!-- Remove wallet balance from cart -->
+    <route url="/V1/carts/mine/wallet/remove" method="DELETE">
+        <service class="Formula\Wallet\Api\WalletManagementInterface" method="removeWalletFromCart"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="customerId" force="true">%customer_id%</parameter>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
+        </data>
+    </route>
+
+    <!-- Place order using wallet -->
+    <route url="/V1/wallet/place-order" method="POST">
+        <service class="Formula\Wallet\Api\WalletManagementInterface" method="placeOrderWithWallet"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="customerId" force="true">%customer_id%</parameter>
+        </data>
+    </route>
+
+    <!-- Admin: Update customer wallet balance -->
+    <route url="/V1/customers/:customerId/wallet" method="PUT">
+        <service class="Formula\Wallet\Api\WalletManagementInterface" method="updateWalletBalance"/>
+        <resources>
+            <resource ref="Magento_Customer::manage"/>
+        </resources>
+    </route>
+
+    <!-- Admin: Get any customer wallet balance -->
+    <route url="/V1/customers/:customerId/wallet" method="GET">
+        <service class="Formula\Wallet\Api\WalletManagementInterface" method="getWalletBalance"/>
+        <resources>
+            <resource ref="Magento_Customer::manage"/>
+        </resources>
+    </route>
+
+</routes>

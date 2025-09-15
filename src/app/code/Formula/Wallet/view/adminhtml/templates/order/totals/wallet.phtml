@@ -1,0 +1,16 @@
+<?php
+/**
+ * @var \Formula\Wallet\Block\Adminhtml\Order\Totals\Wallet $block
+ */
+?>
+
+<?php if ($block->hasWalletAmount()): ?>
+<tr>
+    <td class="label">
+        <strong><?= $block->escapeHtml(__('Paid with Wallet')) ?></strong>
+    </td>
+    <td class="value">
+        <strong><?= $block->escapeHtml($block->getFormattedWalletAmount()) ?></strong>
+    </td>
+</tr>
+<?php endif; ?>

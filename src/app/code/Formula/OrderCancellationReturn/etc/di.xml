@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    
+    <!-- Interface to Implementation Mappings -->
+    <preference for="Formula\OrderCancellationReturn\Api\Data\RefundResponseInterface" type="Formula\OrderCancellationReturn\Model\Data\RefundResponse"/>
+    <preference for="Formula\OrderCancellationReturn\Api\OrderCancellationInterface" type="Formula\OrderCancellationReturn\Model\OrderCancellation"/>
+    <preference for="Formula\OrderCancellationReturn\Api\OrderReturnInterface" type="Formula\OrderCancellationReturn\Model\OrderReturn"/>
+
+    <!-- Virtual type for concrete service -->
+    <virtualType name="Formula\OrderCancellationReturn\Service\ShiprocketShipmentService" type="Formula\Shiprocket\Service\ShiprocketShipmentService" />
+
+
+</config>

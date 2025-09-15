@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    
+    <!-- Response Interface Implementation -->
+    <preference for="Formula\CashOnDeliveryApi\Api\Data\CodOrderResponseInterface"
+                type="Formula\CashOnDeliveryApi\Model\Data\CodOrderResponse"/>
+    
+    <!-- Service Interface Implementation -->
+    <preference for="Formula\CashOnDeliveryApi\Api\CodOrderManagementInterface"
+                type="Formula\CashOnDeliveryApi\Model\CodOrderManagement"/>
+
+</config>

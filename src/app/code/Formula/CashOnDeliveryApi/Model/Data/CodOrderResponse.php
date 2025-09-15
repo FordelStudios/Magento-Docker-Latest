@@ -1,10 +1,10 @@
 <?php
-namespace Formula\RazorpayApi\Model\Data;
+namespace Formula\CashOnDeliveryApi\Model\Data;
 
-use Formula\RazorpayApi\Api\Data\OrderResponseInterface;
+use Formula\CashOnDeliveryApi\Api\Data\CodOrderResponseInterface;
 use Magento\Framework\DataObject;
 
-class OrderResponse extends DataObject implements OrderResponseInterface
+class CodOrderResponse extends DataObject implements CodOrderResponseInterface
 {
     /**
      * @return bool
@@ -145,35 +145,18 @@ class OrderResponse extends DataObject implements OrderResponseInterface
     /**
      * @return string|null
      */
-    public function getRazorpayPaymentId()
+    public function getPaymentMethod()
     {
-        return $this->getData(self::RAZORPAY_PAYMENT_ID);
+        return $this->getData(self::PAYMENT_METHOD);
     }
 
     /**
-     * @param string $razorpayPaymentId
+     * @param string $paymentMethod
      * @return $this
      */
-    public function setRazorpayPaymentId($razorpayPaymentId)
+    public function setPaymentMethod($paymentMethod)
     {
-        return $this->setData(self::RAZORPAY_PAYMENT_ID, $razorpayPaymentId);
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getRazorpayOrderId()
-    {
-        return $this->getData(self::RAZORPAY_ORDER_ID);
-    }
-
-    /**
-     * @param string $razorpayOrderId
-     * @return $this
-     */
-    public function setRazorpayOrderId($razorpayOrderId)
-    {
-        return $this->setData(self::RAZORPAY_ORDER_ID, $razorpayOrderId);
+        return $this->setData(self::PAYMENT_METHOD, $paymentMethod);
     }
 
     /**
@@ -225,23 +208,6 @@ class OrderResponse extends DataObject implements OrderResponseInterface
     public function setErrorCode($errorCode)
     {
         return $this->setData(self::ERROR_CODE, $errorCode);
-    }
-
-    /**
-     * @return array|null
-     */
-    public function getAdditionalData()
-    {
-        return $this->getData(self::ADDITIONAL_DATA);
-    }
-
-    /**
-     * @param array $additionalData
-     * @return $this
-     */
-    public function setAdditionalData($additionalData)
-    {
-        return $this->setData(self::ADDITIONAL_DATA, $additionalData);
     }
 
     /**

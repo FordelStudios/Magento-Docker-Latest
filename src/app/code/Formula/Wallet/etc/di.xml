@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    
+    <!-- Preference for Wallet Management Interface -->
+    <preference for="Formula\Wallet\Api\WalletManagementInterface" type="Formula\Wallet\Model\WalletManagement" />
+    
+    <!-- Preference for Wallet Balance Interface -->
+    <preference for="Formula\Wallet\Api\Data\WalletBalanceInterface" type="Formula\Wallet\Model\WalletBalance" />
+
+    <!-- Extension Attributes for Quote -->
+    <type name="Magento\Quote\Api\Data\CartInterface">
+        <plugin name="formula_wallet_quote_extension_attributes" type="Formula\Wallet\Plugin\Quote\QuoteExtensionAttributes" />
+    </type>
+
+    <!-- Extension Attributes for Order -->
+    <type name="Magento\Sales\Api\Data\OrderInterface">
+        <plugin name="formula_wallet_order_extension_attributes" type="Formula\Wallet\Plugin\Sales\OrderExtensionAttributes" />
+    </type>
+
+</config>

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Api/etc/extension_attributes.xsd">
+    
+    <!-- Quote Extension Attributes -->
+    <extension_attributes for="Magento\Quote\Api\Data\CartInterface">
+        <attribute code="wallet_amount_used" type="float"/>
+        <attribute code="base_wallet_amount_used" type="float"/>
+    </extension_attributes>
+
+    <!-- Order Extension Attributes -->
+    <extension_attributes for="Magento\Sales\Api\Data\OrderInterface">
+        <attribute code="wallet_amount_used" type="float"/>
+        <attribute code="base_wallet_amount_used" type="float"/>
+    </extension_attributes>
+
+</config>

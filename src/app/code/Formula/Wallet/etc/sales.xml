@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Sales:etc/sales.xsd">
+    <section name="quote">
+        <group name="totals">
+            <item name="wallet" instance="Formula\Wallet\Model\Quote\Address\Total\Wallet" sort_order="400"/>
+        </group>
+    </section>
+    <section name="order_invoice">
+        <group name="totals">
+            <item name="wallet" instance="Formula\Wallet\Model\Total\Invoice\Wallet" sort_order="400"/>
+        </group>
+    </section>
+    <section name="order_creditmemo">
+        <group name="totals">
+            <item name="wallet" instance="Formula\Wallet\Model\Total\Creditmemo\Wallet" sort_order="400"/>
+        </group>
+    </section>
+</config>

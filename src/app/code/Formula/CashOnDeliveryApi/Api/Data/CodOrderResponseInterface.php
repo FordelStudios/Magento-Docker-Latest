@@ -1,7 +1,7 @@
 <?php
-namespace Formula\RazorpayApi\Api\Data;
+namespace Formula\CashOnDeliveryApi\Api\Data;
 
-interface OrderResponseInterface
+interface CodOrderResponseInterface
 {
     const SUCCESS = 'success';
     const ORDER_ID = 'order_id';
@@ -11,12 +11,10 @@ interface OrderResponseInterface
     const TOTAL_AMOUNT = 'total_amount';
     const CURRENCY = 'currency';
     const CREATED_AT = 'created_at';
-    const RAZORPAY_PAYMENT_ID = 'razorpay_payment_id';
-    const RAZORPAY_ORDER_ID = 'razorpay_order_id';
+    const PAYMENT_METHOD = 'payment_method';
     const MESSAGE = 'message';
     const ERROR = 'error';
     const ERROR_CODE = 'error_code';
-    const ADDITIONAL_DATA = 'additional_data';
     const SHIPROCKET_ORDER_ID = 'shiprocket_order_id';
     const SHIPROCKET_SHIPMENT_ID = 'shiprocket_shipment_id';
     const SHIPROCKET_AWB_NUMBER = 'shiprocket_awb_number';
@@ -113,24 +111,13 @@ interface OrderResponseInterface
     /**
      * @return string|null
      */
-    public function getRazorpayPaymentId();
+    public function getPaymentMethod();
 
     /**
-     * @param string $razorpayPaymentId
+     * @param string $paymentMethod
      * @return $this
      */
-    public function setRazorpayPaymentId($razorpayPaymentId);
-
-    /**
-     * @return string|null
-     */
-    public function getRazorpayOrderId();
-
-    /**
-     * @param string $razorpayOrderId
-     * @return $this
-     */
-    public function setRazorpayOrderId($razorpayOrderId);
+    public function setPaymentMethod($paymentMethod);
 
     /**
      * @return string|null
@@ -164,17 +151,6 @@ interface OrderResponseInterface
      * @return $this
      */
     public function setErrorCode($errorCode);
-
-    /**
-     * @return array|null
-     */
-    public function getAdditionalData();
-
-    /**
-     * @param array $additionalData
-     * @return $this
-     */
-    public function setAdditionalData($additionalData);
 
     /**
      * @return string|null

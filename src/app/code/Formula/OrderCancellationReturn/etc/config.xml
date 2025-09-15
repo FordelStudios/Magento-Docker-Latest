@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <sales>
+            <order_statuses>
+                <!-- Shipment Workflow Statuses -->
+                <shipment_created>
+                    <label>Shipment Created</label>
+                </shipment_created>
+                <shipment_pickup_scheduled>
+                    <label>Pickup Scheduled</label>
+                </shipment_pickup_scheduled>
+                <shipment_picked>
+                    <label>Package Picked</label>
+                </shipment_picked>
+                <shipment_in_transit>
+                    <label>In Transit</label>
+                </shipment_in_transit>
+                <shipment_out_for_delivery>
+                    <label>Out for Delivery</label>
+                </shipment_out_for_delivery>
+                <shipment_cancelled>
+                    <label>Shipment Cancelled</label>
+                </shipment_cancelled>
+                <shipment_rto>
+                    <label>Return to Origin</label>
+                </shipment_rto>
+                <shipment_rto_delivered>
+                    <label>RTO Delivered</label>
+                </shipment_rto_delivered>
+
+                <!-- Return Workflow Statuses -->
+                <return_requested>
+                    <label>Return Requested</label>
+                </return_requested>
+                <return_pickup_scheduled>
+                    <label>Return Pickup Scheduled</label>
+                </return_pickup_scheduled>
+                <return_in_transit>
+                    <label>Return In Transit</label>
+                </return_in_transit>
+                <return_received>
+                    <label>Return Received</label>
+                </return_received>
+                <return_completed>
+                    <label>Return Completed</label>
+                </return_completed>
+                <return_cancelled>
+                    <label>Return Cancelled</label>
+                </return_cancelled>
+            </order_statuses>
+        </sales>
+    </default>
+</config>
