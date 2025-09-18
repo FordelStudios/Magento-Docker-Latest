@@ -17,4 +17,14 @@
         <plugin name="formula_wallet_order_extension_attributes" type="Formula\Wallet\Plugin\Sales\OrderExtensionAttributes" />
     </type>
 
+    <!-- Payment Amount Correction for Wallet -->
+    <type name="Magento\Sales\Model\Order\Payment">
+        <plugin name="formula_wallet_payment_amount_correction" type="Formula\Wallet\Plugin\Sales\OrderPaymentAmountCorrection" />
+    </type>
+
+    <!-- Fix captured amount status message -->
+    <type name="Magento\Sales\Model\Order\Payment\State\RegisterCaptureNotificationCommand">
+        <plugin name="formula_wallet_capture_notification_correction" type="Formula\Wallet\Plugin\Sales\RegisterCaptureNotificationCommandPlugin" />
+    </type>
+
 </config>

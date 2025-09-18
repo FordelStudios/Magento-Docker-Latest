@@ -158,24 +158,34 @@ class WalletManagement implements WalletManagementInterface
     {
         try {
             $quote = $this->quoteRepository->get($cartId);
-            
+
             if ($quote->getCustomerId() != $customerId) {
                 throw new LocalizedException(__('You are not authorized to access this cart.'));
             }
 
-            $walletBalance = $this->getWalletBalance($customerId);
-            $grandTotal = $quote->getGrandTotal();
-
-            if ($walletBalance < $grandTotal) {
-                throw new LocalizedException(__('Insufficient wallet balance to place this order.'));
+            // Check if wallet has already been applied to cart
+            $walletAmountUsed = $quote->getWalletAmountUsed();
+            if (!$walletAmountUsed || $walletAmountUsed <= 0) {
+                throw new LocalizedException(__('Please apply wallet amount to cart first using /carts/mine/wallet/apply'));
             }
 
-            $quote->setWalletAmountUsed($grandTotal);
-            $quote->setBaseWalletAmountUsed($grandTotal);
-            $quote->getPayment()->setMethod('walletpayment');
-            
-            $this->quoteRepository->save($quote);
+            // Recalculate totals to get the current grand total after wallet application
             $quote->collectTotals();
+            $grandTotal = $quote->getGrandTotal();
+
+            // Only allow wallet-only orders (grand total must be 0 after wallet application)
+            if ($grandTotal > 0) {
+                throw new LocalizedException(__('Wallet payment is only allowed when the full order amount is covered by wallet. Current remaining amount: ' . $grandTotal . '. Please use Razorpay for partial payments.'));
+            }
+
+            // Check for cash on delivery payment method (not allowed with wallet)
+            $paymentMethod = $quote->getPayment()->getMethod();
+            if ($paymentMethod === 'cashondelivery') {
+                throw new LocalizedException(__('Wallet payment cannot be combined with Cash on Delivery.'));
+            }
+
+            $quote->getPayment()->setMethod('walletpayment');
+
             $this->quoteRepository->save($quote);
 
             $orderId = $this->cartManagement->placeOrder($cartId);

@@ -18,7 +18,7 @@ class QuoteSubmitBefore implements ObserverInterface
     {
         /** @var Quote $quote */
         $quote = $observer->getEvent()->getQuote();
-        
+
         /** @var Order $order */
         $order = $observer->getEvent()->getOrder();
 
@@ -26,8 +26,16 @@ class QuoteSubmitBefore implements ObserverInterface
         $baseWalletAmountUsed = $quote->getBaseWalletAmountUsed();
 
         if ($walletAmountUsed && $walletAmountUsed > 0) {
+            // Store wallet amount used
             $order->setWalletAmountUsed($walletAmountUsed);
             $order->setBaseWalletAmountUsed($baseWalletAmountUsed ?: $walletAmountUsed);
+
+            // Restore original grand total to order (before wallet deduction)
+            $originalGrandTotal = $order->getGrandTotal() + $walletAmountUsed;
+            $originalBaseGrandTotal = $order->getBaseGrandTotal() + $baseWalletAmountUsed ?: $walletAmountUsed;
+
+            $order->setGrandTotal($originalGrandTotal);
+            $order->setBaseGrandTotal($originalBaseGrandTotal);
         }
     }
 }

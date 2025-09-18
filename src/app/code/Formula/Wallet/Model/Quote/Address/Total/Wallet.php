@@ -59,12 +59,15 @@ class Wallet extends AbstractTotal
         }
 
         $baseWalletAmount = $quote->getBaseWalletAmountUsed() ?: $walletAmount;
-        
-        // Store wallet amount for payment processing - DO NOT modify grand total
-        // Wallet is a payment method, not a discount
+
+        // Apply wallet amount as a deduction to the grand total
+        $total->addTotalAmount('wallet', -$walletAmount);
+        $total->addBaseTotalAmount('wallet', -$baseWalletAmount);
+
+        // Store wallet amount for reference
         $total->setWalletAmountUsed($walletAmount);
         $total->setBaseWalletAmountUsed($baseWalletAmount);
-        
+
         // Set wallet amount in quote for reference
         $quote->setWalletAmountUsed($walletAmount);
         $quote->setBaseWalletAmountUsed($baseWalletAmount);
