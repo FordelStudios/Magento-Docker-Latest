@@ -17,6 +17,7 @@ class Gender extends AbstractSource
             $this->_options = [
                 ['label' => __('-- Please Select --'), 'value' => ''],
                 ['label' => __('Women'), 'value' => 'women'],
+                ['label' => __('Men'), 'value' => 'men'],
                 ['label' => __('Unisex'), 'value' => 'unisex']
             ];
         }
@@ -26,11 +27,24 @@ class Gender extends AbstractSource
     /**
      * Get option text
      *
-     * @param string|integer $value
-     * @return string|bool
+     * @param string|integer|array $value
+     * @return string|bool|array
      */
     public function getOptionText($value)
     {
+        if (is_array($value)) {
+            $labels = [];
+            foreach ($value as $val) {
+                foreach ($this->getAllOptions() as $option) {
+                    if ($option['value'] == $val) {
+                        $labels[] = $option['label'];
+                        break;
+                    }
+                }
+            }
+            return $labels;
+        }
+
         foreach ($this->getAllOptions() as $option) {
             if ($option['value'] == $value) {
                 return $option['label'];

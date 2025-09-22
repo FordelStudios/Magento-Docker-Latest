@@ -6,4 +6,7 @@
     <type name="Magento\Catalog\Ui\DataProvider\Product\ProductDataProvider">
         <plugin name="formula_gender_product_data_provider" type="Formula\Gender\Plugin\ProductDataProviderPlugin" sortOrder="1"/>
     </type>
+
+    <!-- Gender Repository Interface Preference -->
+    <preference for="Formula\Gender\Api\GenderRepositoryInterface" type="Formula\Gender\Model\GenderRepository"/>
 </config>

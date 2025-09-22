@@ -102,6 +102,20 @@
                 </item>
             </argument>
         </column>
+        <column name="country" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <options class="Magento\Directory\Model\Config\Source\Country"/>
+                <filter>select</filter>
+                <editor>
+                    <validation>
+                        <rule name="required-entry" xsi:type="boolean">true</rule>
+                    </validation>
+                    <editorType>select</editorType>
+                </editor>
+                <dataType>select</dataType>
+                <label translate="true">Country</label>
+            </settings>
+        </column>
         <!-- Boolean Fields -->
         <column name="is_korean" component="Magento_Ui/js/grid/columns/select">
             <settings>

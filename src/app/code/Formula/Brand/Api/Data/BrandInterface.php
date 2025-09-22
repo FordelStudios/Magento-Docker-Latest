@@ -15,6 +15,7 @@ interface BrandInterface
     const IS_HOMEGROWN = 'is_homegrown';
     const IS_TRENDING = 'is_trending';
     const IS_POPULAR = 'is_popular';
+    const COUNTRY = 'country';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
@@ -150,6 +151,17 @@ interface BrandInterface
      * @return $this
      */    
     public function setIsPopular($isPopular);
+
+    /**
+     * @return string|null
+     */
+    public function getCountry();
+
+    /**
+     * @param string $country
+     * @return $this
+     */
+    public function setCountry($country);
 
     /**
      * @return string|null

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+
+    <!-- Get Gender Options -->
+    <route url="/V1/gender/options" method="GET">
+        <service class="Formula\Gender\Api\GenderRepositoryInterface" method="getGenderOptions"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+</routes>

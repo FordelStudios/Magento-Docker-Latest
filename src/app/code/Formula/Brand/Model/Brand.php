@@ -22,6 +22,7 @@ class Brand extends AbstractModel implements BrandInterface
     const IS_HOMEGROWN = 'is_homegrown';
     const IS_TRENDING = 'is_trending';
     const IS_POPULAR = 'is_popular';
+    const COUNTRY = 'country';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
@@ -280,8 +281,17 @@ class Brand extends AbstractModel implements BrandInterface
     public function setIsPopular($isPopular)
     {
         return $this->setData(self::IS_POPULAR, $isPopular);
-    }   
+    }
 
+    public function getCountry()
+    {
+        return $this->getData(self::COUNTRY);
+    }
+
+    public function setCountry($country)
+    {
+        return $this->setData(self::COUNTRY, $country);
+    }
 
     /**
      * Get Brand Creation Time

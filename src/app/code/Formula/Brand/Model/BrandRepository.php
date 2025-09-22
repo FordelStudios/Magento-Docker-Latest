@@ -115,8 +115,9 @@ class BrandRepository implements BrandRepositoryInterface
                     'promotional_banners' => $item->getPromotionalBanners(),
                     'is_korean' => (bool)$item->getIsKorean(),
                     'is_homegrown' => (bool)$item->getIsHomegrown(),
-                    'is_trending' => (bool)$item->getIsTrending(), 
+                    'is_trending' => (bool)$item->getIsTrending(),
                     'is_popular' => (bool)$item->getIsPopular(),
+                    'country' => $item->getCountry(),
                     'created_at' => $item->getCreatedAt(),
                     'updated_at' => $item->getUpdatedAt()
                 ];
@@ -211,6 +212,10 @@ class BrandRepository implements BrandRepositoryInterface
             
             if (isset($data['is_popular'])) {
                 $existingBrand->setIsPopular($brand->getIsPopular());
+            }
+
+            if (isset($data['country'])) {
+                $existingBrand->setCountry($brand->getCountry());
             }
 
             // Save the updated brand
