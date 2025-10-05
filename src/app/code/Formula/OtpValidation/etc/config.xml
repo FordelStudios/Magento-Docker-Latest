@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <formula_otp>
+            <general>
+                <enabled>0</enabled>
+                <sms_provider>msg91</sms_provider>
+                <otp_length>6</otp_length>
+                <expiry_minutes>5</expiry_minutes>
+                <max_attempts>3</max_attempts>
+                <message_template>Your OTP is: %s. Valid for 5 minutes. Do not share with anyone.</message_template>
+            </general>
+            <msg91>
+                <api_key></api_key>
+                <sender_id></sender_id>
+                <route>4</route>
+                <dlt_template_id></dlt_template_id>
+            </msg91>
+        </formula_otp>
+    </default>
+</config>

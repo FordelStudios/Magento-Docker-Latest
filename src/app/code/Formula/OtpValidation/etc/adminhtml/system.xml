@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="formula" translate="label" sortOrder="200">
+            <label>Formula</label>
+        </tab>
+        <section id="formula_otp" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>OTP Validation</label>
+            <tab>formula</tab>
+            <resource>Formula_OtpValidation::config</resource>
+
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Configuration</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable OTP Validation</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable OTP validation for customer address phone numbers</comment>
+                </field>
+                <field id="sms_provider" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>SMS Provider</label>
+                    <source_model>Formula\OtpValidation\Model\Config\Source\SmsProvider</source_model>
+                    <comment>Select SMS service provider</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="otp_length" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>OTP Length</label>
+                    <validate>required-entry validate-digits validate-digits-range digits-range-4-8</validate>
+                    <comment>Number of digits in OTP (4-8)</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="expiry_minutes" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>OTP Expiry (minutes)</label>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <comment>OTP expiry time in minutes</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="max_attempts" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Max OTP Attempts</label>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <comment>Maximum OTP attempts per 10 minutes</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="message_template" translate="label comment" type="textarea" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>SMS Message Template</label>
+                    <comment>Use %s as placeholder for OTP code. Example: Your OTP is: %s. Valid for 5 minutes.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+
+            <group id="msg91" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>MSG91 Configuration</label>
+                <field id="api_key" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API Key</label>
+                    <comment>Your MSG91 API Key</comment>
+                    <depends>
+                        <field id="formula_otp/general/enabled">1</field>
+                        <field id="formula_otp/general/sms_provider">msg91</field>
+                    </depends>
+                </field>
+                <field id="sender_id" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Sender ID</label>
+                    <comment>Your approved MSG91 Sender ID</comment>
+                    <depends>
+                        <field id="formula_otp/general/enabled">1</field>
+                        <field id="formula_otp/general/sms_provider">msg91</field>
+                    </depends>
+                </field>
+                <field id="route" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Route</label>
+                    <source_model>Formula\OtpValidation\Model\Config\Source\Msg91Route</source_model>
+                    <comment>MSG91 SMS Route</comment>
+                    <depends>
+                        <field id="formula_otp/general/enabled">1</field>
+                        <field id="formula_otp/general/sms_provider">msg91</field>
+                    </depends>
+                </field>
+                <field id="dlt_template_id" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>DLT Template ID</label>
+                    <comment><![CDATA[DLT Template ID for bulk SMS (Optional for OTP). Only required for promotional/bulk messages. Leave empty to use OTP API. Example: 1234567890123456789]]></comment>
+                    <depends>
+                        <field id="formula_otp/general/enabled">1</field>
+                        <field id="formula_otp/general/sms_provider">msg91</field>
+                    </depends>
+                </field>
+            </group>
+
+            <group id="twofactor" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>2Factor Configuration</label>
+                <field id="api_key" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API Key</label>
+                    <comment>Your 2Factor.in API Key</comment>
+                    <depends>
+                        <field id="formula_otp/general/enabled">1</field>
+                        <field id="formula_otp/general/sms_provider">2factor</field>
+                    </depends>
+                </field>
+                <field id="template_name" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Template Name</label>
+                    <comment><![CDATA[Optional: Pre-configured template name in your 2Factor account. Leave empty to use default OTP template.]]></comment>
+                    <depends>
+                        <field id="formula_otp/general/enabled">1</field>
+                        <field id="formula_otp/general/sms_provider">2factor</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

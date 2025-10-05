@@ -1,0 +1,26 @@
+{
+    "name": "formula/otp-validation",
+    "description": "OTP validation module with Twilio integration for Magento 2",
+    "type": "magento2-module",
+    "version": "1.0.0",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Formula",
+            "email": "dev@formula.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "magento/framework": "*",
+        "magento/module-customer": "*"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Formula\\OtpValidation\\": ""
+        }
+    }
+}

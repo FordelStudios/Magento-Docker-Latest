@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/customers/me/address/send-otp" method="POST">
+        <service class="Formula\OtpValidation\Api\OtpValidationInterface" method="sendOtp"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+        <data>
+            <parameter name="phoneNumber" force="true">%phone_number%</parameter>
+        </data>
+    </route>
+    <route url="/V1/customers/me/address/verify-otp" method="POST">
+        <service class="Formula\OtpValidation\Api\OtpValidationInterface" method="verifyOtp"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+        <data>
+            <parameter name="phoneNumber" force="true">%phone_number%</parameter>
+            <parameter name="otpCode" force="true">%otp_code%</parameter>
+        </data>
+    </route>
+</routes>

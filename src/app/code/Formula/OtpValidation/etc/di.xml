@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Formula\OtpValidation\Api\Data\OtpInterface" type="Formula\OtpValidation\Model\Otp" />
+    <preference for="Formula\OtpValidation\Api\OtpRepositoryInterface" type="Formula\OtpValidation\Model\OtpRepository" />
+    <preference for="Formula\OtpValidation\Api\OtpValidationInterface" type="Formula\OtpValidation\Model\Api\OtpValidation" />
+    <preference for="Formula\OtpValidation\Api\Data\SendOtpResponseInterface" type="Formula\OtpValidation\Model\Data\SendOtpResponse" />
+    <preference for="Formula\OtpValidation\Api\Data\VerifyOtpResponseInterface" type="Formula\OtpValidation\Model\Data\VerifyOtpResponse" />
+
+    <type name="Magento\Customer\Api\CustomerRepositoryInterface">
+        <plugin name="formula_otp_validation_customer_repository"
+                type="Formula\OtpValidation\Plugin\CustomerRepositoryPlugin"
+                sortOrder="10" />
+    </type>
+
+    <!-- SMS Service Factory Configuration -->
+    <type name="Formula\OtpValidation\Service\SmsProviderFactory">
+        <arguments>
+            <argument name="objectManager" xsi:type="object">Magento\Framework\ObjectManagerInterface</argument>
+        </arguments>
+    </type>
+</config>
