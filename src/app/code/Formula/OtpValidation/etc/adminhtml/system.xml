@@ -24,14 +24,6 @@
                         <field id="enabled">1</field>
                     </depends>
                 </field>
-                <field id="otp_length" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>OTP Length</label>
-                    <validate>required-entry validate-digits validate-digits-range digits-range-4-8</validate>
-                    <comment>Number of digits in OTP (4-8)</comment>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                </field>
                 <field id="expiry_minutes" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>OTP Expiry (minutes)</label>
                     <validate>required-entry validate-digits validate-greater-than-zero</validate>

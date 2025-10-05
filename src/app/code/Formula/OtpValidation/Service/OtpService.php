@@ -134,10 +134,7 @@ class OtpService
 
     protected function getOtpLength()
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_OTP_LENGTH,
-            ScopeInterface::SCOPE_STORE
-        ) ?: 6;
+        return 4;
     }
 
     protected function checkRateLimit($customerId, $phoneNumber)
