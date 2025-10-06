@@ -68,7 +68,6 @@ class ProductCountryFilter implements CustomFilterInterface
         $values = explode(',', $combinedValue);
         $hasGlobal = false;
         $specificCountries = [];
-        $excludedCountries = self::EXCLUDED_COUNTRIES;
 
         // Parse values
         foreach ($values as $value) {
@@ -77,8 +76,6 @@ class ProductCountryFilter implements CustomFilterInterface
                 $hasGlobal = true;
             } else {
                 $specificCountries[] = $value;
-                // Remove this country from excluded list
-                $excludedCountries = array_diff($excludedCountries, [$value]);
             }
         }
 
@@ -89,10 +86,9 @@ class ProductCountryFilter implements CustomFilterInterface
             // Add NULL condition
             $conditions[] = ['null' => true];
 
-            // Add NOT IN condition for remaining excluded countries
-            if (!empty($excludedCountries)) {
-                $conditions[] = ['nin' => array_values($excludedCountries)];
-            }
+            // Add NOT IN condition - always use original excluded countries list
+            // This ensures "global" always means "not from IN/JP/KR/ZA"
+            $conditions[] = ['nin' => self::EXCLUDED_COUNTRIES];
         }
 
         // Add specific countries condition
