@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <virtualType name="Magento\Catalog\Model\Api\SearchCriteria\CollectionProcessor\ProductFilterProcessor">
+        <arguments>
+            <argument name="customFilters" xsi:type="array">
+                <item name="country_of_manufacture" xsi:type="object">Formula\ProductCountryFilter\Model\Api\SearchCriteria\CollectionProcessor\FilterProcessor\ProductCountryFilter</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Plugin to handle multiple country filters with OR logic -->
+    <type name="Magento\Catalog\Model\ProductRepository">
+        <plugin name="formula_country_filter_multi_select"
+                type="Formula\ProductCountryFilter\Plugin\ProductRepositoryPlugin"
+                sortOrder="10" />
+    </type>
+</config>
