@@ -12,6 +12,10 @@ interface BrandInterface
     const SALE_PAGE_BANNER = 'sale_page_banner';
     const TAGS = 'tags';
     const IS_KOREAN = 'is_korean';
+    const IS_GLOBAL = 'is_global';
+    const IS_JAPANESE = 'is_japanese';
+    const IS_AFRICAN = 'is_african';
+    const IS_INDIAN = 'is_indian';
     const IS_HOMEGROWN = 'is_homegrown';
     const IS_TRENDING = 'is_trending';
     const IS_POPULAR = 'is_popular';
@@ -118,6 +122,50 @@ interface BrandInterface
      */
 
      public function setIsKorean($isKorean);
+
+    /**
+     * @return bool|null
+     */
+    public function getIsGlobal();
+
+    /**
+     * @param bool $isGlobal
+     * @return $this
+     */
+    public function setIsGlobal($isGlobal);
+
+    /**
+     * @return bool|null
+     */
+    public function getIsJapanese();
+
+    /**
+     * @param bool $isJapanese
+     * @return $this
+     */
+    public function setIsJapanese($isJapanese);
+
+    /**
+     * @return bool|null
+     */
+    public function getIsAfrican();
+
+    /**
+     * @param bool $isAfrican
+     * @return $this
+     */
+    public function setIsAfrican($isAfrican);
+
+    /**
+     * @return bool|null
+     */
+    public function getIsIndian();
+
+    /**
+     * @param bool $isIndian
+     * @return $this
+     */
+    public function setIsIndian($isIndian);
 
     /**
      * @return bool|null

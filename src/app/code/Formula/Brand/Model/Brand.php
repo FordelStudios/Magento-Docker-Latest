@@ -19,6 +19,10 @@ class Brand extends AbstractModel implements BrandInterface
     const SALE_PAGE_BANNER = 'sale_page_banner';
     const TAGS = 'tags';
     const IS_KOREAN = 'is_korean';
+    const IS_GLOBAL = 'is_global';
+    const IS_JAPANESE = 'is_japanese';
+    const IS_AFRICAN = 'is_african';
+    const IS_INDIAN = 'is_indian';
     const IS_HOMEGROWN = 'is_homegrown';
     const IS_TRENDING = 'is_trending';
     const IS_POPULAR = 'is_popular';
@@ -251,6 +255,46 @@ class Brand extends AbstractModel implements BrandInterface
     public function setIsKorean($isKorean)
     {
         return $this->setData(self::IS_KOREAN, $isKorean);
+    }
+
+    public function getIsGlobal()
+    {
+        return $this->getData(self::IS_GLOBAL);
+    }
+
+    public function setIsGlobal($isGlobal)
+    {
+        return $this->setData(self::IS_GLOBAL, $isGlobal);
+    }
+
+    public function getIsJapanese()
+    {
+        return $this->getData(self::IS_JAPANESE);
+    }
+
+    public function setIsJapanese($isJapanese)
+    {
+        return $this->setData(self::IS_JAPANESE, $isJapanese);
+    }
+
+    public function getIsAfrican()
+    {
+        return $this->getData(self::IS_AFRICAN);
+    }
+
+    public function setIsAfrican($isAfrican)
+    {
+        return $this->setData(self::IS_AFRICAN, $isAfrican);
+    }
+
+    public function getIsIndian()
+    {
+        return $this->getData(self::IS_INDIAN);
+    }
+
+    public function setIsIndian($isIndian)
+    {
+        return $this->setData(self::IS_INDIAN, $isIndian);
     }
 
     public function getIsHomegrown()

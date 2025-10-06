@@ -114,6 +114,10 @@ class BrandRepository implements BrandRepositoryInterface
                     'tags' => $item->getTags(),
                     'promotional_banners' => $item->getPromotionalBanners(),
                     'is_korean' => (bool)$item->getIsKorean(),
+                    'is_global' => (bool)$item->getIsGlobal(),
+                    'is_japanese' => (bool)$item->getIsJapanese(),
+                    'is_african' => (bool)$item->getIsAfrican(),
+                    'is_indian' => (bool)$item->getIsIndian(),
                     'is_homegrown' => (bool)$item->getIsHomegrown(),
                     'is_trending' => (bool)$item->getIsTrending(),
                     'is_popular' => (bool)$item->getIsPopular(),
@@ -201,15 +205,31 @@ class BrandRepository implements BrandRepositoryInterface
             if (isset($data['is_korean'])) {
                 $existingBrand->setIsKorean($brand->getIsKorean());
             }
-            
+
+            if (isset($data['is_global'])) {
+                $existingBrand->setIsGlobal($brand->getIsGlobal());
+            }
+
+            if (isset($data['is_japanese'])) {
+                $existingBrand->setIsJapanese($brand->getIsJapanese());
+            }
+
+            if (isset($data['is_african'])) {
+                $existingBrand->setIsAfrican($brand->getIsAfrican());
+            }
+
+            if (isset($data['is_indian'])) {
+                $existingBrand->setIsIndian($brand->getIsIndian());
+            }
+
             if (isset($data['is_homegrown'])) {
                 $existingBrand->setIsHomegrown($brand->getIsHomegrown());
             }
-            
+
             if (isset($data['is_trending'])) {
                 $existingBrand->setIsTrending($brand->getIsTrending());
             }
-            
+
             if (isset($data['is_popular'])) {
                 $existingBrand->setIsPopular($brand->getIsPopular());
             }

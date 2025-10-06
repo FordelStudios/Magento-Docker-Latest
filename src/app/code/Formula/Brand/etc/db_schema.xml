@@ -11,6 +11,10 @@
         <column xsi:type="varchar" name="sale_page_banner" nullable="true" length="255" comment="Sale Page Banner Path"/>
         <column xsi:type="text" name="tags" nullable="true" comment="Brand Tags (JSON)"/>
         <column xsi:type="boolean" name="is_korean" nullable="false" default="0" comment="Is Brand Korean"/>
+        <column xsi:type="boolean" name="is_global" nullable="false" default="0" comment="Is Brand Global"/>
+        <column xsi:type="boolean" name="is_japanese" nullable="false" default="0" comment="Is Brand Japanese"/>
+        <column xsi:type="boolean" name="is_african" nullable="false" default="0" comment="Is Brand African"/>
+        <column xsi:type="boolean" name="is_indian" nullable="false" default="0" comment="Is Brand Indian"/>
         <column xsi:type="boolean" name="is_homegrown" nullable="false" default="0" comment="Is Brand Homegrown"/>
         <column xsi:type="boolean" name="is_trending" nullable="false" default="0" comment="Is Brand Trending"/>
         <column xsi:type="boolean" name="is_popular" nullable="false" default="0" comment="Is Brand Popular"/>
