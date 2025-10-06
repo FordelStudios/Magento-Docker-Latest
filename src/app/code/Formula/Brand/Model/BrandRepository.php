@@ -11,6 +11,10 @@ use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Api\SortOrder;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\FilterBuilder;
+use Magento\Framework\Api\Search\FilterGroupBuilder;
 
 class BrandRepository implements BrandRepositoryInterface
 {
@@ -18,17 +22,29 @@ class BrandRepository implements BrandRepositoryInterface
     protected $brandFactory;
     protected $collectionFactory;
     protected $searchResultsFactory;
+    protected $request;
+    protected $searchCriteriaBuilder;
+    protected $filterBuilder;
+    protected $filterGroupBuilder;
 
     public function __construct(
         ResourceBrand $resource,
         BrandFactory $brandFactory,
         CollectionFactory $collectionFactory,
-        SearchResultsInterfaceFactory $searchResultsFactory
+        SearchResultsInterfaceFactory $searchResultsFactory,
+        RequestInterface $request,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        FilterBuilder $filterBuilder,
+        FilterGroupBuilder $filterGroupBuilder
     ) {
         $this->resource = $resource;
         $this->brandFactory = $brandFactory;
         $this->collectionFactory = $collectionFactory;
         $this->searchResultsFactory = $searchResultsFactory;
+        $this->request = $request;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->filterBuilder = $filterBuilder;
+        $this->filterGroupBuilder = $filterGroupBuilder;
     }
 
     public function save(BrandInterface $brand)
@@ -60,18 +76,26 @@ class BrandRepository implements BrandRepositoryInterface
     {
         try {
             $collection = $this->collectionFactory->create();
-            
+
+            // Manual SearchCriteria building from request parameters if needed
+            $searchCriteriaData = $this->request->getParam('searchCriteria', []);
+
+            // Build filters from request if searchCriteria filterGroups are empty
+            if (count($searchCriteria->getFilterGroups()) == 0 && !empty($searchCriteriaData)) {
+                $searchCriteria = $this->buildSearchCriteriaFromRequest($searchCriteriaData);
+            }
+
             // Apply filters from search criteria
             foreach ($searchCriteria->getFilterGroups() as $filterGroup) {
                 $fields = [];
                 $conditions = [];
-                
+
                 foreach ($filterGroup->getFilters() as $filter) {
                     $fields[] = $filter->getField();
                     $condition = $filter->getConditionType() ?: 'eq';
                     $conditions[] = [$condition => $filter->getValue()];
                 }
-                
+
                 if ($fields) {
                     $collection->addFieldToFilter($fields, $conditions);
                 }
@@ -252,6 +276,66 @@ class BrandRepository implements BrandRepositoryInterface
         }   
 
         return $existingBrand;
+    }
+
+    /**
+     * Build SearchCriteria from request parameters
+     *
+     * @param array $searchCriteriaData
+     * @return SearchCriteriaInterface
+     */
+    private function buildSearchCriteriaFromRequest($searchCriteriaData)
+    {
+        $filterGroups = [];
+
+        if (isset($searchCriteriaData['filter_groups'])) {
+            foreach ($searchCriteriaData['filter_groups'] as $filterGroupData) {
+                if (isset($filterGroupData['filters'])) {
+                    $filters = [];
+                    foreach ($filterGroupData['filters'] as $filterData) {
+                        if (isset($filterData['field']) && isset($filterData['value'])) {
+                            $filter = $this->filterBuilder
+                                ->setField($filterData['field'])
+                                ->setValue($filterData['value'])
+                                ->setConditionType($filterData['condition_type'] ?? 'eq')
+                                ->create();
+                            $filters[] = $filter;
+                        }
+                    }
+                    if (!empty($filters)) {
+                        $filterGroup = $this->filterGroupBuilder->setFilters($filters)->create();
+                        $filterGroups[] = $filterGroup;
+                    }
+                }
+            }
+        }
+
+        // Build the search criteria with filter groups
+        $this->searchCriteriaBuilder->setFilterGroups($filterGroups);
+
+        // Add sort orders if present
+        if (isset($searchCriteriaData['sort_orders'])) {
+            foreach ($searchCriteriaData['sort_orders'] as $sortOrderData) {
+                if (isset($sortOrderData['field'])) {
+                    $this->searchCriteriaBuilder->addSortOrder(
+                        $sortOrderData['field'],
+                        $sortOrderData['direction'] ?? SortOrder::SORT_ASC
+                    );
+                }
+            }
+        }
+
+        // Add page size if present
+        if (isset($searchCriteriaData['page_size'])) {
+            $this->searchCriteriaBuilder->setPageSize($searchCriteriaData['page_size']);
+        }
+
+        // Add current page if present
+        if (isset($searchCriteriaData['current_page'])) {
+            $this->searchCriteriaBuilder->setCurrentPage($searchCriteriaData['current_page']);
+        }
+
+        return $this->searchCriteriaBuilder->create();
     }
 
 }
