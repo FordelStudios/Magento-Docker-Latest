@@ -80,8 +80,11 @@ class BrandRepository implements BrandRepositoryInterface
             // Manual SearchCriteria building from request parameters if needed
             $searchCriteriaData = $this->request->getParam('searchCriteria', []);
 
-            // Build filters from request if searchCriteria filterGroups are empty
-            if (count($searchCriteria->getFilterGroups()) == 0 && !empty($searchCriteriaData)) {
+            // Build searchCriteria from request if it's empty or incomplete
+            if (!empty($searchCriteriaData) &&
+                (count($searchCriteria->getFilterGroups()) == 0 ||
+                 !$searchCriteria->getPageSize() ||
+                 !$searchCriteria->getCurrentPage())) {
                 $searchCriteria = $this->buildSearchCriteriaFromRequest($searchCriteriaData);
             }
 
@@ -93,7 +96,14 @@ class BrandRepository implements BrandRepositoryInterface
                 foreach ($filterGroup->getFilters() as $filter) {
                     $fields[] = $filter->getField();
                     $condition = $filter->getConditionType() ?: 'eq';
-                    $conditions[] = [$condition => $filter->getValue()];
+                    $value = $filter->getValue();
+
+                    // Auto-add wildcards for 'like' condition if not already present
+                    if ($condition === 'like' && strpos($value, '%') === false) {
+                        $value = '%' . $value . '%';
+                    }
+
+                    $conditions[] = [$condition => $value];
                 }
 
                 if ($fields) {
