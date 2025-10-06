@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Api/etc/extension_attributes.xsd">
+    <extension_attributes for="Magento\Catalog\Api\Data\ProductInterface">
+        <attribute code="giftset" type="bool" />
+        <attribute code="new_arrival" type="bool" />
+        <attribute code="trending" type="bool" />
+    </extension_attributes>
+</config>
