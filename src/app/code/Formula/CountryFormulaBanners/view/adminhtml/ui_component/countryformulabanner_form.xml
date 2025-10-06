@@ -109,8 +109,25 @@
             </formElements>
         </field>
 
+        <!-- URL Field -->
+        <field name="url" formElement="input" sortOrder="30">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">country_formula_banner</item>
+                </item>
+            </argument>
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>string</dataType>
+                <label translate="true">URL</label>
+                <dataScope>url</dataScope>
+            </settings>
+        </field>
+
         <!-- Active Status Field -->
-        <field name="is_active" formElement="checkbox" sortOrder="30">
+        <field name="is_active" formElement="checkbox" sortOrder="40">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="source" xsi:type="string">country_formula_banner</item>

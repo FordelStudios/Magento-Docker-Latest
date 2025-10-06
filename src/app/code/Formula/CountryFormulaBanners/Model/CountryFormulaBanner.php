@@ -74,6 +74,22 @@ class CountryFormulaBanner extends AbstractModel implements CountryFormulaBanner
     /**
      * {@inheritdoc}
      */
+    public function getUrl()
+    {
+        return $this->getData(self::URL);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setUrl($url)
+    {
+        return $this->setData(self::URL, $url);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function isActive()
     {
         return (bool) $this->getData(self::IS_ACTIVE);

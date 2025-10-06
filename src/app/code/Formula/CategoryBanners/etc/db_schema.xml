@@ -5,11 +5,10 @@
 		<column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity ID" />
 		<column xsi:type="int" name="category_id" padding="10" unsigned="true" nullable="false" comment="Category ID" />
 		<column xsi:type="varchar" name="banner_image" nullable="false" length="255" comment="Banner Image" />
+		<column xsi:type="varchar" name="url" nullable="true" length="255" comment="Banner URL" />
 		<column xsi:type="boolean" name="is_active" nullable="false" default="1" comment="Is Banner Active" />
 		<column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At" />
 		<column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At" />
-		<column xsi:type="varchar" name="subcategories" nullable="true" length="255" comment="Selected Subcategories" />
-		<column xsi:type="smallint" name="discount_percentage" unsigned="true" nullable="true" comment="Discount Percentage" />
 		<column xsi:type="boolean" name="is_carousel_banner" nullable="false" default="0" comment="Is Carousel Banner"/>
 		<column xsi:type="boolean" name="is_discount_banner" nullable="false" default="0" comment="Is Discount Banner"/>
 		<column xsi:type="boolean" name="is_sale_banner" nullable="false" default="0" comment="Is Sale Banner"/>

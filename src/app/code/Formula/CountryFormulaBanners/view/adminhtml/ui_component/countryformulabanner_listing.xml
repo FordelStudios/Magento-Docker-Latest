@@ -113,7 +113,21 @@
                 <label translate="true">Banner Image</label>
             </settings>
         </column>
-        
+
+        <!-- URL Column -->
+        <column name="url">
+            <settings>
+                <filter>text</filter>
+                <editor>
+                    <validation>
+                        <rule name="required-entry" xsi:type="boolean">true</rule>
+                    </validation>
+                    <editorType>text</editorType>
+                </editor>
+                <label translate="true">URL</label>
+            </settings>
+        </column>
+
         <!-- Active Status Column -->
         <column name="is_active" component="Magento_Ui/js/grid/columns/select">
             <settings>

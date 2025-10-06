@@ -73,6 +73,22 @@ class CategoryBanner extends AbstractModel implements CategoryBannerInterface
     /**
      * {@inheritdoc}
      */
+    public function getUrl()
+    {
+        return $this->getData(self::URL);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setUrl($url)
+    {
+        return $this->setData(self::URL, $url);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function isActive()
     {
         return (bool) $this->getData(self::IS_ACTIVE);
@@ -127,54 +143,6 @@ class CategoryBanner extends AbstractModel implements CategoryBannerInterface
     public function setUpdatedAt($updatedAt)
     {
         return $this->setData(self::UPDATED_AT, $updatedAt);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getSubcategories()
-    {
-        return $this->getData(self::SUBCATEGORIES);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setSubcategories($subcategories)
-    {
-        return $this->setData(self::SUBCATEGORIES, $subcategories);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getSubcategoryNames()
-    {
-        return $this->getData(self::SUBCATEGORY_NAMES);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setSubcategoryNames($subcategoryNames)
-    {
-        return $this->setData(self::SUBCATEGORY_NAMES, $subcategoryNames);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getDiscountPercentage()
-    {
-        return $this->getData(self::DISCOUNT_PERCENTAGE);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setDiscountPercentage($percentage)
-    {
-        return $this->setData(self::DISCOUNT_PERCENTAGE, $percentage);
     }
 
     /**

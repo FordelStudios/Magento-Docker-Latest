@@ -10,6 +10,7 @@ interface CountryFormulaBannerInterface
     const ENTITY_ID = 'entity_id';
     const COUNTRY_ID = 'country_id';  // Changed from COUNTRY to COUNTRY_ID
     const BANNER_IMAGE = 'banner_image';
+    const URL = 'url';
     const IS_ACTIVE = 'is_active';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -58,6 +59,21 @@ interface CountryFormulaBannerInterface
      * @return $this
      */
     public function setBannerImage($bannerImage);
+
+    /**
+     * Get URL
+     *
+     * @return string
+     */
+    public function getUrl();
+
+    /**
+     * Set URL
+     *
+     * @param string $url
+     * @return $this
+     */
+    public function setUrl($url);
 
     /**
      * Is active

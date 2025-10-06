@@ -10,12 +10,10 @@ interface CategoryBannerInterface
     const ENTITY_ID = 'entity_id';
     const CATEGORY_ID = 'category_id';
     const BANNER_IMAGE = 'banner_image';
+    const URL = 'url';
     const IS_ACTIVE = 'is_active';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
-    const SUBCATEGORIES = 'subcategories';
-    const SUBCATEGORY_NAMES = 'subcategory_names'; // Add this new constant
-    const DISCOUNT_PERCENTAGE = 'discount_percentage';
 
     const IS_CAROUSEL_BANNER = 'is_carousel_banner';
 
@@ -71,6 +69,21 @@ interface CategoryBannerInterface
     public function setBannerImage($bannerImage);
 
     /**
+     * Get URL
+     *
+     * @return string
+     */
+    public function getUrl();
+
+    /**
+     * Set URL
+     *
+     * @param string $url
+     * @return $this
+     */
+    public function setUrl($url);
+
+    /**
      * Is active
      *
      * @return bool
@@ -114,52 +127,6 @@ interface CategoryBannerInterface
      * @return $this
      */
     public function setUpdatedAt($updatedAt);
-
-    /**
-     * Get subcategories
-     *
-     * @return string|null
-     */
-    public function getSubcategories();
-
-    /**
-     * Set subcategories
-     *
-     * @param string $subcategories
-     * @return $this
-     */
-    public function setSubcategories($subcategories);
-
-    /**
-     * Get subcategory names
-     *
-     * @return \Formula\CategoryBanners\Api\Data\SubcategoryInterface[]|null
-     */
-    public function getSubcategoryNames();
-
-    /**
-     * Set subcategory names
-     *
-     * @param \Formula\CategoryBanners\Api\Data\SubcategoryInterface[] $subcategoryNames
-     * @return $this
-     */
-    public function setSubcategoryNames($subcategoryNames);
-
-    /**
-     * Get discount percentage
-     *
-     * @return int|null
-     */
-    public function getDiscountPercentage();
-
-    /**
-     * Set discount percentage
-     *
-     * @param int $percentage
-     * @return $this
-     */
-    public function setDiscountPercentage($percentage);
-
 
     /**
      * Get carousel banner

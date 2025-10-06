@@ -4,6 +4,7 @@
         <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity ID" />
         <column xsi:type="varchar" name="country_id" nullable="false" length="2" comment="Country Code" />
         <column xsi:type="varchar" name="banner_image" nullable="false" length="255" comment="Banner Image Path" />
+        <column xsi:type="varchar" name="url" nullable="false" length="255" comment="Banner URL" />
         <column xsi:type="boolean" name="is_active" nullable="false" default="1" comment="Is Banner Active" />
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At" />
         <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At" />
