@@ -271,38 +271,6 @@ class Blog extends AbstractModel implements BlogInterface, IdentityInterface
     }
 
     /**
-     * Get Tags
-     * 
-     * @return string[]|null
-     */
-    public function getTags()
-    {
-        $tags = $this->getData(self::TAGS);
-        if ($tags && is_string($tags)) {
-            try {
-                return $this->jsonSerializer->unserialize($tags);
-            } catch (\Exception $e) {
-                return [];
-            }
-        }
-        return $tags ?: [];
-    }
-
-    /**
-     * Set Tags
-     * 
-     * @param string|mixed[] $tags
-     * @return $this
-     */
-    public function setTags($tags)
-    {
-        if (is_array($tags)) {
-            $tags = $this->jsonSerializer->serialize($tags);
-        }
-        return $this->setData(self::TAGS, $tags);
-    }
-
-    /**
      * Get category IDs
      *
      * @return int[]|null

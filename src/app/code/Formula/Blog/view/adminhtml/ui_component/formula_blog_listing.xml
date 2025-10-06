@@ -278,12 +278,6 @@
                 </item>
             </argument>
         </column>
-        <column name="tags">
-            <settings>
-                <filter>text</filter>
-                <label translate="true">Tags</label>
-            </settings>
-        </column>
 		<actionsColumn name="actions" class="Formula\Blog\Ui\Component\Listing\Column\BlogActions">
 			<argument name="data" xsi:type="array">
 				<item name="config" xsi:type="array">

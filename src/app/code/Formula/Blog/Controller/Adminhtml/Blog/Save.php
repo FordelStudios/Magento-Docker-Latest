@@ -105,16 +105,8 @@ class Save extends Action
                     } else {
                         unset($data['image']);
                     }
-            }    
+            }
 
-                if (isset($data['tags']) && !empty($data['tags'])) {
-                    if (is_string($data['tags'])) {
-                        $tags = array_map('trim', explode(',', $data['tags']));
-                        $tags = array_filter($tags);
-                        $data['tags'] = $this->jsonSerializer->serialize($tags);
-                    }
-                }       
-            
             // Handle product_ids if it's an array
             if (isset($data['product_ids']) && is_array($data['product_ids'])) {
                 $data['product_ids'] = implode(',', $data['product_ids']);

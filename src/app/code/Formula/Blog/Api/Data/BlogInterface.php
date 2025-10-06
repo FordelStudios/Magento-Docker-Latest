@@ -25,7 +25,6 @@ interface BlogInterface
     const UPDATED_AT    = 'updated_at';
     const IS_PUBLISHED      = 'is_published';
     const PRODUCT_IDS    = 'product_ids';
-    const TAGS = 'tags';
     const CATEGORY_IDS = 'category_ids';
 
     /**
@@ -166,17 +165,6 @@ interface BlogInterface
      * @return BlogInterface
      */
     public function setProductIds($productIds);
-
-    /**
-     * @return string|null
-     */
-    public function getTags();
-
-    /**
-     * @param string|mixed[] $tags
-     * @return $this
-     */
-    public function setTags($tags);
 
     /**
      * Get category IDs

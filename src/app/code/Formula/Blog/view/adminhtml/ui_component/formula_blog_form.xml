@@ -180,15 +180,29 @@
 				</item>
 			</argument>
 		</field>
-		<field name="content" formElement="textarea">
+		<field name="content" formElement="wysiwyg">
+			<argument name="data" xsi:type="array">
+				<item name="config" xsi:type="array">
+					<item name="wysiwygConfigData" xsi:type="array">
+						<item name="height" xsi:type="string">300px</item>
+						<item name="add_variables" xsi:type="boolean">false</item>
+						<item name="add_widgets" xsi:type="boolean">false</item>
+						<item name="add_images" xsi:type="boolean">true</item>
+						<item name="add_directives" xsi:type="boolean">false</item>
+					</item>
+				</item>
+			</argument>
 			<settings>
-				<dataType>
-					text
-				</dataType>
-				<label translate="true">
-					Content
-				</label>
+				<dataType>text</dataType>
+				<label translate="true">Content</label>
 			</settings>
+			<formElements>
+				<wysiwyg>
+					<settings>
+						<wysiwyg>true</wysiwyg>
+					</settings>
+				</wysiwyg>
+			</formElements>
 		</field>
 		<field name="image" formElement="imageUploader">
 			<settings>
@@ -217,18 +231,6 @@
 				</imageUploader>
 			</formElements>
 		</field>
-        <field name="tags" formElement="textarea">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="source" xsi:type="string">blog</item>
-                    <item name="notice" xsi:type="string">Enter tags separated by commas</item>
-                </item>
-            </argument>
-            <settings>
-                <dataType>text</dataType>
-                <label translate="true">Tags</label>
-            </settings>
-        </field>
         <field name="category_ids">
             <argument name="data" xsi:type="array">
                 <item name="options" xsi:type="object">Formula\Blog\Ui\Component\Form\Categories</item>
