@@ -20,6 +20,7 @@ interface BrandInterface
     const IS_TRENDING = 'is_trending';
     const IS_POPULAR = 'is_popular';
     const COUNTRY = 'country';
+    const CERTIFICATIONS = 'certifications';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
@@ -210,6 +211,17 @@ interface BrandInterface
      * @return $this
      */
     public function setCountry($country);
+
+    /**
+     * @return string|null
+     */
+    public function getCertifications();
+
+    /**
+     * @param string $certifications
+     * @return $this
+     */
+    public function setCertifications($certifications);
 
     /**
      * @return string|null

@@ -91,6 +91,12 @@
                 <label translate="true">Tagline</label>
             </settings>
         </column>
+        <column name="certifications">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Certifications</label>
+            </settings>
+        </column>
         <column name="description" class="Magento\Ui\Component\Listing\Columns\Column">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">

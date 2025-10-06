@@ -122,6 +122,7 @@ class BrandRepository implements BrandRepositoryInterface
                     'is_trending' => (bool)$item->getIsTrending(),
                     'is_popular' => (bool)$item->getIsPopular(),
                     'country' => $item->getCountry(),
+                    'certifications' => $item->getCertifications(),
                     'created_at' => $item->getCreatedAt(),
                     'updated_at' => $item->getUpdatedAt()
                 ];
@@ -236,6 +237,10 @@ class BrandRepository implements BrandRepositoryInterface
 
             if (isset($data['country'])) {
                 $existingBrand->setCountry($brand->getCountry());
+            }
+
+            if (isset($data['certifications'])) {
+                $existingBrand->setCertifications($brand->getCertifications());
             }
 
             // Save the updated brand
