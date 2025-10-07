@@ -129,6 +129,35 @@ class AddProductFlagsAttributes implements DataPatchInterface
             ]
         );
 
+        // Add Popular Attribute
+        $eavSetup->addAttribute(
+            Product::ENTITY,
+            'popular',
+            [
+                'type'                    => 'int',
+                'label'                   => 'Popular',
+                'input'                   => 'boolean',
+                'source'                  => 'Magento\Eav\Model\Entity\Attribute\Source\Boolean',
+                'required'                => false,
+                'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
+                'visible'                 => true,
+                'user_defined'            => false,
+                'default'                 => '0',
+                'searchable'              => false,
+                'filterable'              => true,
+                'comparable'              => false,
+                'visible_on_front'        => true,
+                'used_in_product_listing' => true,
+                'unique'                  => false,
+                'apply_to'                => '',
+                'group'                   => 'General',
+                'sort_order'              => 103,
+                'is_used_in_grid'         => true,
+                'is_visible_in_grid'      => true,
+                'is_filterable_in_grid'   => true,
+            ]
+        );
+
         return $this;
     }
 

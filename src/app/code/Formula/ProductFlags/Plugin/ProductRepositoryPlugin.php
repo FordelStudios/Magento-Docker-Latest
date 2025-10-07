@@ -41,11 +41,13 @@ class ProductRepositoryPlugin
         $giftset = (bool) $product->getData('giftset');
         $newArrival = (bool) $product->getData('new_arrival');
         $trending = (bool) $product->getData('trending');
+        $popular = (bool) $product->getData('popular');
 
         // Set them to extension attributes for API compatibility
         $extensionAttributes->setGiftset($giftset);
         $extensionAttributes->setNewArrival($newArrival);
         $extensionAttributes->setTrending($trending);
+        $extensionAttributes->setPopular($popular);
         $product->setExtensionAttributes($extensionAttributes);
 
         return $product;
@@ -74,11 +76,13 @@ class ProductRepositoryPlugin
             $giftset = (bool) $product->getData('giftset');
             $newArrival = (bool) $product->getData('new_arrival');
             $trending = (bool) $product->getData('trending');
+            $popular = (bool) $product->getData('popular');
 
             // Set them to extension attributes for API compatibility
             $extensionAttributes->setGiftset($giftset);
             $extensionAttributes->setNewArrival($newArrival);
             $extensionAttributes->setTrending($trending);
+            $extensionAttributes->setPopular($popular);
             $product->setExtensionAttributes($extensionAttributes);
         }
 

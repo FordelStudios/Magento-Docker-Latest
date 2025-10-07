@@ -35,4 +35,15 @@ interface ProductExtensionInterface extends \Magento\Catalog\Api\Data\ProductExt
      * @return $this
      */
     public function setTrending($trending);
+
+    /**
+     * @return bool|null
+     */
+    public function getPopular();
+
+    /**
+     * @param bool $popular
+     * @return $this
+     */
+    public function setPopular($popular);
 }

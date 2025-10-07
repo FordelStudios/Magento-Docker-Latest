@@ -4,5 +4,6 @@
         <attribute code="giftset" type="bool" />
         <attribute code="new_arrival" type="bool" />
         <attribute code="trending" type="bool" />
+        <attribute code="popular" type="bool" />
     </extension_attributes>
 </config>
