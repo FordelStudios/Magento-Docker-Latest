@@ -57,4 +57,15 @@ interface WalletManagementInterface
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function updateWalletBalance($customerId, $amount, $action = 'add');
+
+    /**
+     * Get customer wallet transaction history
+     *
+     * @param int $customerId
+     * @param int $pageSize
+     * @param int $currentPage
+     * @return \Magento\Framework\Api\SearchResultsInterface
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getTransactionHistory($customerId, $pageSize = 20, $currentPage = 1);
 }

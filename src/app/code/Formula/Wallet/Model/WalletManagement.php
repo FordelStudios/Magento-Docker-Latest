@@ -4,6 +4,7 @@ namespace Formula\Wallet\Model;
 use Formula\Wallet\Api\WalletManagementInterface;
 use Formula\Wallet\Api\Data\WalletBalanceInterface;
 use Formula\Wallet\Api\Data\WalletBalanceInterfaceFactory;
+use Formula\Wallet\Api\WalletTransactionRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\CartManagementInterface;
@@ -11,6 +12,8 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\SortOrderBuilder;
 
 class WalletManagement implements WalletManagementInterface
 {
@@ -45,12 +48,30 @@ class WalletManagement implements WalletManagementInterface
     protected $priceCurrency;
 
     /**
+     * @var WalletTransactionRepositoryInterface
+     */
+    protected $transactionRepository;
+
+    /**
+     * @var SearchCriteriaBuilder
+     */
+    protected $searchCriteriaBuilder;
+
+    /**
+     * @var SortOrderBuilder
+     */
+    protected $sortOrderBuilder;
+
+    /**
      * @param CustomerRepositoryInterface $customerRepository
      * @param CartRepositoryInterface $quoteRepository
      * @param CartManagementInterface $cartManagement
      * @param WalletBalanceInterfaceFactory $walletBalanceFactory
      * @param StoreManagerInterface $storeManager
      * @param PriceCurrencyInterface $priceCurrency
+     * @param WalletTransactionRepositoryInterface $transactionRepository
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param SortOrderBuilder $sortOrderBuilder
      */
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
@@ -58,7 +79,10 @@ class WalletManagement implements WalletManagementInterface
         CartManagementInterface $cartManagement,
         WalletBalanceInterfaceFactory $walletBalanceFactory,
         StoreManagerInterface $storeManager,
-        PriceCurrencyInterface $priceCurrency
+        PriceCurrencyInterface $priceCurrency,
+        WalletTransactionRepositoryInterface $transactionRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        SortOrderBuilder $sortOrderBuilder
     ) {
         $this->customerRepository = $customerRepository;
         $this->quoteRepository = $quoteRepository;
@@ -66,6 +90,9 @@ class WalletManagement implements WalletManagementInterface
         $this->walletBalanceFactory = $walletBalanceFactory;
         $this->storeManager = $storeManager;
         $this->priceCurrency = $priceCurrency;
+        $this->transactionRepository = $transactionRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->sortOrderBuilder = $sortOrderBuilder;
     }
 
     /**
@@ -223,6 +250,35 @@ class WalletManagement implements WalletManagementInterface
             $this->customerRepository->save($customer);
 
             return true;
+        } catch (NoSuchEntityException $e) {
+            throw new NoSuchEntityException(__('Customer with ID "%1" does not exist.', $customerId));
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTransactionHistory($customerId, $pageSize = 20, $currentPage = 1)
+    {
+        try {
+            // Verify customer exists
+            $this->customerRepository->getById($customerId);
+
+            // Build sort order - newest first
+            $sortOrder = $this->sortOrderBuilder
+                ->setField('created_at')
+                ->setDirection('DESC')
+                ->create();
+
+            // Build search criteria
+            $searchCriteria = $this->searchCriteriaBuilder
+                ->addFilter('customer_id', $customerId)
+                ->addSortOrder($sortOrder)
+                ->setPageSize($pageSize)
+                ->setCurrentPage($currentPage)
+                ->create();
+
+            return $this->transactionRepository->getList($searchCriteria);
         } catch (NoSuchEntityException $e) {
             throw new NoSuchEntityException(__('Customer with ID "%1" does not exist.', $customerId));
         }

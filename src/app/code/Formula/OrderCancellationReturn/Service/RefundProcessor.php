@@ -39,7 +39,10 @@ class RefundProcessor
         $paymentMethod = $this->orderValidator->getPaymentMethod($order);
         $grandTotal = $order->getGrandTotal();
         $walletAmountUsed = $order->getWalletAmountUsed() ?: 0;
-        
+
+        // Determine reference type based on action
+        $referenceType = $this->getReferenceType($action);
+
         // Check if refund is needed
         if (!$this->orderValidator->shouldRefund($order, $action)) {
             return [
@@ -56,14 +59,32 @@ class RefundProcessor
         try {
             if ($walletAmountUsed > 0) {
                 // Mixed payment or wallet-only payment
-                return $this->processMixedPaymentRefund($order, $paymentMethod, $grandTotal, $walletAmountUsed);
+                return $this->processMixedPaymentRefund($order, $paymentMethod, $grandTotal, $walletAmountUsed, $referenceType);
             } else {
                 // Single payment method
-                return $this->processSinglePaymentRefund($order, $paymentMethod, $grandTotal);
+                return $this->processSinglePaymentRefund($order, $paymentMethod, $grandTotal, $referenceType);
             }
         } catch (\Exception $e) {
             $this->logger->error('Refund processing failed: ' . $e->getMessage());
             throw new LocalizedException(__('Refund processing failed: %1', $e->getMessage()));
+        }
+    }
+
+    /**
+     * Get reference type based on action
+     *
+     * @param string $action
+     * @return string
+     */
+    protected function getReferenceType($action)
+    {
+        switch ($action) {
+            case 'cancel':
+                return \Formula\Wallet\Api\Data\WalletTransactionInterface::REFERENCE_TYPE_ORDER_CANCEL;
+            case 'return':
+                return \Formula\Wallet\Api\Data\WalletTransactionInterface::REFERENCE_TYPE_ORDER_RETURN;
+            default:
+                return null;
         }
     }
 
@@ -73,10 +94,11 @@ class RefundProcessor
      * @param \Magento\Sales\Api\Data\OrderInterface $order
      * @param string $paymentMethod
      * @param float $amount
+     * @param string|null $referenceType
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function processSinglePaymentRefund($order, $paymentMethod, $amount)
+    protected function processSinglePaymentRefund($order, $paymentMethod, $amount, $referenceType = null)
     {
         switch ($paymentMethod) {
             case 'razorpay':
@@ -87,14 +109,14 @@ class RefundProcessor
                     $result['status_message'] = sprintf('Refunded ₹%.2f to Razorpay (Transaction: %s)', $amount, $result['transaction_id']);
                 }
                 return $result;
-            
+
             case 'checkmo': // Cash on Delivery
             case 'cashondelivery':
             case 'walletpayment':
-                $result = $this->walletRefundService->processRefund($order, $amount);
+                $result = $this->walletRefundService->processRefund($order, $amount, $referenceType);
                 $result['status_message'] = sprintf('Refunded ₹%.2f to customer wallet', $amount);
                 return $result;
-            
+
             default:
                 throw new LocalizedException(__('Unsupported payment method: %1', $paymentMethod));
         }
@@ -107,17 +129,18 @@ class RefundProcessor
      * @param string $paymentMethod
      * @param float $grandTotal
      * @param float $walletAmountUsed
+     * @param string|null $referenceType
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function processMixedPaymentRefund($order, $paymentMethod, $grandTotal, $walletAmountUsed)
+    protected function processMixedPaymentRefund($order, $paymentMethod, $grandTotal, $walletAmountUsed, $referenceType = null)
     {
         $otherPaymentAmount = $grandTotal - $walletAmountUsed;
         $results = [];
 
         // Refund wallet portion to wallet
         if ($walletAmountUsed > 0) {
-            $walletResult = $this->walletRefundService->processRefund($order, $walletAmountUsed);
+            $walletResult = $this->walletRefundService->processRefund($order, $walletAmountUsed, $referenceType);
             $results[] = $walletResult;
         }
 
@@ -127,12 +150,12 @@ class RefundProcessor
                 case 'razorpay':
                     $otherResult = $this->razorpayRefundService->processRefund($order, $otherPaymentAmount);
                     break;
-                
+
                 case 'checkmo': // Cash on Delivery
                 case 'cashondelivery':
-                    $otherResult = $this->walletRefundService->processRefund($order, $otherPaymentAmount);
+                    $otherResult = $this->walletRefundService->processRefund($order, $otherPaymentAmount, $referenceType);
                     break;
-                
+
                 default:
                     throw new LocalizedException(__('Unsupported payment method: %1', $paymentMethod));
             }

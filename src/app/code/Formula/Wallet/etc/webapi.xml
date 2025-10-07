@@ -63,4 +63,23 @@
         </resources>
     </route>
 
+    <!-- Get customer wallet transaction history -->
+    <route url="/V1/customers/me/wallet/transactions" method="GET">
+        <service class="Formula\Wallet\Api\WalletManagementInterface" method="getTransactionHistory"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="customerId" force="true">%customer_id%</parameter>
+        </data>
+    </route>
+
+    <!-- Admin: Get any customer wallet transaction history -->
+    <route url="/V1/customers/:customerId/wallet/transactions" method="GET">
+        <service class="Formula\Wallet\Api\WalletManagementInterface" method="getTransactionHistory"/>
+        <resources>
+            <resource ref="Magento_Customer::manage"/>
+        </resources>
+    </route>
+
 </routes>

@@ -7,6 +7,17 @@
     <!-- Preference for Wallet Balance Interface -->
     <preference for="Formula\Wallet\Api\Data\WalletBalanceInterface" type="Formula\Wallet\Model\WalletBalance" />
 
+    <!-- Preference for Wallet Transaction Interface -->
+    <preference for="Formula\Wallet\Api\Data\WalletTransactionInterface" type="Formula\Wallet\Model\WalletTransaction" />
+
+    <!-- Preference for Wallet Transaction Repository Interface -->
+    <preference for="Formula\Wallet\Api\WalletTransactionRepositoryInterface" type="Formula\Wallet\Model\WalletTransactionRepository" />
+
+    <!-- Plugin to log wallet changes via customer repository -->
+    <type name="Magento\Customer\Api\CustomerRepositoryInterface">
+        <plugin name="formula_wallet_customer_save_transaction_log" type="Formula\Wallet\Plugin\CustomerRepositorySavePlugin" sortOrder="100" />
+    </type>
+
     <!-- Extension Attributes for Quote -->
     <type name="Magento\Quote\Api\Data\CartInterface">
         <plugin name="formula_wallet_quote_extension_attributes" type="Formula\Wallet\Plugin\Quote\QuoteExtensionAttributes" />

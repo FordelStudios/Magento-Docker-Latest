@@ -1,6 +1,8 @@
 <?php
 namespace Formula\Wallet\Observer;
 
+use Formula\Wallet\Api\Data\WalletTransactionInterface;
+use Formula\Wallet\Api\WalletTransactionRepositoryInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
@@ -27,18 +29,26 @@ class OrderPlaceAfter implements ObserverInterface
     protected $logger;
 
     /**
+     * @var WalletTransactionRepositoryInterface
+     */
+    protected $transactionRepository;
+
+    /**
      * @param OrderRepositoryInterface $orderRepository
      * @param CustomerRepositoryInterface $customerRepository
      * @param LoggerInterface $logger
+     * @param WalletTransactionRepositoryInterface $transactionRepository
      */
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         CustomerRepositoryInterface $customerRepository,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        WalletTransactionRepositoryInterface $transactionRepository
     ) {
         $this->orderRepository = $orderRepository;
         $this->customerRepository = $customerRepository;
         $this->logger = $logger;
+        $this->transactionRepository = $transactionRepository;
     }
 
     /**
@@ -87,6 +97,25 @@ class OrderPlaceAfter implements ObserverInterface
                 'old_balance' => $currentWalletBalance,
                 'new_balance' => $newBalance
             ]);
+
+            // Log transaction
+            try {
+                $this->transactionRepository->createTransaction(
+                    $customerId,
+                    $walletAmountUsed,
+                    WalletTransactionInterface::TYPE_DEBIT,
+                    $currentWalletBalance,
+                    $newBalance,
+                    'Wallet payment for order #' . $order->getIncrementId(),
+                    WalletTransactionInterface::REFERENCE_TYPE_ORDER,
+                    $order->getId()
+                );
+            } catch (\Exception $transactionError) {
+                $this->logger->error('Error logging wallet transaction for order', [
+                    'order_id' => $order->getId(),
+                    'error' => $transactionError->getMessage()
+                ]);
+            }
 
         } catch (LocalizedException $e) {
             $this->logger->error('Error updating customer wallet balance after order placement', [
