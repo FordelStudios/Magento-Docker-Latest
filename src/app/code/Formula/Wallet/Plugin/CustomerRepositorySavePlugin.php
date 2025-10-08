@@ -7,6 +7,7 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Registry;
 use Psr\Log\LoggerInterface;
 
 class CustomerRepositorySavePlugin
@@ -27,17 +28,25 @@ class CustomerRepositorySavePlugin
     protected $logger;
 
     /**
+     * @var Registry
+     */
+    protected $registry;
+
+    /**
      * @param WalletTransactionRepositoryInterface $transactionRepository
      * @param State $appState
+     * @param Registry $registry
      * @param LoggerInterface $logger
      */
     public function __construct(
         WalletTransactionRepositoryInterface $transactionRepository,
         State $appState,
+        Registry $registry,
         LoggerInterface $logger
     ) {
         $this->transactionRepository = $transactionRepository;
         $this->appState = $appState;
+        $this->registry = $registry;
         $this->logger = $logger;
     }
 
@@ -134,12 +143,18 @@ class CustomerRepositorySavePlugin
     /**
      * Check if transaction should be logged by this plugin
      * Only log for admin area changes (panel or API)
+     * Do NOT log if another service is handling the transaction (indicated by registry flag)
      *
      * @return bool
      */
     protected function shouldLogTransaction()
     {
         try {
+            // If wallet operation is in progress, another service handles transaction logging
+            if ($this->registry->registry('wallet_balance_update_in_progress')) {
+                return false;
+            }
+
             $areaCode = $this->appState->getAreaCode();
             // Only log for admin areas
             return $areaCode === 'adminhtml' || $areaCode === 'webapi_rest' || $areaCode === 'webapi_soap';

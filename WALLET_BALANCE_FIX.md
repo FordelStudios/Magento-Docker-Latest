@@ -59,9 +59,24 @@ if ($this->registry->registry('wallet_balance_update_in_progress')) {
 
 ### 2. Updated `CustomerRepositorySavePlugin` (/src/app/code/Formula/Wallet/Plugin/CustomerRepositorySavePlugin.php)
 
-- Plugin now **exits early** (line 61-62) for non-admin saves
-- This prevents database re-fetch and cache conflicts
-- Plugin ONLY creates transactions for admin area saves
+**CRITICAL FIX #2 - Prevent Duplicate Transactions:**
+Added registry flag check in `shouldLogTransaction()`:
+```php
+// If wallet operation is in progress, another service handles transaction logging
+if ($this->registry->registry('wallet_balance_update_in_progress')) {
+    return false;  // Don't create duplicate transaction!
+}
+```
+
+**Why this is needed:**
+- Order placement happens in `webapi_rest` area (customer API call)
+- Plugin was thinking: "webapi_rest = admin API call" → creating duplicate transaction
+- Now plugin checks: "Is wallet operation in progress? Then OrderPlaceAfter/WalletRefundService is handling it"
+- Plugin only logs for TRUE admin updates (when no flag is set)
+
+**Result:**
+- No duplicate "Admin adjustment via API" transactions
+- Single transaction per operation
 
 ### 3. Updated `OrderPlaceAfter` Observer (/src/app/code/Formula/Wallet/Observer/OrderPlaceAfter.php)
 
@@ -90,42 +105,59 @@ This ensures refunds can also update wallet balance without being blocked.
 ## How It Works Now
 
 ### Order Placement Flow:
-1. Customer places order with wallet payment
+1. Customer places order with wallet payment (API call, `webapi_rest` area)
 2. `OrderPlaceAfter` observer executes
 3. Updates `customer->wallet_balance` attribute to new value (400)
 4. Sets registry flag: `wallet_balance_update_in_progress = true`
 5. Calls `customerRepository->save($customer)`
-6. `CustomerRepositoryPlugin::beforeSave` intercepts:
-   - Checks: Is `webapi_rest`? YES
-   - Checks: Is admin? NO
-   - Checks: Is `wallet_balance_update_in_progress` flag set? **YES!**
+6. **CustomerRepositoryPlugin::beforeSave** intercepts:
+   - Is `webapi_rest`? YES
+   - Is admin? NO
+   - Is `wallet_balance_update_in_progress`? **YES!**
    - **Allows update to proceed** ✓
-7. Wallet balance saves successfully (900 → 400)
-8. Unregisters the flag
-9. Creates transaction record with order reference
-10. **Result**: Balance updated + Single transaction with order context ✓
+7. **CustomerRepositorySavePlugin::aroundSave** intercepts:
+   - Checks `shouldLogTransaction()`
+   - Sees `wallet_balance_update_in_progress` flag
+   - Returns `false` - **Skips transaction logging** ✓
+8. Wallet balance saves successfully (900 → 400)
+9. Unregisters the flag
+10. Creates transaction record with order reference
+11. **Result**: Balance updated + **Single** transaction with order context ✓
 
 ### Order Cancellation/Return Flow:
-1. Customer cancels or returns order
+1. Customer cancels or returns order (API call, `webapi_rest` area)
 2. `RefundProcessor` calls `WalletRefundService`
 3. `WalletRefundService` updates customer wallet balance (400 → 900)
 4. Sets registry flag: `wallet_balance_update_in_progress = true`
 5. Calls `customerRepository->save($customer)`
-6. `CustomerRepositoryPlugin::beforeSave` intercepts:
-   - Checks flag, **allows update** ✓
-7. Wallet balance saves successfully (400 → 900)
-8. Unregisters the flag
-9. Creates transaction record with refund/cancel reference and order ID
-10. **Result**: Balance updated + Single transaction with refund context ✓
+6. **CustomerRepositoryPlugin::beforeSave** - checks flag, **allows update** ✓
+7. **CustomerRepositorySavePlugin::aroundSave** - sees flag, **skips transaction** ✓
+8. Wallet balance saves successfully (400 → 900)
+9. Unregisters the flag
+10. Creates transaction record with refund/cancel reference and order ID
+11. **Result**: Balance updated + **Single** transaction with refund context ✓
 
 ### Admin Panel Update Flow:
-1. Admin updates customer wallet balance via admin panel
+1. Admin updates customer wallet balance via admin panel (`adminhtml` area)
 2. Saves customer
 3. `CustomerRepositoryPlugin::beforeSave` checks:
    - Area is `adminhtml`, not `webapi_rest` → **Allows update** ✓
 4. `CustomerRepositorySavePlugin::aroundSave` checks:
-   - Area is `adminhtml` → **Creates transaction** ✓
-5. **Result**: Balance updated + Single transaction with admin context ✓
+   - `shouldLogTransaction()` returns `true` (no flag set, `adminhtml` area)
+   - **Creates transaction** ✓
+5. **Result**: Balance updated + **Single** transaction with admin_panel context ✓
+
+### Admin API Update Flow:
+1. Admin updates via API (`webapi_rest` area with admin token)
+2. Saves customer (NO flag set because it's via direct customer save, not wallet operation)
+3. `CustomerRepositoryPlugin::beforeSave`:
+   - Is `webapi_rest`? YES
+   - Is admin? **YES** (has admin permissions)
+   - **Allows update** ✓
+4. `CustomerRepositorySavePlugin::aroundSave`:
+   - `shouldLogTransaction()` checks flag - NOT set
+   - Area is `webapi_rest` → **Creates transaction** ✓
+5. **Result**: Balance updated + **Single** transaction with admin_api context ✓
 
 ### Customer Profile Update (BLOCKED):
 1. Customer tries to update profile via API
@@ -193,6 +225,29 @@ GET /V1/customers/{id}/wallet
 
 ## Summary
 
-The wallet balance wasn't updating because `CustomerRepositoryPlugin` was **forcefully resetting** the balance back to the original value to prevent customer manipulation.
+### Issue #1: Wallet Balance Not Persisting
+**Problem:** Balance showed in transaction history but didn't update in database.
 
-The fix uses a **registry flag** (`wallet_balance_update_in_progress`) to signal legitimate wallet operations, allowing them to bypass the security check while still protecting against customer manipulation.
+**Cause:** `CustomerRepositoryPlugin` was **forcefully resetting** wallet_balance to prevent customer manipulation, but it was also blocking legitimate updates.
+
+**Fix:** Added registry flag `wallet_balance_update_in_progress` that signals legitimate operations, allowing them to bypass the security check.
+
+### Issue #2: Duplicate Transaction Entries
+**Problem:** Each order/refund created 2 transactions instead of 1:
+- Correct: "Wallet payment for order #123"
+- Duplicate: "Admin adjustment - wallet debited via API"
+
+**Cause:** `CustomerRepositorySavePlugin` thought customer API calls (`webapi_rest`) were admin API calls and created duplicate transactions.
+
+**Fix:** Updated `shouldLogTransaction()` to check the registry flag. If flag is set, another service is handling the transaction, so plugin skips logging.
+
+### The Registry Flag Solution
+The `wallet_balance_update_in_progress` flag serves two purposes:
+1. **Allows balance updates:** Signals to `CustomerRepositoryPlugin` that update is legitimate
+2. **Prevents duplicates:** Signals to `CustomerRepositorySavePlugin` to skip transaction logging
+
+**Result:**
+- ✓ Wallet balance updates correctly
+- ✓ Single transaction per operation
+- ✓ Security still prevents customer manipulation
+- ✓ Admin updates still work and create transactions
