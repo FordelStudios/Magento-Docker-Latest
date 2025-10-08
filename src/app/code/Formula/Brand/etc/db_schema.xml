@@ -15,7 +15,6 @@
         <column xsi:type="boolean" name="is_japanese" nullable="false" default="0" comment="Is Brand Japanese"/>
         <column xsi:type="boolean" name="is_african" nullable="false" default="0" comment="Is Brand African"/>
         <column xsi:type="boolean" name="is_indian" nullable="false" default="0" comment="Is Brand Indian"/>
-        <column xsi:type="boolean" name="is_homegrown" nullable="false" default="0" comment="Is Brand Homegrown"/>
         <column xsi:type="boolean" name="is_trending" nullable="false" default="0" comment="Is Brand Trending"/>
         <column xsi:type="boolean" name="is_popular" nullable="false" default="0" comment="Is Brand Popular"/>
         <column xsi:type="varchar" name="country" nullable="true" length="255" comment="Brand Country"/>

@@ -23,7 +23,6 @@ class Brand extends AbstractModel implements BrandInterface
     const IS_JAPANESE = 'is_japanese';
     const IS_AFRICAN = 'is_african';
     const IS_INDIAN = 'is_indian';
-    const IS_HOMEGROWN = 'is_homegrown';
     const IS_TRENDING = 'is_trending';
     const IS_POPULAR = 'is_popular';
     const COUNTRY = 'country';
@@ -296,16 +295,6 @@ class Brand extends AbstractModel implements BrandInterface
     public function setIsIndian($isIndian)
     {
         return $this->setData(self::IS_INDIAN, $isIndian);
-    }
-
-    public function getIsHomegrown()
-    {
-        return $this->getData(self::IS_HOMEGROWN);
-    }
-
-    public function setIsHomegrown($isHomegrown)
-    {
-        return $this->setData(self::IS_HOMEGROWN, $isHomegrown);
     }
 
     public function getIsTrending()

@@ -73,7 +73,7 @@ class ListingDataProvider extends \Magento\Framework\View\Element\UiComponent\Da
         }
         
         // Handle boolean filters specially
-        if (in_array($filter->getField(), ['is_korean', 'is_homegrown', 'is_trending', 'is_popular'])) {
+        if (in_array($filter->getField(), ['is_korean', 'is_trending', 'is_popular','is_global','is_japanese','is_african','is_indian'])) {
             $value = $filter->getValue();
             
             // Convert string 'Yes'/'No' to boolean 1/0

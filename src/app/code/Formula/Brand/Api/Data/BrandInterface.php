@@ -16,7 +16,6 @@ interface BrandInterface
     const IS_JAPANESE = 'is_japanese';
     const IS_AFRICAN = 'is_african';
     const IS_INDIAN = 'is_indian';
-    const IS_HOMEGROWN = 'is_homegrown';
     const IS_TRENDING = 'is_trending';
     const IS_POPULAR = 'is_popular';
     const COUNTRY = 'country';
@@ -167,17 +166,6 @@ interface BrandInterface
      * @return $this
      */
     public function setIsIndian($isIndian);
-
-    /**
-     * @return bool|null
-     */
-    public function getIsHomegrown();
-
-    /**
-     * @param bool $isHomegrown
-     * @return $this
-     */
-    public function setIsHomegrown($isHomegrown);
 
     /**
      * @return bool|null
