@@ -288,16 +288,22 @@ class BrandRepository implements BrandRepositoryInterface
     {
         $filterGroups = [];
 
-        if (isset($searchCriteriaData['filter_groups'])) {
-            foreach ($searchCriteriaData['filter_groups'] as $filterGroupData) {
+        // Support both filter_groups (snake_case) and filterGroups (camelCase)
+        $filterGroupsData = $searchCriteriaData['filter_groups'] ?? $searchCriteriaData['filterGroups'] ?? null;
+
+        if ($filterGroupsData) {
+            foreach ($filterGroupsData as $filterGroupData) {
                 if (isset($filterGroupData['filters'])) {
                     $filters = [];
                     foreach ($filterGroupData['filters'] as $filterData) {
                         if (isset($filterData['field']) && isset($filterData['value'])) {
+                            // Support both condition_type (snake_case) and conditionType (camelCase)
+                            $conditionType = $filterData['condition_type'] ?? $filterData['conditionType'] ?? 'eq';
+
                             $filter = $this->filterBuilder
                                 ->setField($filterData['field'])
                                 ->setValue($filterData['value'])
-                                ->setConditionType($filterData['condition_type'] ?? 'eq')
+                                ->setConditionType($conditionType)
                                 ->create();
                             $filters[] = $filter;
                         }
@@ -313,9 +319,11 @@ class BrandRepository implements BrandRepositoryInterface
         // Build the search criteria with filter groups
         $this->searchCriteriaBuilder->setFilterGroups($filterGroups);
 
-        // Add sort orders if present
-        if (isset($searchCriteriaData['sort_orders'])) {
-            foreach ($searchCriteriaData['sort_orders'] as $sortOrderData) {
+        // Add sort orders if present - support both sort_orders (snake_case) and sortOrders (camelCase)
+        $sortOrdersData = $searchCriteriaData['sort_orders'] ?? $searchCriteriaData['sortOrders'] ?? null;
+
+        if ($sortOrdersData) {
+            foreach ($sortOrdersData as $sortOrderData) {
                 if (isset($sortOrderData['field'])) {
                     $this->searchCriteriaBuilder->addSortOrder(
                         $sortOrderData['field'],
@@ -325,14 +333,16 @@ class BrandRepository implements BrandRepositoryInterface
             }
         }
 
-        // Add page size if present
-        if (isset($searchCriteriaData['page_size'])) {
-            $this->searchCriteriaBuilder->setPageSize($searchCriteriaData['page_size']);
+        // Add page size if present - support both page_size (snake_case) and pageSize (camelCase)
+        $pageSize = $searchCriteriaData['page_size'] ?? $searchCriteriaData['pageSize'] ?? null;
+        if ($pageSize) {
+            $this->searchCriteriaBuilder->setPageSize($pageSize);
         }
 
-        // Add current page if present
-        if (isset($searchCriteriaData['current_page'])) {
-            $this->searchCriteriaBuilder->setCurrentPage($searchCriteriaData['current_page']);
+        // Add current page if present - support both current_page (snake_case) and currentPage (camelCase)
+        $currentPage = $searchCriteriaData['current_page'] ?? $searchCriteriaData['currentPage'] ?? null;
+        if ($currentPage) {
+            $this->searchCriteriaBuilder->setCurrentPage($currentPage);
         }
 
         return $this->searchCriteriaBuilder->create();
