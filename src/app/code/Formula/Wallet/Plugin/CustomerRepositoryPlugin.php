@@ -8,6 +8,7 @@ use Magento\Framework\Authorization;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Registry;
 use Psr\Log\LoggerInterface;
 
 class CustomerRepositoryPlugin
@@ -33,26 +34,39 @@ class CustomerRepositoryPlugin
     protected $customerResource;
 
     /**
+     * @var Registry
+     */
+    protected $registry;
+
+    /**
      * @param Authorization $authorization
      * @param State $appState
      * @param CustomerResource $customerResource
+     * @param Registry $registry
      * @param LoggerInterface $logger
      */
     public function __construct(
         Authorization $authorization,
         State $appState,
         CustomerResource $customerResource,
+        Registry $registry,
         LoggerInterface $logger
     ) {
         $this->authorization = $authorization;
         $this->appState = $appState;
         $this->customerResource = $customerResource;
+        $this->registry = $registry;
         $this->logger = $logger;
     }
 
     /**
      * Prevent customers from updating their own wallet balance
      * Always preserve the original wallet balance from database
+     *
+     * EXCEPTION: Allow wallet balance updates from:
+     * - Admin area
+     * - Frontend area (order placement)
+     * - Global area (system operations)
      *
      * @param CustomerRepositoryInterface $subject
      * @param CustomerInterface $customer
@@ -67,6 +81,11 @@ class CustomerRepositoryPlugin
         try {
             // Only apply this restriction in webapi_rest area (customer API calls)
             $areaCode = $this->appState->getAreaCode();
+
+            // Don't interfere with:
+            // - adminhtml, webapi_soap: Admin operations
+            // - frontend, global: Order placement and system operations
+            // - crontab: Scheduled operations
             if ($areaCode !== 'webapi_rest') {
                 return [$customer, $passwordHash];
             }
@@ -75,6 +94,11 @@ class CustomerRepositoryPlugin
             // The dedicated wallet endpoint uses WalletManagementInterface, not CustomerRepository
             // So this check is for safety in case admin uses customer endpoint directly
             if ($this->authorization->isAllowed('Magento_Customer::manage')) {
+                return [$customer, $passwordHash];
+            }
+
+            // Check if a legitimate wallet operation is in progress (order placement, refund, etc.)
+            if ($this->registry->registry('wallet_balance_update_in_progress')) {
                 return [$customer, $passwordHash];
             }
 

@@ -56,6 +56,13 @@ class CustomerRepositorySavePlugin
         CustomerInterface $customer,
         $passwordHash = null
     ) {
+        // Only interfere with save for admin area updates
+        // For frontend/API saves (like order placement), pass through directly
+        if (!$this->shouldLogTransaction()) {
+            return $proceed($customer, $passwordHash);
+        }
+
+        // Admin area - track balance changes for transaction logging
         $customerId = $customer->getId();
         $oldBalance = 0;
 
@@ -104,7 +111,7 @@ class CustomerRepositorySavePlugin
                     null
                 );
 
-                $this->logger->info('Wallet transaction logged', [
+                $this->logger->info('Wallet transaction logged via plugin', [
                     'customer_id' => $result->getId(),
                     'type' => $transactionType,
                     'amount' => $transactionAmount,
@@ -122,6 +129,24 @@ class CustomerRepositorySavePlugin
         }
 
         return $result;
+    }
+
+    /**
+     * Check if transaction should be logged by this plugin
+     * Only log for admin area changes (panel or API)
+     *
+     * @return bool
+     */
+    protected function shouldLogTransaction()
+    {
+        try {
+            $areaCode = $this->appState->getAreaCode();
+            // Only log for admin areas
+            return $areaCode === 'adminhtml' || $areaCode === 'webapi_rest' || $areaCode === 'webapi_soap';
+        } catch (\Exception $e) {
+            $this->logger->error('Error determining area code: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**

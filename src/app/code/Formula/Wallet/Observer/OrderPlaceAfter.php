@@ -5,6 +5,7 @@ use Formula\Wallet\Api\Data\WalletTransactionInterface;
 use Formula\Wallet\Api\WalletTransactionRepositoryInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Registry;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
@@ -34,21 +35,29 @@ class OrderPlaceAfter implements ObserverInterface
     protected $transactionRepository;
 
     /**
+     * @var Registry
+     */
+    protected $registry;
+
+    /**
      * @param OrderRepositoryInterface $orderRepository
      * @param CustomerRepositoryInterface $customerRepository
      * @param LoggerInterface $logger
      * @param WalletTransactionRepositoryInterface $transactionRepository
+     * @param Registry $registry
      */
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         CustomerRepositoryInterface $customerRepository,
         LoggerInterface $logger,
-        WalletTransactionRepositoryInterface $transactionRepository
+        WalletTransactionRepositoryInterface $transactionRepository,
+        Registry $registry
     ) {
         $this->orderRepository = $orderRepository;
         $this->customerRepository = $customerRepository;
         $this->logger = $logger;
         $this->transactionRepository = $transactionRepository;
+        $this->registry = $registry;
     }
 
     /**
@@ -79,8 +88,14 @@ class OrderPlaceAfter implements ObserverInterface
 
             $newBalance = max(0, $currentWalletBalance - $walletAmountUsed);
             $customer->setCustomAttribute('wallet_balance', $newBalance);
-            
+
+            // Set registry flag to allow wallet balance update
+            $this->registry->register('wallet_balance_update_in_progress', true, true);
+
             $this->customerRepository->save($customer);
+
+            // Unregister the flag
+            $this->registry->unregister('wallet_balance_update_in_progress');
 
             // Add status history entry for wallet payment
             $order->addStatusHistoryComment(
@@ -98,7 +113,7 @@ class OrderPlaceAfter implements ObserverInterface
                 'new_balance' => $newBalance
             ]);
 
-            // Log transaction
+            // Log wallet transaction with order reference
             try {
                 $this->transactionRepository->createTransaction(
                     $customerId,

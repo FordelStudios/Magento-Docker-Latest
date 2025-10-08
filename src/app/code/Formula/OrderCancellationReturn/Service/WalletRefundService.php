@@ -6,6 +6,7 @@ use Formula\Wallet\Api\WalletTransactionRepositoryInterface;
 use Formula\Wallet\Api\Data\WalletTransactionInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Registry;
 use Psr\Log\LoggerInterface;
 
 class WalletRefundService
@@ -14,16 +15,19 @@ class WalletRefundService
     protected $transactionRepository;
     protected $customerRepository;
     protected $logger;
+    protected $registry;
 
     public function __construct(
         WalletManagementInterface $walletManagement,
         WalletTransactionRepositoryInterface $transactionRepository,
         CustomerRepositoryInterface $customerRepository,
+        Registry $registry,
         LoggerInterface $logger
     ) {
         $this->walletManagement = $walletManagement;
         $this->transactionRepository = $transactionRepository;
         $this->customerRepository = $customerRepository;
+        $this->registry = $registry;
         $this->logger = $logger;
     }
 
@@ -45,20 +49,23 @@ class WalletRefundService
                 throw new LocalizedException(__('Customer ID not found for this order.'));
             }
 
-            // Get current balance
+            // Get current balance before update
             $currentBalance = $this->walletManagement->getWalletBalance($customerId);
 
-            // Add refund amount to customer wallet
-            $result = $this->walletManagement->updateWalletBalance($customerId, $amount, 'add');
+            // Get customer and update wallet balance directly
+            $customer = $this->customerRepository->getById($customerId);
+            $newBalance = $currentBalance + $amount;
+            $customer->setCustomAttribute('wallet_balance', $newBalance);
 
-            if (!$result) {
-                throw new LocalizedException(__('Failed to update wallet balance.'));
-            }
+            // Set registry flag to allow wallet balance update
+            $this->registry->register('wallet_balance_update_in_progress', true, true);
 
-            // Get new balance
-            $newBalance = $this->walletManagement->getWalletBalance($customerId);
+            $this->customerRepository->save($customer);
 
-            // Log transaction with proper reference type
+            // Unregister the flag
+            $this->registry->unregister('wallet_balance_update_in_progress');
+
+            // Log transaction with proper reference type and order ID
             if ($referenceType) {
                 $description = $this->getRefundDescription($order, $referenceType);
 
