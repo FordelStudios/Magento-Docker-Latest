@@ -40,7 +40,7 @@ interface WalletManagementInterface
      *
      * @param int $customerId
      * @param int $cartId
-     * @return int Order ID
+     * @return \Formula\RazorpayApi\Api\Data\OrderResponseInterface
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      * @throws \Magento\Framework\Exception\LocalizedException
      */

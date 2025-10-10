@@ -14,6 +14,11 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Formula\Shiprocket\Service\ShiprocketShipmentService;
+use Psr\Log\LoggerInterface;
+use Formula\RazorpayApi\Api\Data\OrderResponseInterfaceFactory;
+use Magento\Sales\Model\Order;
 
 class WalletManagement implements WalletManagementInterface
 {
@@ -63,6 +68,26 @@ class WalletManagement implements WalletManagementInterface
     protected $sortOrderBuilder;
 
     /**
+     * @var OrderRepositoryInterface
+     */
+    protected $orderRepository;
+
+    /**
+     * @var ShiprocketShipmentService
+     */
+    protected $shiprocketShipmentService;
+
+    /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
+     * @var OrderResponseInterfaceFactory
+     */
+    protected $orderResponseFactory;
+
+    /**
      * @param CustomerRepositoryInterface $customerRepository
      * @param CartRepositoryInterface $quoteRepository
      * @param CartManagementInterface $cartManagement
@@ -72,6 +97,10 @@ class WalletManagement implements WalletManagementInterface
      * @param WalletTransactionRepositoryInterface $transactionRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param SortOrderBuilder $sortOrderBuilder
+     * @param OrderRepositoryInterface $orderRepository
+     * @param ShiprocketShipmentService $shiprocketShipmentService
+     * @param LoggerInterface $logger
+     * @param OrderResponseInterfaceFactory $orderResponseFactory
      */
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
@@ -82,7 +111,11 @@ class WalletManagement implements WalletManagementInterface
         PriceCurrencyInterface $priceCurrency,
         WalletTransactionRepositoryInterface $transactionRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        SortOrderBuilder $sortOrderBuilder
+        SortOrderBuilder $sortOrderBuilder,
+        OrderRepositoryInterface $orderRepository,
+        ShiprocketShipmentService $shiprocketShipmentService,
+        LoggerInterface $logger,
+        OrderResponseInterfaceFactory $orderResponseFactory
     ) {
         $this->customerRepository = $customerRepository;
         $this->quoteRepository = $quoteRepository;
@@ -93,6 +126,10 @@ class WalletManagement implements WalletManagementInterface
         $this->transactionRepository = $transactionRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->sortOrderBuilder = $sortOrderBuilder;
+        $this->orderRepository = $orderRepository;
+        $this->shiprocketShipmentService = $shiprocketShipmentService;
+        $this->logger = $logger;
+        $this->orderResponseFactory = $orderResponseFactory;
     }
 
     /**
@@ -183,6 +220,9 @@ class WalletManagement implements WalletManagementInterface
      */
     public function placeOrderWithWallet($customerId, $cartId)
     {
+        /** @var \Formula\RazorpayApi\Api\Data\OrderResponseInterface $response */
+        $response = $this->orderResponseFactory->create();
+
         try {
             $quote = $this->quoteRepository->get($cartId);
 
@@ -215,11 +255,104 @@ class WalletManagement implements WalletManagementInterface
 
             $this->quoteRepository->save($quote);
 
+            // Create order
             $orderId = $this->cartManagement->placeOrder($cartId);
 
-            return $orderId;
+            // Load the created order
+            $order = $this->orderRepository->get($orderId);
+
+            // Create Shiprocket shipment automatically
+            $shipmentData = $this->createShiprocketShipment($order);
+
+            // Build successful response
+            $response->setSuccess(true);
+            $response->setOrderId($orderId);
+            $response->setIncrementId($order->getIncrementId());
+            $response->setStatus($order->getStatus());
+            $response->setState($order->getState());
+            $response->setTotalAmount($order->getGrandTotal());
+            $response->setCurrency($order->getOrderCurrencyCode());
+            $response->setCreatedAt($order->getCreatedAt());
+
+            // Add shipment information to response
+            if ($shipmentData && $shipmentData['success']) {
+                $response->setMessage('Order created with wallet payment and shipment scheduled successfully!');
+
+                // Set shipment tracking fields
+                $response->setShiprocketOrderId($shipmentData['shiprocket_order_id'] ?? null);
+                $response->setShiprocketShipmentId($shipmentData['shipment_id'] ?? null);
+                $response->setShiprocketAwbNumber($shipmentData['awb_code'] ?? null);
+                $response->setShiprocketCourierName($shipmentData['courier_name'] ?? null);
+            } else {
+                $response->setMessage('Order created with wallet payment successfully!');
+            }
+
         } catch (NoSuchEntityException $e) {
-            throw new NoSuchEntityException(__('Cart with ID "%1" does not exist.', $cartId));
+            // Build error response
+            $response->setSuccess(false);
+            $response->setError(true);
+            $response->setMessage(__('Cart with ID "%1" does not exist.', $cartId));
+            $response->setErrorCode($e->getCode());
+        } catch (\Exception $e) {
+            // Build error response
+            $response->setSuccess(false);
+            $response->setError(true);
+            $response->setMessage($e->getMessage());
+            $response->setErrorCode($e->getCode());
+        }
+
+        return $response;
+    }
+
+    /**
+     * Create Shiprocket shipment for order
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @return array
+     */
+    private function createShiprocketShipment($order)
+    {
+        try {
+            $this->logger->info('Attempting to create Shiprocket shipment for wallet order: ' . $order->getIncrementId());
+
+            // Create shipment through ShiprocketShipmentService
+            $shipmentResult = $this->shiprocketShipmentService->createShipment($order);
+
+            if ($shipmentResult['success']) {
+                // Store shipment data in order
+                $order->setData('shiprocket_order_id', $shipmentResult['shiprocket_order_id']);
+                $order->setData('shiprocket_shipment_id', $shipmentResult['shipment_id']);
+                $order->setData('shiprocket_awb_number', $shipmentResult['awb_code']);
+                $order->setData('shiprocket_courier_name', $shipmentResult['courier_name']);
+
+                // Update order status to shipment created
+                $order->setStatus('shipment_created');
+
+                // Add order comment
+                $comment = sprintf(
+                    'Shiprocket shipment created successfully. Shipment ID: %s, AWB: %s, Courier: %s',
+                    $shipmentResult['shipment_id'],
+                    $shipmentResult['awb_code'] ?: 'TBD',
+                    $shipmentResult['courier_name'] ?: 'TBD'
+                );
+                $order->addStatusHistoryComment($comment, 'shipment_created');
+
+                // Save order with shipment data
+                $this->orderRepository->save($order);
+
+                $this->logger->info('Shiprocket shipment created successfully for wallet order: ' . $order->getIncrementId(), $shipmentResult);
+
+                return $shipmentResult;
+            } else {
+                // Log error but don't fail the order creation
+                $this->logger->warning('Shiprocket shipment creation failed for wallet order: ' . $order->getIncrementId(), $shipmentResult);
+                return ['success' => false, 'message' => 'Shipment creation failed'];
+            }
+
+        } catch (\Exception $e) {
+            // Log error but don't fail the order creation
+            $this->logger->error('Exception during shipment creation for wallet order: ' . $order->getIncrementId() . ' - ' . $e->getMessage());
+            return ['success' => false, 'message' => $e->getMessage()];
         }
     }
 

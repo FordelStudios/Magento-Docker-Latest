@@ -93,8 +93,9 @@ class OrderManagement implements OrderManagementInterface
             
             // **IMPORTANT: Process the payment and update order status**
             $this->processPaymentAndUpdateOrder($order, $paymentData);
-            
+
             // Create Shiprocket shipment automatically
+            $this->logger->info('Attempting to create Shiprocket shipment for Razorpay order: ' . $order->getIncrementId());
             $shipmentData = $this->createShiprocketShipment($order);
             
             // Update Razorpay table
@@ -196,17 +197,17 @@ class OrderManagement implements OrderManagementInterface
         try {
             // Create shipment through ShiprocketShipmentService
             $shipmentResult = $this->shiprocketShipmentService->createShipment($order);
-            
+
             if ($shipmentResult['success']) {
                 // Store shipment data in order
                 $order->setData('shiprocket_order_id', $shipmentResult['shiprocket_order_id']);
                 $order->setData('shiprocket_shipment_id', $shipmentResult['shipment_id']);
                 $order->setData('shiprocket_awb_number', $shipmentResult['awb_code']);
                 $order->setData('shiprocket_courier_name', $shipmentResult['courier_name']);
-                
+
                 // Update order status to shipment created
                 $order->setStatus('shipment_created');
-                
+
                 // Add order comment
                 $comment = sprintf(
                     'Shiprocket shipment created successfully. Shipment ID: %s, AWB: %s, Courier: %s',
@@ -215,22 +216,22 @@ class OrderManagement implements OrderManagementInterface
                     $shipmentResult['courier_name'] ?: 'TBD'
                 );
                 $order->addStatusHistoryComment($comment, 'shipment_created');
-                
+
                 // Save order with shipment data
                 $this->orderRepository->save($order);
-                
-                $this->logger->info('Shiprocket shipment created for order: ' . $order->getIncrementId(), $shipmentResult);
-                
+
+                $this->logger->info('Shiprocket shipment created successfully for Razorpay order: ' . $order->getIncrementId(), $shipmentResult);
+
                 return $shipmentResult;
             } else {
                 // Log error but don't fail the order creation
-                $this->logger->warning('Shiprocket shipment creation failed for order: ' . $order->getIncrementId(), $shipmentResult);
+                $this->logger->warning('Shiprocket shipment creation failed for Razorpay order: ' . $order->getIncrementId(), $shipmentResult);
                 return ['success' => false, 'message' => 'Shipment creation failed'];
             }
-            
+
         } catch (\Exception $e) {
             // Log error but don't fail the order creation
-            $this->logger->error('Exception during shipment creation for order: ' . $order->getIncrementId() . ' - ' . $e->getMessage());
+            $this->logger->error('Exception during shipment creation for Razorpay order: ' . $order->getIncrementId() . ' - ' . $e->getMessage());
             return ['success' => false, 'message' => $e->getMessage()];
         }
     }
