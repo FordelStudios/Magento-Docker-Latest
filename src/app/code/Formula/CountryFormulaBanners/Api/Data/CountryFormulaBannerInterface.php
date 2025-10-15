@@ -14,6 +14,9 @@ interface CountryFormulaBannerInterface
     const IS_ACTIVE = 'is_active';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
+    const IS_CAROUSEL_BANNER = 'is_carousel_banner';
+    const IS_DISCOUNT_BANNER = 'is_discount_banner';
+    const IS_SALE_BANNER = 'is_sale_banner';
 
     /**
      * Get ID
@@ -119,4 +122,49 @@ interface CountryFormulaBannerInterface
      * @return $this
      */
     public function setUpdatedAt($updatedAt);
+
+    /**
+     * Get carousel banner
+     *
+     * @return bool
+     */
+    public function getIsCarouselBanner();
+
+    /**
+     * Set carousel banner
+     *
+     * @param bool $isCarouselBanner
+     * @return $this
+     */
+    public function setIsCarouselBanner($isCarouselBanner);
+
+    /**
+     * Get discount banner
+     *
+     * @return bool
+     */
+    public function getIsDiscountBanner();
+
+    /**
+     * Set discount banner
+     *
+     * @param bool $isDiscountBanner
+     * @return $this
+     */
+    public function setIsDiscountBanner($isDiscountBanner);
+
+    /**
+     * Get sale banner
+     *
+     * @return bool
+     */
+    public function getIsSaleBanner();
+
+    /**
+     * Set sale banner
+     *
+     * @param bool $isSaleBanner
+     * @return $this
+     */
+    public function setIsSaleBanner($isSaleBanner);
 }

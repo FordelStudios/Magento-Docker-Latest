@@ -146,7 +146,86 @@ class CountryFormulaBanner extends AbstractModel implements CountryFormulaBanner
         return $this->setData(self::UPDATED_AT, $updatedAt);
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getIsCarouselBanner()
+    {
+        return (bool) $this->getData(self::IS_CAROUSEL_BANNER);
+    }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function setIsCarouselBanner($isCarouselBanner)
+    {
+        // Convert various representations of boolean to 0/1
+        if (is_string($isCarouselBanner)) {
+            if (strtolower($isCarouselBanner) === 'true' || $isCarouselBanner === '1') {
+                $isCarouselBanner = 1;
+            } else if (strtolower($isCarouselBanner) === 'false' || $isCarouselBanner === '0') {
+                $isCarouselBanner = 0;
+            }
+        } else if (is_bool($isCarouselBanner)) {
+            $isCarouselBanner = $isCarouselBanner ? 1 : 0;
+        }
+
+        return $this->setData(self::IS_CAROUSEL_BANNER, $isCarouselBanner);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIsDiscountBanner()
+    {
+        return (bool) $this->getData(self::IS_DISCOUNT_BANNER);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setIsDiscountBanner($isDiscountBanner)
+    {
+        // Convert various representations of boolean to 0/1
+        if (is_string($isDiscountBanner)) {
+            if (strtolower($isDiscountBanner) === 'true' || $isDiscountBanner === '1') {
+                $isDiscountBanner = 1;
+            } else if (strtolower($isDiscountBanner) === 'false' || $isDiscountBanner === '0') {
+                $isDiscountBanner = 0;
+            }
+        } else if (is_bool($isDiscountBanner)) {
+            $isDiscountBanner = $isDiscountBanner ? 1 : 0;
+        }
+
+        return $this->setData(self::IS_DISCOUNT_BANNER, $isDiscountBanner);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIsSaleBanner()
+    {
+        return (bool) $this->getData(self::IS_SALE_BANNER);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setIsSaleBanner($isSaleBanner)
+    {
+        // Convert various representations of boolean to 0/1
+        if (is_string($isSaleBanner)) {
+            if (strtolower($isSaleBanner) === 'true' || $isSaleBanner === '1') {
+                $isSaleBanner = 1;
+            } else if (strtolower($isSaleBanner) === 'false' || $isSaleBanner === '0') {
+                $isSaleBanner = 0;
+            }
+        } else if (is_bool($isSaleBanner)) {
+            $isSaleBanner = $isSaleBanner ? 1 : 0;
+        }
+
+        return $this->setData(self::IS_SALE_BANNER, $isSaleBanner);
+    }
 
     /**
      * Process data before saving
