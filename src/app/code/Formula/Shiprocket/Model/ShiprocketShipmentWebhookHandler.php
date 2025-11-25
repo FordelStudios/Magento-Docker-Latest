@@ -69,6 +69,7 @@ class ShiprocketShipmentWebhookHandler
                 case 'delivered':
                     return $this->handleShipmentDelivered($order, $webhookData);
                     
+                case 'canceled':
                 case 'cancelled':
                 case 'shipment_cancelled':
                     return $this->handleShipmentCancelled($order, $webhookData);
