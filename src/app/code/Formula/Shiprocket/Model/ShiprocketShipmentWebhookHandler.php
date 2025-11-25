@@ -41,7 +41,10 @@ class ShiprocketShipmentWebhookHandler
 
             $orderIncrementId = $webhookData['order_id'];
             $currentStatus = $webhookData['current_status'];
-            
+
+            // Shiprocket sometimes appends -1, -2 etc. to order IDs - strip this suffix
+            $orderIncrementId = preg_replace('/-\d+$/', '', $orderIncrementId);
+
             // Find the order
             $order = $this->findOrderByIncrementId($orderIncrementId);
             if (!$order) {
