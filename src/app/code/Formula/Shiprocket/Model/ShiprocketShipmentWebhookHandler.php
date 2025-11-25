@@ -102,7 +102,7 @@ class ShiprocketShipmentWebhookHandler
     protected function handleShipmentPickupScheduled($order, $webhookData)
     {
         $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
-        $order->setStatus('processing');
+        $order->setStatus('pickup_scheduled');
 
         $message = '[Shiprocket] Pickup Scheduled';
         if (isset($webhookData['awb']) && !empty($webhookData['awb'])) {
@@ -130,7 +130,7 @@ class ShiprocketShipmentWebhookHandler
     protected function handleShipmentPicked($order, $webhookData)
     {
         $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
-        $order->setStatus('processing');
+        $order->setStatus('shipped');
 
         $message = '[Shiprocket] Package Picked Up';
         if (isset($webhookData['awb']) && !empty($webhookData['awb'])) {
@@ -156,7 +156,7 @@ class ShiprocketShipmentWebhookHandler
     protected function handleShipmentInTransit($order, $webhookData)
     {
         $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
-        $order->setStatus('processing');
+        $order->setStatus('in_transit');
 
         $message = '[Shiprocket] In Transit';
         if (isset($webhookData['awb']) && !empty($webhookData['awb'])) {
@@ -182,7 +182,7 @@ class ShiprocketShipmentWebhookHandler
     protected function handleShipmentOutForDelivery($order, $webhookData)
     {
         $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
-        $order->setStatus('processing');
+        $order->setStatus('out_for_delivery');
 
         $message = '[Shiprocket] Out for Delivery';
         if (isset($webhookData['awb']) && !empty($webhookData['awb'])) {
@@ -208,7 +208,7 @@ class ShiprocketShipmentWebhookHandler
     protected function handleShipmentDelivered($order, $webhookData)
     {
         $order->setState(\Magento\Sales\Model\Order::STATE_COMPLETE);
-        $order->setStatus('complete');
+        $order->setStatus('delivered');
 
         $message = '[Shiprocket] Delivered';
         if (isset($webhookData['delivered_date']) && !empty($webhookData['delivered_date'])) {
@@ -234,7 +234,7 @@ class ShiprocketShipmentWebhookHandler
     protected function handleShipmentCancelled($order, $webhookData)
     {
         $order->setState(\Magento\Sales\Model\Order::STATE_CANCELED);
-        $order->setStatus('canceled');
+        $order->setStatus('shipment_cancelled');
 
         $message = '[Shiprocket] Shipment Cancelled';
         if (isset($webhookData['reason']) && !empty($webhookData['reason'])) {
@@ -260,7 +260,7 @@ class ShiprocketShipmentWebhookHandler
     protected function handleShipmentRTO($order, $webhookData)
     {
         $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
-        $order->setStatus('processing');
+        $order->setStatus('rto_initiated');
 
         $message = '[Shiprocket] RTO Initiated';
         if (isset($webhookData['reason']) && !empty($webhookData['reason'])) {
@@ -286,7 +286,7 @@ class ShiprocketShipmentWebhookHandler
     protected function handleShipmentRTODelivered($order, $webhookData)
     {
         $order->setState(\Magento\Sales\Model\Order::STATE_CLOSED);
-        $order->setStatus('closed');
+        $order->setStatus('rto_delivered');
 
         $message = '[Shiprocket] RTO Delivered - Package returned to origin';
         if (isset($webhookData['delivered_date']) && !empty($webhookData['delivered_date'])) {
