@@ -25,6 +25,7 @@ class Brand extends AbstractModel implements BrandInterface
     const IS_INDIAN = 'is_indian';
     const IS_TRENDING = 'is_trending';
     const IS_POPULAR = 'is_popular';
+    const IS_SALE = 'is_sale';
     const COUNTRY = 'country';
     const CERTIFICATIONS = 'certifications';
     const CREATED_AT = 'created_at';
@@ -315,6 +316,16 @@ class Brand extends AbstractModel implements BrandInterface
     public function setIsPopular($isPopular)
     {
         return $this->setData(self::IS_POPULAR, $isPopular);
+    }
+
+    public function getIsSale()
+    {
+        return $this->getData(self::IS_SALE);
+    }
+
+    public function setIsSale($isSale)
+    {
+        return $this->setData(self::IS_SALE, $isSale);
     }
 
     public function getCountry()

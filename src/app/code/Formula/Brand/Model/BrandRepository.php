@@ -144,6 +144,7 @@ class BrandRepository implements BrandRepositoryInterface
                     'is_indian' => (bool)$item->getIsIndian(),
                     'is_trending' => (bool)$item->getIsTrending(),
                     'is_popular' => (bool)$item->getIsPopular(),
+                    'is_sale' => (bool)$item->getIsSale(),
                     'country' => $item->getCountry(),
                     'certifications' => $item->getCertifications(),
                     'created_at' => $item->getCreatedAt(),
@@ -252,6 +253,10 @@ class BrandRepository implements BrandRepositoryInterface
 
             if (isset($data['is_popular'])) {
                 $existingBrand->setIsPopular($brand->getIsPopular());
+            }
+
+            if (isset($data['is_sale'])) {
+                $existingBrand->setIsSale($brand->getIsSale());
             }
 
             if (isset($data['country'])) {

@@ -242,6 +242,23 @@
                 <label translate="true">Popular Brand</label>
             </settings>
         </column>
+        <column name="is_sale" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <filter>select</filter>
+                <options>
+                    <option name="0" xsi:type="array">
+                        <item name="value" xsi:type="number">0</item>
+                        <item name="label" xsi:type="string" translate="true">No</item>
+                    </option>
+                    <option name="1" xsi:type="array">
+                        <item name="value" xsi:type="number">1</item>
+                        <item name="label" xsi:type="string" translate="true">Yes</item>
+                    </option>
+                </options>
+                <dataType>select</dataType>
+                <label translate="true">Sale Brand</label>
+            </settings>
+        </column>
         <column name="promotional_banners" class="Formula\Brand\Ui\Component\Listing\Column\PromotionalBanners">
             <settings>
                 <label translate="true">Promotional Banners</label>

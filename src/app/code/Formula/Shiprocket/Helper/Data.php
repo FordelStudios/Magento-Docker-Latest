@@ -91,4 +91,15 @@ class Data extends AbstractHelper
     {
         return (bool) $this->getConfigValue('debug_mode', $storeId);
     }
+
+    /**
+     * Get webhook secret key
+     *
+     * @param string|null $storeId
+     * @return string|null
+     */
+    public function getWebhookSecretKey($storeId = null)
+    {
+        return $this->getConfigValue('webhook_secret_key', $storeId);
+    }
 }

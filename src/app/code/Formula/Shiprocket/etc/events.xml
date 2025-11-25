@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <!-- Sync COD orders to Shiprocket after order placement -->
+    <event name="sales_order_place_after">
+        <observer name="formula_shiprocket_cod_order_sync"
+                  instance="Formula\Shiprocket\Observer\CodOrderShiprocketSync"/>
+    </event>
+</config>

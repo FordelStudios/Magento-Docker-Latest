@@ -211,7 +211,7 @@ class ShiprocketShipmentService
             'shipping_email' => $shippingAddress->getEmail(),
             'shipping_phone' => $shippingAddress->getTelephone(),
             'order_items' => $orderItems,
-            'payment_method' => 'Prepaid', // Razorpay orders are prepaid
+            'payment_method' => $this->getShiprocketPaymentMethod($order),
             'shipping_charges' => $order->getShippingAmount(),
             'giftwrap_charges' => 0,
             'transaction_charges' => 0,
@@ -262,5 +262,20 @@ class ShiprocketShipmentService
             $errorMessage = $responseData['message'] ?? 'HTTP Error ' . $httpCode;
             throw new LocalizedException(__('Shiprocket API error: %1', $errorMessage));
         }
+    }
+
+    /**
+     * Get Shiprocket payment method based on order payment
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @return string
+     */
+    protected function getShiprocketPaymentMethod($order)
+    {
+        $payment = $order->getPayment();
+        if ($payment && $payment->getMethod() === 'cashondelivery') {
+            return 'COD';
+        }
+        return 'Prepaid';
     }
 }

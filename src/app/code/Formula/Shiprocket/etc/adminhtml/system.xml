@@ -32,6 +32,11 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Enable debug logging for Shiprocket API calls</comment>
                 </field>
+                <field id="webhook_secret_key" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Webhook Secret Key</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment>Enter a strong secret key. Use this same key in Shiprocket dashboard webhook x-api-key header. Webhook URL: https://admin.theformulashop.com/rest/V1/shiprocket/webhook/status-update</comment>
+                </field>
             </group>
         </section>
     </system>

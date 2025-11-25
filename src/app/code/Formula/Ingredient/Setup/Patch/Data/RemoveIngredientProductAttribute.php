@@ -53,8 +53,7 @@ class RemoveIngredientProductAttribute implements DataPatchInterface
     public static function getDependencies()
     {
         return [
-            CreateKeyIngredientsProductAttribute::class,
-            CreateAllIngredientsProductAttribute::class
+            CreateKeyIngredientsProductAttribute::class
         ];
     }
 

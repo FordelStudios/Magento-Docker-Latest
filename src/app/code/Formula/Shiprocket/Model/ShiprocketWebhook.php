@@ -4,6 +4,7 @@ namespace Formula\Shiprocket\Model;
 use Formula\Shiprocket\Api\ShiprocketWebhookInterface;
 use Formula\Shiprocket\Model\ShiprocketWebhookHandler;
 use Formula\Shiprocket\Model\ShiprocketShipmentWebhookHandler;
+use Formula\Shiprocket\Helper\Data as ShiprocketHelper;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Framework\Exception\LocalizedException;
 use Psr\Log\LoggerInterface;
@@ -14,17 +15,20 @@ class ShiprocketWebhook implements ShiprocketWebhookInterface
     protected $shipmentWebhookHandler;
     protected $request;
     protected $logger;
+    protected $shiprocketHelper;
 
     public function __construct(
         ShiprocketWebhookHandler $returnWebhookHandler,
         ShiprocketShipmentWebhookHandler $shipmentWebhookHandler,
         Request $request,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ShiprocketHelper $shiprocketHelper
     ) {
         $this->returnWebhookHandler = $returnWebhookHandler;
         $this->shipmentWebhookHandler = $shipmentWebhookHandler;
         $this->request = $request;
         $this->logger = $logger;
+        $this->shiprocketHelper = $shiprocketHelper;
     }
 
     /**
@@ -92,8 +96,21 @@ class ShiprocketWebhook implements ShiprocketWebhookInterface
      */
     protected function verifyApiKey($apiKey)
     {
-        // TODO: Get configured API key from Shiprocket config
-        // For now, just check if key exists
-        return !empty($apiKey);
+        $configuredKey = $this->shiprocketHelper->getWebhookSecretKey();
+
+        // If no key is configured, log warning and reject
+        if (empty($configuredKey)) {
+            $this->logger->warning('Shiprocket webhook secret key not configured in admin. Please configure it under Stores > Configuration > Formula > Shiprocket.');
+            return false;
+        }
+
+        // If no key provided in request, reject
+        if (empty($apiKey)) {
+            $this->logger->warning('Shiprocket webhook received without x-api-key header');
+            return false;
+        }
+
+        // Use hash_equals for timing-safe comparison
+        return hash_equals($configuredKey, $apiKey);
     }
 }

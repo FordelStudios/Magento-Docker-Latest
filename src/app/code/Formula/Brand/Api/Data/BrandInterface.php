@@ -18,6 +18,7 @@ interface BrandInterface
     const IS_INDIAN = 'is_indian';
     const IS_TRENDING = 'is_trending';
     const IS_POPULAR = 'is_popular';
+    const IS_SALE = 'is_sale';
     const COUNTRY = 'country';
     const CERTIFICATIONS = 'certifications';
     const CREATED_AT = 'created_at';
@@ -186,8 +187,19 @@ interface BrandInterface
     /**
      * @param bool $isPopular
      * @return $this
-     */    
+     */
     public function setIsPopular($isPopular);
+
+    /**
+     * @return bool|null
+     */
+    public function getIsSale();
+
+    /**
+     * @param bool $isSale
+     * @return $this
+     */
+    public function setIsSale($isSale);
 
     /**
      * @return string|null

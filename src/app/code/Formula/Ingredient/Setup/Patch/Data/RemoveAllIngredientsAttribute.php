@@ -51,9 +51,7 @@ class RemoveAllIngredientsAttribute implements DataPatchInterface
      */
     public static function getDependencies()
     {
-        return [
-            CreateAllIngredientsProductAttribute::class
-        ];
+        return [];
     }
 
     /**
