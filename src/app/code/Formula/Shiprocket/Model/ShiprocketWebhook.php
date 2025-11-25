@@ -42,13 +42,21 @@ class ShiprocketWebhook implements ShiprocketWebhookInterface
     {
         try {
             // Get webhook data from request body if not provided
-            if ($webhookData === null) {
+            if ($webhookData === null || empty($webhookData)) {
                 $webhookData = $this->request->getBodyParams();
             }
 
             // Convert to array if it's an object
             if (is_object($webhookData)) {
                 $webhookData = json_decode(json_encode($webhookData), true);
+            }
+
+            // If data is still empty, try reading raw input
+            if (empty($webhookData)) {
+                $rawInput = file_get_contents('php://input');
+                if ($rawInput) {
+                    $webhookData = json_decode($rawInput, true);
+                }
             }
 
             $this->logger->info('Shiprocket unified webhook received', ['data' => $webhookData]);
