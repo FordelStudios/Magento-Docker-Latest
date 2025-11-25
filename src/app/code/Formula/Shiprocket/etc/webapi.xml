@@ -7,8 +7,16 @@
         </resources>
     </route>
 
-        <!-- Unified Shiprocket webhook for all status updates (shipments and returns) -->
+    <!-- Unified Shiprocket webhook for all status updates (shipments and returns) -->
     <route url="/V1/shiprocket/webhook/status-update" method="POST">
+        <service class="Formula\Shiprocket\Api\ShiprocketWebhookInterface" method="handleStatusUpdate"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <!-- Alias endpoint for shipping webhook (Shiprocket blocks URLs containing "shiprocket") -->
+    <route url="/V1/shipping/webhook/tracking-update" method="POST">
         <service class="Formula\Shiprocket\Api\ShiprocketWebhookInterface" method="handleStatusUpdate"/>
         <resources>
             <resource ref="anonymous"/>
