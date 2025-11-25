@@ -41,10 +41,7 @@ class ShiprocketShipmentWebhookHandler
 
             $orderIncrementId = $webhookData['order_id'];
             $currentStatus = $webhookData['current_status'];
-
-            // Shiprocket sometimes appends -1, -2 etc. to order IDs - strip this suffix
-            $orderIncrementId = preg_replace('/-\d+$/', '', $orderIncrementId);
-
+            
             // Find the order
             $order = $this->findOrderByIncrementId($orderIncrementId);
             if (!$order) {
@@ -104,21 +101,22 @@ class ShiprocketShipmentWebhookHandler
      */
     protected function handleShipmentPickupScheduled($order, $webhookData)
     {
-        $order->setStatus('shipment_pickup_scheduled');
-        
-        $message = 'Shipment pickup scheduled';
-        if (isset($webhookData['awb'])) {
-            $message .= ' (AWB: ' . $webhookData['awb'] . ')';
+        $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
+        $order->setStatus('processing');
+
+        $message = '[Shiprocket] Pickup Scheduled';
+        if (isset($webhookData['awb']) && !empty($webhookData['awb'])) {
+            $message .= ' | AWB: ' . $webhookData['awb'];
             $order->setData('shiprocket_awb_number', $webhookData['awb']);
         }
-        if (isset($webhookData['courier_name'])) {
-            $message .= ' via ' . $webhookData['courier_name'];
+        if (isset($webhookData['courier_name']) && !empty($webhookData['courier_name'])) {
+            $message .= ' | Courier: ' . $webhookData['courier_name'];
             $order->setData('shiprocket_courier_name', $webhookData['courier_name']);
         }
-        
-        $order->addStatusHistoryComment($message, 'shipment_pickup_scheduled');
+
+        $order->addCommentToStatusHistory($message);
         $this->orderRepository->save($order);
-        
+
         return ['success' => true, 'message' => 'Shipment pickup scheduled status updated'];
     }
 
@@ -131,19 +129,20 @@ class ShiprocketShipmentWebhookHandler
      */
     protected function handleShipmentPicked($order, $webhookData)
     {
-        $order->setStatus('shipment_picked');
-        
-        $message = 'Package picked up by courier';
-        if (isset($webhookData['awb'])) {
-            $message .= ' (AWB: ' . $webhookData['awb'] . ')';
+        $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
+        $order->setStatus('processing');
+
+        $message = '[Shiprocket] Package Picked Up';
+        if (isset($webhookData['awb']) && !empty($webhookData['awb'])) {
+            $message .= ' | AWB: ' . $webhookData['awb'];
         }
-        if (isset($webhookData['pickup_date'])) {
-            $message .= ' on ' . $webhookData['pickup_date'];
+        if (isset($webhookData['pickup_date']) && !empty($webhookData['pickup_date'])) {
+            $message .= ' | Date: ' . $webhookData['pickup_date'];
         }
-        
-        $order->addStatusHistoryComment($message, 'shipment_picked');
+
+        $order->addCommentToStatusHistory($message);
         $this->orderRepository->save($order);
-        
+
         return ['success' => true, 'message' => 'Shipment picked status updated'];
     }
 
@@ -156,19 +155,20 @@ class ShiprocketShipmentWebhookHandler
      */
     protected function handleShipmentInTransit($order, $webhookData)
     {
-        $order->setStatus('shipment_in_transit');
-        
-        $message = 'Package in transit';
-        if (isset($webhookData['awb'])) {
-            $message .= ' (AWB: ' . $webhookData['awb'] . ')';
+        $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
+        $order->setStatus('processing');
+
+        $message = '[Shiprocket] In Transit';
+        if (isset($webhookData['awb']) && !empty($webhookData['awb'])) {
+            $message .= ' | AWB: ' . $webhookData['awb'];
         }
-        if (isset($webhookData['current_location'])) {
-            $message .= ' - Current location: ' . $webhookData['current_location'];
+        if (isset($webhookData['current_location']) && !empty($webhookData['current_location'])) {
+            $message .= ' | Location: ' . $webhookData['current_location'];
         }
-        
-        $order->addStatusHistoryComment($message, 'shipment_in_transit');
+
+        $order->addCommentToStatusHistory($message);
         $this->orderRepository->save($order);
-        
+
         return ['success' => true, 'message' => 'Shipment in transit status updated'];
     }
 
@@ -181,19 +181,20 @@ class ShiprocketShipmentWebhookHandler
      */
     protected function handleShipmentOutForDelivery($order, $webhookData)
     {
-        $order->setStatus('shipment_out_for_delivery');
-        
-        $message = 'Package out for delivery';
-        if (isset($webhookData['awb'])) {
-            $message .= ' (AWB: ' . $webhookData['awb'] . ')';
+        $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
+        $order->setStatus('processing');
+
+        $message = '[Shiprocket] Out for Delivery';
+        if (isset($webhookData['awb']) && !empty($webhookData['awb'])) {
+            $message .= ' | AWB: ' . $webhookData['awb'];
         }
-        if (isset($webhookData['expected_delivery_date'])) {
-            $message .= ' - Expected delivery: ' . $webhookData['expected_delivery_date'];
+        if (isset($webhookData['expected_delivery_date']) && !empty($webhookData['expected_delivery_date'])) {
+            $message .= ' | ETA: ' . $webhookData['expected_delivery_date'];
         }
-        
-        $order->addStatusHistoryComment($message, 'shipment_out_for_delivery');
+
+        $order->addCommentToStatusHistory($message);
         $this->orderRepository->save($order);
-        
+
         return ['success' => true, 'message' => 'Out for delivery status updated'];
     }
 
@@ -206,19 +207,20 @@ class ShiprocketShipmentWebhookHandler
      */
     protected function handleShipmentDelivered($order, $webhookData)
     {
+        $order->setState(\Magento\Sales\Model\Order::STATE_COMPLETE);
         $order->setStatus('complete');
-        
-        $message = 'Package delivered successfully';
-        if (isset($webhookData['delivered_date'])) {
-            $message .= ' on ' . $webhookData['delivered_date'];
+
+        $message = '[Shiprocket] Delivered';
+        if (isset($webhookData['delivered_date']) && !empty($webhookData['delivered_date'])) {
+            $message .= ' | Date: ' . $webhookData['delivered_date'];
         }
-        if (isset($webhookData['awb'])) {
-            $message .= ' (AWB: ' . $webhookData['awb'] . ')';
+        if (isset($webhookData['awb']) && !empty($webhookData['awb'])) {
+            $message .= ' | AWB: ' . $webhookData['awb'];
         }
-        
-        $order->addStatusHistoryComment($message, 'complete');
+
+        $order->addCommentToStatusHistory($message);
         $this->orderRepository->save($order);
-        
+
         return ['success' => true, 'message' => 'Package delivered, order completed'];
     }
 
@@ -231,19 +233,20 @@ class ShiprocketShipmentWebhookHandler
      */
     protected function handleShipmentCancelled($order, $webhookData)
     {
-        $order->setStatus('shipment_cancelled');
-        
-        $message = 'Shipment cancelled';
-        if (isset($webhookData['reason'])) {
-            $message .= ' (Reason: ' . $webhookData['reason'] . ')';
+        $order->setState(\Magento\Sales\Model\Order::STATE_CANCELED);
+        $order->setStatus('canceled');
+
+        $message = '[Shiprocket] Shipment Cancelled';
+        if (isset($webhookData['reason']) && !empty($webhookData['reason'])) {
+            $message .= ' | Reason: ' . $webhookData['reason'];
         }
-        if (isset($webhookData['awb'])) {
-            $message .= ' (AWB: ' . $webhookData['awb'] . ')';
+        if (isset($webhookData['awb']) && !empty($webhookData['awb'])) {
+            $message .= ' | AWB: ' . $webhookData['awb'];
         }
-        
-        $order->addStatusHistoryComment($message, 'shipment_cancelled');
+
+        $order->addCommentToStatusHistory($message);
         $this->orderRepository->save($order);
-        
+
         return ['success' => true, 'message' => 'Shipment cancelled status updated'];
     }
 
@@ -256,19 +259,20 @@ class ShiprocketShipmentWebhookHandler
      */
     protected function handleShipmentRTO($order, $webhookData)
     {
-        $order->setStatus('shipment_rto');
-        
-        $message = 'Return to Origin (RTO) initiated';
-        if (isset($webhookData['reason'])) {
-            $message .= ' (Reason: ' . $webhookData['reason'] . ')';
+        $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
+        $order->setStatus('processing');
+
+        $message = '[Shiprocket] RTO Initiated';
+        if (isset($webhookData['reason']) && !empty($webhookData['reason'])) {
+            $message .= ' | Reason: ' . $webhookData['reason'];
         }
-        if (isset($webhookData['awb'])) {
-            $message .= ' (AWB: ' . $webhookData['awb'] . ')';
+        if (isset($webhookData['awb']) && !empty($webhookData['awb'])) {
+            $message .= ' | AWB: ' . $webhookData['awb'];
         }
-        
-        $order->addStatusHistoryComment($message, 'shipment_rto');
+
+        $order->addCommentToStatusHistory($message);
         $this->orderRepository->save($order);
-        
+
         return ['success' => true, 'message' => 'RTO initiated status updated'];
     }
 
@@ -281,22 +285,21 @@ class ShiprocketShipmentWebhookHandler
      */
     protected function handleShipmentRTODelivered($order, $webhookData)
     {
-        $order->setStatus('shipment_rto_delivered');
-        
-        $message = 'Package returned to origin';
-        if (isset($webhookData['delivered_date'])) {
-            $message .= ' on ' . $webhookData['delivered_date'];
+        $order->setState(\Magento\Sales\Model\Order::STATE_CLOSED);
+        $order->setStatus('closed');
+
+        $message = '[Shiprocket] RTO Delivered - Package returned to origin';
+        if (isset($webhookData['delivered_date']) && !empty($webhookData['delivered_date'])) {
+            $message .= ' | Date: ' . $webhookData['delivered_date'];
         }
-        if (isset($webhookData['awb'])) {
-            $message .= ' (AWB: ' . $webhookData['awb'] . ')';
+        if (isset($webhookData['awb']) && !empty($webhookData['awb'])) {
+            $message .= ' | AWB: ' . $webhookData['awb'];
         }
-        
-        // Note: May need manual intervention for refund/inventory management
-        $message .= '. Manual review may be required for refund processing.';
-        
-        $order->addStatusHistoryComment($message, 'shipment_rto_delivered');
+        $message .= ' | Manual review required for refund';
+
+        $order->addCommentToStatusHistory($message);
         $this->orderRepository->save($order);
-        
+
         return ['success' => true, 'message' => 'RTO delivered status updated'];
     }
 
