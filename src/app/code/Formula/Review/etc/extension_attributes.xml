@@ -9,4 +9,10 @@
 		<attribute code="images" type="mixed" />
 		<attribute code="customer_id" type="int" />
 	</extension_attributes>
+
+	<!-- Review aggregation for Product listing API -->
+	<extension_attributes for="Magento\Catalog\Api\Data\ProductInterface">
+		<attribute code="rating_summary" type="float" />
+		<attribute code="reviews_count" type="int" />
+	</extension_attributes>
 </config>
