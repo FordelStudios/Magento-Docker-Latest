@@ -112,7 +112,7 @@ class ProductReviewAggregationPlugin
             $voteTable = $this->resourceConnection->getTableName('rating_option_vote');
 
             // Single query to get both review count and average rating
-            // Only count APPROVED reviews (status_id = 1)
+            // No status filter - matches existing review API behavior
             $select = $connection->select()
                 ->from(
                     ['r' => $reviewTable],
@@ -130,7 +130,6 @@ class ProductReviewAggregationPlugin
                 )
                 ->where('r.entity_pk_value IN (?)', $productIds)
                 ->where('r.entity_id = ?', 1) // 1 = product entity
-                ->where('r.status_id = ?', 1) // 1 = approved
                 ->group('r.entity_pk_value');
 
             $results = $connection->fetchAll($select);
