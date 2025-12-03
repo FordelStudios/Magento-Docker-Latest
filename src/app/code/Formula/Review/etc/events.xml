@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+
+    <!-- Sync review aggregation when a review is saved -->
+    <event name="review_save_after">
+        <observer name="formula_review_aggregation_save" instance="Formula\Review\Observer\ReviewSaveAfter" />
+    </event>
+
+    <!-- Sync review aggregation when a review is deleted -->
+    <event name="review_delete_after">
+        <observer name="formula_review_aggregation_delete" instance="Formula\Review\Observer\ReviewDeleteAfter" />
+    </event>
+
+</config>
