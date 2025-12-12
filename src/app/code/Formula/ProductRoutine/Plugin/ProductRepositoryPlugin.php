@@ -6,6 +6,7 @@ use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Formula\ProductRoutine\Model\Config\Source\FaceRoutineType;
 use Formula\ProductRoutine\Model\Config\Source\HairRoutineType;
+use Formula\ProductRoutine\Model\Config\Source\BodyRoutineType;
 use Formula\ProductRoutine\Model\Config\Source\RoutineTiming;
 
 class ProductRepositoryPlugin
@@ -21,6 +22,11 @@ class ProductRepositoryPlugin
     protected $hairRoutineType;
 
     /**
+     * @var BodyRoutineType
+     */
+    protected $bodyRoutineType;
+
+    /**
      * @var RoutineTiming
      */
     protected $routineTiming;
@@ -28,15 +34,18 @@ class ProductRepositoryPlugin
     /**
      * @param FaceRoutineType $faceRoutineType
      * @param HairRoutineType $hairRoutineType
+     * @param BodyRoutineType $bodyRoutineType
      * @param RoutineTiming $routineTiming
      */
     public function __construct(
         FaceRoutineType $faceRoutineType,
         HairRoutineType $hairRoutineType,
+        BodyRoutineType $bodyRoutineType,
         RoutineTiming $routineTiming
     ) {
         $this->faceRoutineType = $faceRoutineType;
         $this->hairRoutineType = $hairRoutineType;
+        $this->bodyRoutineType = $bodyRoutineType;
         $this->routineTiming = $routineTiming;
     }
 
@@ -121,6 +130,24 @@ class ProductRepositoryPlugin
 
             if (!empty($hairRoutineLabels)) {
                 $extensionAttributes->setHairRoutineTypeLabels(implode(', ', $hairRoutineLabels));
+            }
+        }
+
+        // Process Body Routine Type
+        $bodyRoutineAttribute = $product->getCustomAttribute('body_routine_type');
+        if ($bodyRoutineAttribute && $bodyRoutineAttribute->getValue()) {
+            $bodyRoutineValues = explode(',', $bodyRoutineAttribute->getValue());
+            $bodyRoutineLabels = [];
+
+            foreach ($bodyRoutineValues as $value) {
+                $label = $this->bodyRoutineType->getOptionText($value);
+                if ($label) {
+                    $bodyRoutineLabels[] = $label;
+                }
+            }
+
+            if (!empty($bodyRoutineLabels)) {
+                $extensionAttributes->setBodyRoutineTypeLabels(implode(', ', $bodyRoutineLabels));
             }
         }
 

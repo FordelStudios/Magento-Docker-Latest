@@ -4,6 +4,7 @@
     <extension_attributes for="Magento\Catalog\Api\Data\ProductInterface">
         <attribute code="face_routine_type_labels" type="string"/>
         <attribute code="hair_routine_type_labels" type="string"/>
+        <attribute code="body_routine_type_labels" type="string"/>
         <attribute code="routine_timing_label" type="string"/>
     </extension_attributes>
 </config>
