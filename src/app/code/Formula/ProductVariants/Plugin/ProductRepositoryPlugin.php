@@ -94,23 +94,26 @@ class ProductRepositoryPlugin
                 $baseSkusToProcess[] = $baseSku;
             }
 
-            // Fetch all variants for each base SKU and add to products
-            foreach ($baseSkusToProcess as $baseSkuNormalized) {
-                // The baseSku is already normalized (lowercase), so we need to use the original
-                // Get the first product in this group to extract the original base SKU
+            // Fetch all variants for each base SKU + brand group and add to products
+            foreach ($baseSkusToProcess as $groupKey) {
+                // The groupKey format is: baseSku_brand_brandId
+                // Get the first product in this group to extract the original base SKU and brand
                 $firstProductInGroup = null;
                 foreach ($productsToKeep as $product) {
                     $parsed = $this->variantHelper->parseProductSku($product->getSku());
-                    if (strtolower(trim($parsed['base_sku'])) === $baseSkuNormalized) {
+                    $brandId = $this->variantHelper->getProductBrandId($product);
+                    $productGroupKey = strtolower(trim($parsed['base_sku'])) . '_brand_' . ($brandId ?? 'none');
+                    if ($productGroupKey === $groupKey) {
                         $firstProductInGroup = $product;
                         break;
                     }
                 }
 
                 if ($firstProductInGroup) {
-                    // Use the first product's base SKU for fetching (maintains original case for query)
+                    // Use the first product's base SKU and brand for fetching
                     $parsed = $this->variantHelper->parseProductSku($firstProductInGroup->getSku());
-                    $variantProducts = $this->variantHelper->getVariantsByBaseSku($parsed['base_sku']);
+                    $brandId = $this->variantHelper->getProductBrandId($firstProductInGroup);
+                    $variantProducts = $this->variantHelper->getVariantsByBaseSku($parsed['base_sku'], $brandId);
                     $this->addVariantsToProduct($firstProductInGroup, $variantProducts);
                 }
             }
@@ -139,9 +142,10 @@ class ProductRepositoryPlugin
         $parsed = $this->variantHelper->parseProductSku($product->getSku());
         $baseSku = $parsed['base_sku'];
 
-        // Fetch variants if not provided
+        // Fetch variants if not provided (include brand to prevent cross-brand merging)
         if ($variantProducts === null) {
-            $variantProducts = $this->variantHelper->getVariantsByBaseSku($baseSku);
+            $brandId = $this->variantHelper->getProductBrandId($product);
+            $variantProducts = $this->variantHelper->getVariantsByBaseSku($baseSku, $brandId);
         }
 
         // If no variants found (shouldn't happen, but safeguard), create single variant

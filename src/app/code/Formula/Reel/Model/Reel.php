@@ -200,4 +200,46 @@ class Reel extends AbstractModel implements ReelInterface, IdentityInterface
     {
         return $this->setData(self::PRODUCT_IDS, $productIds);
     }
+
+    /**
+     * Get category IDs
+     *
+     * @return string|null
+     */
+    public function getCategoryIds()
+    {
+        return $this->getData(self::CATEGORY_IDS);
+    }
+
+    /**
+     * Set category IDs
+     *
+     * @param string $categoryIds
+     * @return ReelInterface
+     */
+    public function setCategoryIds($categoryIds)
+    {
+        return $this->setData(self::CATEGORY_IDS, $categoryIds);
+    }
+
+    /**
+     * Get thumbnail
+     *
+     * @return string|null
+     */
+    public function getThumbnail()
+    {
+        return $this->getData(self::THUMBNAIL);
+    }
+
+    /**
+     * Set thumbnail
+     *
+     * @param string $thumbnail
+     * @return ReelInterface
+     */
+    public function setThumbnail($thumbnail)
+    {
+        return $this->setData(self::THUMBNAIL, $thumbnail);
+    }
 }

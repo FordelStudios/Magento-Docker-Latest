@@ -12,6 +12,7 @@ use Magento\MediaStorage\Model\File\UploaderFactory;
 use Magento\Framework\Filesystem;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Formula\Reel\Model\VideoUploader;
+use Formula\Reel\Model\ImageUploader;
 use getID3;
 
 class Save extends Action
@@ -23,6 +24,7 @@ class Save extends Action
     protected $uploaderFactory;
     protected $filesystem;
     protected $videoUploader;
+    protected $imageUploader;
     protected $mediaDirectory;
 
     public function __construct(
@@ -33,7 +35,8 @@ class Save extends Action
         LoggerInterface $logger,
         UploaderFactory $uploaderFactory,
         Filesystem $filesystem,
-        VideoUploader $videoUploader
+        VideoUploader $videoUploader,
+        ImageUploader $imageUploader
     ) {
         $this->dataPersistor = $dataPersistor;
         $this->reelFactory = $reelFactory;
@@ -41,6 +44,7 @@ class Save extends Action
         $this->logger = $logger;
         $this->uploaderFactory = $uploaderFactory;
         $this->videoUploader = $videoUploader;
+        $this->imageUploader = $imageUploader;
         $this->filesystem = $filesystem;
         $this->mediaDirectory = $filesystem->getDirectoryWrite(DirectoryList::MEDIA);
         parent::__construct($context);
@@ -155,11 +159,61 @@ class Save extends Action
                 FILE_APPEND);
         }
         
-        file_put_contents(BP . '/var/log/video-debug.log', 
-            date('Y-m-d H:i:s') . " - Returning 0\n", 
+        file_put_contents(BP . '/var/log/video-debug.log',
+            date('Y-m-d H:i:s') . " - Returning 0\n",
             FILE_APPEND);
-            
+
         return 0; // Return 0 instead of 'Unknown'
+    }
+
+    /**
+     * Generate thumbnail from video using ffmpeg
+     *
+     * @param string $videoPath
+     * @param string $videoName
+     * @return string|null
+     */
+    protected function generateThumbnailFromVideo($videoPath, $videoName)
+    {
+        try {
+            $ffmpegPath = trim(shell_exec('which ffmpeg') ?? '');
+            if (empty($ffmpegPath)) {
+                $this->logger->warning('ffmpeg not found, cannot generate thumbnail');
+                return null;
+            }
+
+            // Create thumbnail directory if not exists
+            $thumbnailDir = $this->mediaDirectory->getAbsolutePath('reel/thumbnail');
+            if (!file_exists($thumbnailDir)) {
+                mkdir($thumbnailDir, 0777, true);
+            }
+
+            // Generate thumbnail filename based on video name
+            $thumbnailName = pathinfo($videoName, PATHINFO_FILENAME) . '_thumb.jpg';
+            $thumbnailPath = $thumbnailDir . '/' . $thumbnailName;
+
+            // Extract frame at 1 second mark (or first frame if video is shorter)
+            $command = sprintf(
+                '%s -i %s -ss 00:00:01 -vframes 1 -q:v 2 %s -y 2>&1',
+                $ffmpegPath,
+                escapeshellarg($videoPath),
+                escapeshellarg($thumbnailPath)
+            );
+
+            $output = shell_exec($command);
+            $this->logger->debug('ffmpeg thumbnail command output: ' . $output);
+
+            if (file_exists($thumbnailPath)) {
+                $this->logger->debug('Thumbnail generated successfully: ' . $thumbnailName);
+                return $thumbnailName;
+            }
+
+            $this->logger->warning('Thumbnail file was not created');
+            return null;
+        } catch (\Exception $e) {
+            $this->logger->critical('Error generating thumbnail: ' . $e->getMessage());
+            return null;
+        }
     }
 
     public function execute()
@@ -263,11 +317,59 @@ class Save extends Action
                 }
             }
             
+            // Handle thumbnail upload or auto-generation
+            $manualThumbnail = false;
+            if (isset($data['thumbnail']) && is_array($data['thumbnail'])) {
+                if (!empty($data['thumbnail'][0]['name'])) {
+                    try {
+                        $thumbnailName = $data['thumbnail'][0]['name'];
+                        $this->logger->debug('Processing manual thumbnail: ' . $thumbnailName);
+
+                        // Check if this is a new upload or an existing file
+                        if (isset($data['thumbnail'][0]['tmp_name']) && !empty($data['thumbnail'][0]['tmp_name'])) {
+                            $this->logger->debug('New thumbnail upload detected, moving from tmp');
+                            $this->imageUploader->setBaseTmpPath("reel/tmp/thumbnail");
+                            $this->imageUploader->setBasePath("reel/thumbnail");
+                            $this->imageUploader->moveFileFromTmp($thumbnailName);
+                        }
+
+                        $data['thumbnail'] = $thumbnailName;
+                        $manualThumbnail = true;
+                        $this->logger->debug('Thumbnail successfully processed: ' . $thumbnailName);
+                    } catch (\Exception $e) {
+                        $this->logger->critical('Error processing thumbnail: ' . $e->getMessage());
+                    }
+                } else {
+                    // Empty array means thumbnail was removed
+                    $data['thumbnail'] = null;
+                }
+            } elseif (!isset($data['thumbnail']) || empty($data['thumbnail'])) {
+                // No manual thumbnail - keep existing or set to null for auto-generation
+                $data['thumbnail'] = null;
+            }
+
+            // Auto-generate thumbnail from video if no manual thumbnail was provided
+            if (!$manualThumbnail && isset($data['video']) && !empty($data['video']) && !is_array($data['video'])) {
+                $videoPath = $this->mediaDirectory->getAbsolutePath('reel/video/' . $data['video']);
+                if (file_exists($videoPath)) {
+                    $generatedThumbnail = $this->generateThumbnailFromVideo($videoPath, $data['video']);
+                    if ($generatedThumbnail) {
+                        $data['thumbnail'] = $generatedThumbnail;
+                        $this->logger->debug('Auto-generated thumbnail: ' . $generatedThumbnail);
+                    }
+                }
+            }
+
             // Handle product_ids if it's an array
             if (isset($data['product_ids']) && is_array($data['product_ids'])) {
                 $data['product_ids'] = implode(',', $data['product_ids']);
             }
-            
+
+            // Handle category_ids if it's an array
+            if (isset($data['category_ids']) && is_array($data['category_ids'])) {
+                $data['category_ids'] = implode(',', $data['category_ids']);
+            }
+
             $this->logger->debug('Final data before saving:', ['data' => $data]);
             $model->setData($data);
 

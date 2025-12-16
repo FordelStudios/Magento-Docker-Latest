@@ -11,6 +11,8 @@ interface ReelInterface
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const PRODUCT_IDS    = 'product_ids';
+    const CATEGORY_IDS   = 'category_ids';
+    const THUMBNAIL      = 'thumbnail';
 
     /**
      * Get ID
@@ -63,6 +65,19 @@ interface ReelInterface
      */
     public function getProductIds();
 
+    /**
+     * Get category IDs
+     *
+     * @return string|null
+     */
+    public function getCategoryIds();
+
+    /**
+     * Get thumbnail
+     *
+     * @return string|null
+     */
+    public function getThumbnail();
 
     /**
      * Set ID
@@ -121,6 +136,21 @@ interface ReelInterface
      * @return ReelInterface
      */
     public function setProductIds($productIds);
-    
+
+    /**
+     * Set category IDs
+     *
+     * @param string $categoryIds
+     * @return ReelInterface
+     */
+    public function setCategoryIds($categoryIds);
+
+    /**
+     * Set thumbnail
+     *
+     * @param string $thumbnail
+     * @return ReelInterface
+     */
+    public function setThumbnail($thumbnail);
 }
 

@@ -102,16 +102,17 @@ class VariantHelper
     }
 
     /**
-     * Get all variant products for a given base SKU
+     * Get all variant products for a given base SKU and brand
      * Uses ProductRepository to ensure stock data is properly loaded
      *
      * @param string $baseSku
+     * @param int|null $brandId Brand ID to filter by (required to prevent cross-brand merging)
      * @param int|null $storeId
      * @return ProductInterface[]
      */
-    public function getVariantsByBaseSku($baseSku, $storeId = null)
+    public function getVariantsByBaseSku($baseSku, $brandId = null, $storeId = null)
     {
-        $cacheKey = $baseSku . '_' . ($storeId ?? 'all');
+        $cacheKey = $baseSku . '_brand_' . ($brandId ?? 'none') . '_' . ($storeId ?? 'all');
 
         if (isset($this->variantCache[$cacheKey])) {
             return $this->variantCache[$cacheKey];
@@ -138,10 +139,21 @@ class VariantHelper
                 ->setConditionType('eq')
                 ->create();
 
-            $searchCriteria = $this->searchCriteriaBuilder
+            $this->searchCriteriaBuilder
                 ->addFilters([$skuFilter])
-                ->addFilters([$statusFilter])
-                ->create();
+                ->addFilters([$statusFilter]);
+
+            // Add brand filter if brand ID is provided
+            if ($brandId !== null) {
+                $brandFilter = $this->filterBuilder
+                    ->setField('brand')
+                    ->setValue($brandId)
+                    ->setConditionType('eq')
+                    ->create();
+                $this->searchCriteriaBuilder->addFilters([$brandFilter]);
+            }
+
+            $searchCriteria = $this->searchCriteriaBuilder->create();
 
             $searchResults = $this->productRepository->getList($searchCriteria);
             $products = $searchResults->getItems();
@@ -161,6 +173,13 @@ class VariantHelper
 
             // Double-check base SKU matches (case-insensitive)
             if (strcasecmp(trim($parsed['base_sku']), trim($baseSku)) === 0) {
+                // Also verify brand matches if specified
+                if ($brandId !== null) {
+                    $productBrandId = $this->getProductBrandId($product);
+                    if ($productBrandId !== $brandId) {
+                        continue;
+                    }
+                }
                 $variants[] = [
                     'product' => $product,
                     'ml_size' => $parsed['ml_size'] ? (int)$parsed['ml_size'] : PHP_INT_MAX
@@ -252,10 +271,26 @@ class VariantHelper
     }
 
     /**
-     * Group products by base SKU
+     * Get brand ID from product
+     *
+     * @param ProductInterface $product
+     * @return int|null
+     */
+    public function getProductBrandId(ProductInterface $product)
+    {
+        $brandId = $product->getCustomAttribute('brand');
+        if ($brandId) {
+            return (int)$brandId->getValue();
+        }
+        return null;
+    }
+
+    /**
+     * Group products by base SKU and brand
+     * Products are only grouped together if they share the same base SKU AND brand
      *
      * @param ProductInterface[] $products
-     * @return array [baseSku => [products]]
+     * @return array [baseSku_brandId => [products]]
      */
     public function groupProductsByBaseSku(array $products)
     {
@@ -266,13 +301,18 @@ class VariantHelper
             // Normalize to lowercase for case-insensitive grouping
             $baseSkuNormalized = strtolower(trim($parsed['base_sku']));
 
-            if (!isset($groups[$baseSkuNormalized])) {
-                $groups[$baseSkuNormalized] = [];
+            // Include brand in grouping key to prevent merging products from different brands
+            $brandId = $this->getProductBrandId($product);
+            $groupKey = $baseSkuNormalized . '_brand_' . ($brandId ?? 'none');
+
+            if (!isset($groups[$groupKey])) {
+                $groups[$groupKey] = [];
             }
 
-            $groups[$baseSkuNormalized][] = [
+            $groups[$groupKey][] = [
                 'product' => $product,
-                'ml_size' => $parsed['ml_size'] ? (int)$parsed['ml_size'] : PHP_INT_MAX
+                'ml_size' => $parsed['ml_size'] ? (int)$parsed['ml_size'] : PHP_INT_MAX,
+                'brand_id' => $brandId
             ];
         }
 

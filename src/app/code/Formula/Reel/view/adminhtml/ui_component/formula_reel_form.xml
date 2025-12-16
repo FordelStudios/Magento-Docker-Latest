@@ -179,6 +179,31 @@
 				</fileUploader>
 			</formElements>
 		</field>
+		<field name="thumbnail" formElement="fileUploader">
+			<argument name="data" xsi:type="array">
+				<item name="config" xsi:type="array">
+					<item name="source" xsi:type="string">reel</item>
+					<item name="dataScope" xsi:type="string">thumbnail</item>
+					<item name="uploaderConfig" xsi:type="array">
+						<item name="url" xsi:type="url" path="formula_reel/reel/uploadThumbnail" />
+					</item>
+					<item name="elementTmpl" xsi:type="string">ui/form/element/uploader/uploader</item>
+					<item name="previewTmpl" xsi:type="string">Magento_Catalog/image-preview</item>
+				</item>
+			</argument>
+			<settings>
+				<notice translate="true">Thumbnail image for the reel. Leave empty to auto-generate from video.</notice>
+				<label translate="true">Thumbnail Image</label>
+			</settings>
+			<formElements>
+				<fileUploader>
+					<settings>
+						<allowedExtensions>jpg jpeg png gif webp</allowedExtensions>
+						<maxFileSize>5242880</maxFileSize>
+					</settings>
+				</fileUploader>
+			</formElements>
+		</field>
 		<field name="product_ids">
 			<argument name="data" xsi:type="array">
 				<item name="options" xsi:type="object">
@@ -203,6 +228,32 @@
 					<item name="dataScope" xsi:type="string">
 						product_ids
 					</item>
+				</item>
+			</argument>
+		</field>
+		<field name="category_ids" formElement="select">
+			<argument name="data" xsi:type="array">
+				<item name="options" xsi:type="object">
+					Formula\Reel\Model\Config\Source\Categories
+				</item>
+				<item name="config" xsi:type="array">
+					<item name="dataType" xsi:type="string">text</item>
+					<item name="label" xsi:type="string" translate="true">Categories</item>
+					<item name="formElement" xsi:type="string">select</item>
+					<item name="component" xsi:type="string">Magento_Ui/js/form/element/ui-select</item>
+					<item name="elementTmpl" xsi:type="string">ui/grid/filters/elements/ui-select</item>
+					<item name="filterOptions" xsi:type="boolean">true</item>
+					<item name="chipsEnabled" xsi:type="boolean">true</item>
+					<item name="disableLabel" xsi:type="boolean">true</item>
+					<item name="levelsVisibility" xsi:type="string">1</item>
+					<item name="multiple" xsi:type="boolean">true</item>
+					<item name="showCheckbox" xsi:type="boolean">true</item>
+					<item name="listens" xsi:type="array">
+						<item name="newOption" xsi:type="string">toggleOptionSelected</item>
+					</item>
+					<item name="source" xsi:type="string">reel</item>
+					<item name="sortOrder" xsi:type="number">70</item>
+					<item name="dataScope" xsi:type="string">category_ids</item>
 				</item>
 			</argument>
 		</field>

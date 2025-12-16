@@ -60,7 +60,24 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
             if (isset($data['product_ids']) && !is_array($data['product_ids']) && !empty($data['product_ids'])) {
                 $data['product_ids'] = explode(',', $data['product_ids']);
             }
-            
+
+            // Format category_ids
+            if (isset($data['category_ids']) && !is_array($data['category_ids']) && !empty($data['category_ids'])) {
+                $data['category_ids'] = explode(',', $data['category_ids']);
+            }
+
+            // Format thumbnail
+            if (isset($data['thumbnail']) && $data['thumbnail']) {
+                $mediaUrl = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
+                $data['thumbnail'] = [
+                    [
+                        'name' => $data['thumbnail'],
+                        'url' => $mediaUrl . 'reel/thumbnail/' . $data['thumbnail'],
+                        'type' => 'image'
+                    ]
+                ];
+            }
+
             $this->loadedData[$reel->getId()] = $data;
         }
         

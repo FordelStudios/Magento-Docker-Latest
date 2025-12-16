@@ -11,6 +11,7 @@ use Formula\Reel\Api\ReelRepositoryInterface;
 use Formula\Reel\Api\Data\ReelInterface;
 use Formula\Reel\Model\ResourceModel\Reel as ReelResource;
 use Formula\Reel\Model\ResourceModel\Reel\CollectionFactory as ReelCollectionFactory;
+use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 use Magento\Framework\Api\SearchCriteria\CollectionProcessorInterface;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\Api\SearchResultsInterface;
@@ -18,6 +19,7 @@ use Magento\Framework\Api\SearchResultsInterfaceFactory;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Store\Model\StoreManagerInterface;
 
 class ReelRepository implements ReelRepositoryInterface
 {
@@ -47,24 +49,40 @@ class ReelRepository implements ReelRepositoryInterface
     private $collectionProcessor;
 
     /**
+     * @var ProductCollectionFactory
+     */
+    private $productCollectionFactory;
+
+    /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
      * @param ReelResource $resource
      * @param ReelFactory $reelFactory
      * @param ReelCollectionFactory $reelCollectionFactory
      * @param SearchResultsInterfaceFactory $searchResultsFactory
      * @param CollectionProcessorInterface $collectionProcessor
+     * @param ProductCollectionFactory $productCollectionFactory
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         ReelResource $resource,
         ReelFactory $reelFactory,
         ReelCollectionFactory $reelCollectionFactory,
         SearchResultsInterfaceFactory $searchResultsFactory,
-        CollectionProcessorInterface $collectionProcessor
+        CollectionProcessorInterface $collectionProcessor,
+        ProductCollectionFactory $productCollectionFactory,
+        StoreManagerInterface $storeManager
     ) {
         $this->resource = $resource;
         $this->reelFactory = $reelFactory;
         $this->reelCollectionFactory = $reelCollectionFactory;
         $this->searchResultsFactory = $searchResultsFactory;
         $this->collectionProcessor = $collectionProcessor;
+        $this->productCollectionFactory = $productCollectionFactory;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -113,6 +131,54 @@ class ReelRepository implements ReelRepositoryInterface
     }
 
     /**
+     * Get product details by IDs
+     *
+     * @param string $productIds
+     * @return array
+     */
+    private function getProductDetails($productIds)
+    {
+        if (empty($productIds)) {
+            return [];
+        }
+
+        $ids = array_filter(array_map('trim', explode(',', $productIds)));
+        if (empty($ids)) {
+            return [];
+        }
+
+        try {
+            $mediaUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+
+            $collection = $this->productCollectionFactory->create()
+                ->addAttributeToSelect(['name', 'url_key', 'price', 'special_price', 'image', 'small_image', 'thumbnail'])
+                ->addAttributeToFilter('entity_id', ['in' => $ids])
+                ->addAttributeToFilter('status', 1);
+
+            $products = [];
+            foreach ($collection as $product) {
+                $imageUrl = null;
+                if ($product->getImage() && $product->getImage() !== 'no_selection') {
+                    $imageUrl = $mediaUrl . 'catalog/product' . $product->getImage();
+                }
+
+                $products[] = [
+                    'id' => (int)$product->getId(),
+                    'name' => $product->getName(),
+                    'url_key' => $product->getUrlKey(),
+                    'price' => (float)$product->getPrice(),
+                    'special_price' => $product->getSpecialPrice() ? (float)$product->getSpecialPrice() : null,
+                    'image' => $imageUrl
+                ];
+            }
+
+            return $products;
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    /**
      * Get reel list.
      *
      * @param SearchCriteriaInterface $searchCriteria
@@ -122,14 +188,13 @@ class ReelRepository implements ReelRepositoryInterface
     {
         try {
             $collection = $this->reelCollectionFactory->create();
-            
+
             // Apply search criteria to the collection
             $this->collectionProcessor->process($searchCriteria, $collection);
-            
+
             // Get raw items from collection
             $items = $collection->getItems();
 
-            
             // Convert items to array format
             $reelItems = [];
             foreach ($items as $item) {
@@ -138,22 +203,22 @@ class ReelRepository implements ReelRepositoryInterface
                     'description' => $item->getDescription(),
                     'timer' => $item->getTimer(),
                     'video' => $item->getVideo(),
+                    'thumbnail' => $item->getThumbnail(),
                     'created_at' => $item->getCreatedAt(),
                     'updated_at' => $item->getUpdatedAt(),
-                    'product_ids' => $item->getProductIds()
+                    'product_ids' => $item->getProductIds(),
+                    'products' => $this->getProductDetails($item->getProductIds()),
+                    'category_ids' => $item->getCategoryIds()
                 ];
             }
 
-            
-            
-            
             $searchResults = $this->searchResultsFactory->create();
             $searchResults->setSearchCriteria($searchCriteria);
             $searchResults->setItems($reelItems);
             $searchResults->setTotalCount($collection->getSize());
-            
+
             return $searchResults;
-            
+
         } catch (\Exception $e) {
             throw new \Magento\Framework\Exception\LocalizedException(
                 __('Could not retrieve reels: %1', $e->getMessage())
@@ -205,13 +270,15 @@ class ReelRepository implements ReelRepositoryInterface
     public function update($reelId, ReelInterface $reel)
     {
         $existingReel = $this->getById($reelId);
-        
+
         $existingReel->setDescription($reel->getDescription());
         $existingReel->setTimer($reel->getTimer());
         $existingReel->setVideo($reel->getVideo());
+        $existingReel->setThumbnail($reel->getThumbnail());
         $existingReel->setProductIds($reel->getProductIds());
+        $existingReel->setCategoryIds($reel->getCategoryIds());
         $existingReel->setUpdatedAt(date('Y-m-d H:i:s'));
-        
+
         // Save the updated reel
         return $this->save($existingReel);
     }
