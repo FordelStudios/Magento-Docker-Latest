@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Preference for Variant DTO -->
+    <preference for="Formula\ProductVariants\Api\Data\VariantInterface"
+                type="Formula\ProductVariants\Model\Data\Variant"/>
+
     <type name="Magento\Catalog\Api\ProductRepositoryInterface">
         <plugin name="formula_product_variants_plugin"
                 type="Formula\ProductVariants\Plugin\ProductRepositoryPlugin"

@@ -85,42 +85,23 @@ class ProductRepositoryPlugin
 
             // Track which products to keep (first variant of each group)
             $productsToKeep = [];
-            $baseSkusToProcess = [];
 
-            foreach ($groups as $baseSku => $group) {
+            foreach ($groups as $group) {
                 // Get the first variant (smallest ML size)
                 $firstVariant = $this->variantHelper->getFirstVariant($group);
                 $productsToKeep[$firstVariant->getId()] = $firstVariant;
-                $baseSkusToProcess[] = $baseSku;
             }
 
-            // Fetch all variants for each base SKU + brand group and add to products
-            foreach ($baseSkusToProcess as $groupKey) {
-                // The groupKey format is: baseSku_brand_brandId
-                // Get the first product in this group to extract the original base SKU and brand
-                $firstProductInGroup = null;
-                foreach ($productsToKeep as $product) {
-                    $parsed = $this->variantHelper->parseProductSku($product->getSku());
-                    $brandId = $this->variantHelper->getProductBrandId($product);
-                    $productGroupKey = strtolower(trim($parsed['base_sku'])) . '_brand_' . ($brandId ?? 'none');
-                    if ($productGroupKey === $groupKey) {
-                        $firstProductInGroup = $product;
-                        break;
-                    }
-                }
-
-                if ($firstProductInGroup) {
-                    // Use the first product's base SKU and brand for fetching
-                    $parsed = $this->variantHelper->parseProductSku($firstProductInGroup->getSku());
-                    $brandId = $this->variantHelper->getProductBrandId($firstProductInGroup);
-                    $variantProducts = $this->variantHelper->getVariantsByBaseSku($parsed['base_sku'], $brandId);
-                    $this->addVariantsToProduct($firstProductInGroup, $variantProducts);
-                }
+            // Add variants to each product in productsToKeep
+            foreach ($productsToKeep as $product) {
+                // addVariantsToProduct will handle standalone vs grouped logic internally
+                $this->addVariantsToProduct($product);
             }
 
             // Update search results with filtered products
+            // Note: Keep the original total_count from the database query for correct pagination
+            // Only update the items (grouped by base SKU)
             $searchResults->setItems(array_values($productsToKeep));
-            $searchResults->setTotalCount(count($productsToKeep));
 
         } catch (\Exception $e) {
             $this->logger->error('[ProductVariants] Error processing product variants: ' . $e->getMessage());
@@ -138,14 +119,22 @@ class ProductRepositoryPlugin
      */
     private function addVariantsToProduct(ProductInterface $product, array $variantProducts = null)
     {
-        // Parse product SKU to get base SKU
+        // Parse product SKU to get base SKU and size info
         $parsed = $this->variantHelper->parseProductSku($product->getSku());
         $baseSku = $parsed['base_sku'];
+        $hasSize = $parsed['ml_size'] !== null;
 
-        // Fetch variants if not provided (include brand to prevent cross-brand merging)
+        // Fetch variants if not provided
         if ($variantProducts === null) {
-            $brandId = $this->variantHelper->getProductBrandId($product);
-            $variantProducts = $this->variantHelper->getVariantsByBaseSku($baseSku, $brandId);
+            // Products WITHOUT size patterns should NOT search for variants
+            // They are standalone and only show themselves
+            if (!$hasSize) {
+                $variantProducts = [$product];
+            } else {
+                // Products WITH size patterns fetch variants by base SKU + brand
+                $brandId = $this->variantHelper->getProductBrandId($product);
+                $variantProducts = $this->variantHelper->getVariantsByBaseSku($baseSku, $brandId);
+            }
         }
 
         // If no variants found (shouldn't happen, but safeguard), create single variant

@@ -8,6 +8,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\FilterBuilder;
+use Formula\ProductVariants\Api\Data\VariantInterfaceFactory;
 
 class VariantHelper
 {
@@ -37,6 +38,11 @@ class VariantHelper
     private $filterBuilder;
 
     /**
+     * @var VariantInterfaceFactory
+     */
+    private $variantFactory;
+
+    /**
      * @var array
      */
     private $variantCache = [];
@@ -52,19 +58,22 @@ class VariantHelper
      * @param ProductRepositoryInterface $productRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param FilterBuilder $filterBuilder
+     * @param VariantInterfaceFactory $variantFactory
      */
     public function __construct(
         CollectionFactory $productCollectionFactory,
         StoreManagerInterface $storeManager,
         ProductRepositoryInterface $productRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        FilterBuilder $filterBuilder
+        FilterBuilder $filterBuilder,
+        VariantInterfaceFactory $variantFactory
     ) {
         $this->productCollectionFactory = $productCollectionFactory;
         $this->storeManager = $storeManager;
         $this->productRepository = $productRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->filterBuilder = $filterBuilder;
+        $this->variantFactory = $variantFactory;
     }
 
     /**
@@ -78,26 +87,30 @@ class VariantHelper
     }
 
     /**
-     * Parse product SKU to extract base SKU and ML size
+     * Parse product SKU to extract base SKU and size
+     * Supports multiple units: ml (milliliters), g (grams), kg (kilograms), oz (ounces)
      *
      * @param string $sku
-     * @return array ['base_sku' => string, 'ml_size' => string|null]
+     * @return array ['base_sku' => string, 'ml_size' => string|null, 'unit' => string|null]
      */
     public function parseProductSku($sku)
     {
-        // Match pattern: "Product SKU (125 ml)" or "Product SKU (125ml)"
-        // Captures everything before the last (XXX ml) pattern
-        if (preg_match('/^(.+?)\s*\((\d+)\s*ml\)\s*$/i', trim($sku), $matches)) {
+        // Match pattern: "Product SKU (125 ml)" or "Product SKU (125ml)" or "Product SKU (100 g)" etc.
+        // Supported units: ml, g, kg, oz, l (case-insensitive)
+        // Captures everything before the last (XXX unit) pattern
+        if (preg_match('/^(.+?)\s*\((\d+)\s*(ml|g|kg|oz|l)\)\s*$/i', trim($sku), $matches)) {
             return [
                 'base_sku' => trim($matches[1]),
-                'ml_size' => $matches[2]
+                'ml_size' => $matches[2],
+                'unit' => strtolower($matches[3])
             ];
         }
 
-        // No ML pattern found - treat as unique product
+        // No size pattern found - treat as unique product
         return [
             'base_sku' => $sku,
-            'ml_size' => null
+            'ml_size' => null,
+            'unit' => null
         ];
     }
 
@@ -127,9 +140,11 @@ class VariantHelper
 
         try {
             // Use ProductRepository with search criteria to get properly enriched products
+            // Search for products with size suffix: "Base SKU (XXX ml)", "Base SKU (XXX g)", etc.
+            // Only products with size patterns should be merged as variants
             $skuFilter = $this->filterBuilder
                 ->setField('sku')
-                ->setValue($baseSku . ' (%ml)%')
+                ->setValue($baseSku . ' (%')
                 ->setConditionType('like')
                 ->create();
 
@@ -205,7 +220,7 @@ class VariantHelper
      * Build variant data array for API response
      *
      * @param ProductInterface[] $variantProducts
-     * @return array
+     * @return \Formula\ProductVariants\Api\Data\VariantInterface[]
      */
     public function buildVariantData(array $variantProducts)
     {
@@ -234,18 +249,21 @@ class VariantHelper
                 }
             }
 
-            $variants[] = [
-                'product_id' => (int)$product->getId(),
-                'sku' => $product->getSku(),
-                'name' => $product->getName(),
-                'ml_size' => $parsed['ml_size'],
-                'price' => (float)$product->getPrice(),
-                'special_price' => $product->getSpecialPrice() ? (float)$product->getSpecialPrice() : null,
-                'final_price' => $product->getSpecialPrice() ? (float)$product->getSpecialPrice() : (float)$product->getPrice(),
-                'is_in_stock' => (bool)$isInStock,
-                'salable_qty' => (float)$salableQty,
-                'image' => $imageUrl
-            ];
+            // Create variant DTO object
+            $variant = $this->variantFactory->create();
+            $variant->setProductId((int)$product->getId());
+            $variant->setSku($product->getSku());
+            $variant->setName($product->getName());
+            $variant->setSize($parsed['ml_size']);
+            $variant->setUnit($parsed['unit'] ?? null);
+            $variant->setPrice((float)$product->getPrice());
+            $variant->setSpecialPrice($product->getSpecialPrice() ? (float)$product->getSpecialPrice() : null);
+            $variant->setFinalPrice($product->getSpecialPrice() ? (float)$product->getSpecialPrice() : (float)$product->getPrice());
+            $variant->setIsInStock((bool)$isInStock);
+            $variant->setSalableQty((float)$salableQty);
+            $variant->setImage($imageUrl);
+
+            $variants[] = $variant;
         }
 
         return $variants;
@@ -254,7 +272,7 @@ class VariantHelper
     /**
      * Get the minimum price from a list of variants
      *
-     * @param array $variants
+     * @param \Formula\ProductVariants\Api\Data\VariantInterface[] $variants
      * @return float
      */
     public function getMinimumPrice(array $variants)
@@ -264,7 +282,7 @@ class VariantHelper
         }
 
         $prices = array_map(function($variant) {
-            return $variant['final_price'];
+            return $variant->getFinalPrice();
         }, $variants);
 
         return min($prices);
@@ -287,7 +305,10 @@ class VariantHelper
 
     /**
      * Group products by base SKU and brand
-     * Products are only grouped together if they share the same base SKU AND brand
+     * Products are only grouped together if they:
+     * 1. Have a size pattern (e.g., "Product (100 ml)" or "Product (50 g)")
+     * 2. Share the same base SKU AND brand
+     * Products WITHOUT size patterns remain as standalone items (not grouped)
      *
      * @param ProductInterface[] $products
      * @return array [baseSku_brandId => [products]]
@@ -298,12 +319,18 @@ class VariantHelper
 
         foreach ($products as $product) {
             $parsed = $this->parseProductSku($product->getSku());
-            // Normalize to lowercase for case-insensitive grouping
-            $baseSkuNormalized = strtolower(trim($parsed['base_sku']));
-
-            // Include brand in grouping key to prevent merging products from different brands
             $brandId = $this->getProductBrandId($product);
-            $groupKey = $baseSkuNormalized . '_brand_' . ($brandId ?? 'none');
+
+            // Products WITHOUT size patterns should NOT be grouped
+            // Each one gets its own unique group key based on full SKU
+            if ($parsed['ml_size'] === null) {
+                // Use full SKU as group key to keep it standalone
+                $groupKey = 'standalone_' . strtolower(trim($product->getSku())) . '_brand_' . ($brandId ?? 'none');
+            } else {
+                // Products WITH size patterns are grouped by base SKU + brand
+                $baseSkuNormalized = strtolower(trim($parsed['base_sku']));
+                $groupKey = $baseSkuNormalized . '_brand_' . ($brandId ?? 'none');
+            }
 
             if (!isset($groups[$groupKey])) {
                 $groups[$groupKey] = [];
