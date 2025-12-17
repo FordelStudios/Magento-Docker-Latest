@@ -109,7 +109,9 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
                 'description' => $item->getDescription(),
                 'reference_type' => $item->getReferenceType(),
                 'reference_id' => $item->getReferenceId(),
-                'created_at' => $item->getCreatedAt()
+                'created_at' => $item->getCreatedAt(),
+                'admin_user_id' => $item->getAdminUserId(),
+                'admin_username' => $item->getAdminUsername()
             ];
         }
 
@@ -153,7 +155,9 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
         $balanceAfter,
         $description = null,
         $referenceType = null,
-        $referenceId = null
+        $referenceId = null,
+        $adminUserId = null,
+        $adminUsername = null
     ) {
         $transaction = $this->transactionFactory->create();
         $transaction->setCustomerId($customerId);
@@ -164,6 +168,8 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
         $transaction->setDescription($description);
         $transaction->setReferenceType($referenceType);
         $transaction->setReferenceId($referenceId);
+        $transaction->setAdminUserId($adminUserId);
+        $transaction->setAdminUsername($adminUsername);
 
         return $this->save($transaction);
     }

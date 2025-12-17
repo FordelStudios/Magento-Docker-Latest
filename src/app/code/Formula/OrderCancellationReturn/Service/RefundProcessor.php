@@ -5,6 +5,7 @@ use Formula\OrderCancellationReturn\Service\RazorpayRefundService;
 use Formula\OrderCancellationReturn\Service\WalletRefundService;
 use Formula\OrderCancellationReturn\Service\OrderValidator;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Psr\Log\LoggerInterface;
 
 class RefundProcessor
@@ -13,17 +14,32 @@ class RefundProcessor
     protected $walletRefundService;
     protected $orderValidator;
     protected $logger;
+    protected $priceCurrency;
 
     public function __construct(
         RazorpayRefundService $razorpayRefundService,
         WalletRefundService $walletRefundService,
         OrderValidator $orderValidator,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        PriceCurrencyInterface $priceCurrency
     ) {
         $this->razorpayRefundService = $razorpayRefundService;
         $this->walletRefundService = $walletRefundService;
         $this->orderValidator = $orderValidator;
         $this->logger = $logger;
+        $this->priceCurrency = $priceCurrency;
+    }
+
+    /**
+     * Format amount with proper currency symbol
+     *
+     * @param float $amount
+     * @param int|null $storeId
+     * @return string
+     */
+    protected function formatCurrency($amount, $storeId = null)
+    {
+        return $this->priceCurrency->format($amount, false, 2, $storeId);
     }
 
     /**
@@ -103,10 +119,11 @@ class RefundProcessor
         switch ($paymentMethod) {
             case 'razorpay':
                 $result = $this->razorpayRefundService->processRefund($order, $amount);
+                $formattedAmount = $this->formatCurrency($amount, $order->getStoreId());
                 if (strpos($result['transaction_id'], 'already_refunded_') === 0) {
-                    $result['status_message'] = sprintf('₹%.2f was already refunded to Razorpay', $amount);
+                    $result['status_message'] = sprintf('%s was already refunded to Razorpay', $formattedAmount);
                 } else {
-                    $result['status_message'] = sprintf('Refunded ₹%.2f to Razorpay (Transaction: %s)', $amount, $result['transaction_id']);
+                    $result['status_message'] = sprintf('Refunded %s to Razorpay (Transaction: %s)', $formattedAmount, $result['transaction_id']);
                 }
                 return $result;
 
@@ -114,7 +131,8 @@ class RefundProcessor
             case 'cashondelivery':
             case 'walletpayment':
                 $result = $this->walletRefundService->processRefund($order, $amount, $referenceType);
-                $result['status_message'] = sprintf('Refunded ₹%.2f to customer wallet', $amount);
+                $formattedAmount = $this->formatCurrency($amount, $order->getStoreId());
+                $result['status_message'] = sprintf('Refunded %s to customer wallet', $formattedAmount);
                 return $result;
 
             default:
@@ -168,16 +186,18 @@ class RefundProcessor
         $refundMethods = array_unique(array_column($results, 'refund_method'));
         
         // Create detailed status message for mixed payments
+        $storeId = $order->getStoreId();
         $statusMessages = [];
         foreach ($results as $result) {
+            $formattedAmount = $this->formatCurrency($result['refund_amount'], $storeId);
             if ($result['refund_method'] === 'razorpay') {
                 if (strpos($result['transaction_id'], 'already_refunded_') === 0) {
-                    $statusMessages[] = sprintf('₹%.2f was already refunded to Razorpay', $result['refund_amount']);
+                    $statusMessages[] = sprintf('%s was already refunded to Razorpay', $formattedAmount);
                 } else {
-                    $statusMessages[] = sprintf('₹%.2f to Razorpay (Transaction: %s)', $result['refund_amount'], $result['transaction_id']);
+                    $statusMessages[] = sprintf('%s to Razorpay (Transaction: %s)', $formattedAmount, $result['transaction_id']);
                 }
             } elseif ($result['refund_method'] === 'wallet') {
-                $statusMessages[] = sprintf('₹%.2f to wallet', $result['refund_amount']);
+                $statusMessages[] = sprintf('%s to wallet', $formattedAmount);
             }
         }
         $combinedStatusMessage = 'Refunded ' . implode(', ', $statusMessages);

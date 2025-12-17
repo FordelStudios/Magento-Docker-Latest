@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * System Configuration for Formula Wallet
+ *
+ * Provides admin-configurable settings for wallet balance and transaction limits.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="formula" translate="label" sortOrder="200">
+            <label>Formula</label>
+        </tab>
+
+        <section id="formula_wallet" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Wallet Settings</label>
+            <tab>formula</tab>
+            <resource>Formula_Wallet::config</resource>
+
+            <group id="limits" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Balance Limits</label>
+                <comment>Configure maximum wallet balance and transaction limits to prevent abuse.</comment>
+
+                <field id="max_balance" translate="label comment" type="text" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Maximum Wallet Balance</label>
+                    <comment>Maximum amount a customer can have in their wallet (in base currency). Default: 1000000 (10 Lakhs)</comment>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+
+                <field id="max_transaction" translate="label comment" type="text" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Maximum Single Transaction</label>
+                    <comment>Maximum amount for a single wallet transaction (in base currency). Default: 100000 (1 Lakh)</comment>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+
+                <field id="enable_limits" translate="label comment" type="select" sortOrder="5"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Balance Limits</label>
+                    <comment>When enabled, wallet operations will be validated against configured limits.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+
+            <group id="security" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Security Settings</label>
+                <comment>Configure security features for wallet operations.</comment>
+
+                <field id="enable_idempotency" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Idempotency Checks</label>
+                    <comment>Prevent duplicate wallet operations from repeated API calls.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+
+                <field id="idempotency_ttl" translate="label comment" type="text" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Idempotency Key TTL (seconds)</label>
+                    <comment>How long to remember idempotency keys. Default: 3600 (1 hour)</comment>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                    <depends>
+                        <field id="enable_idempotency">1</field>
+                    </depends>
+                </field>
+            </group>
+
+        </section>
+    </system>
+</config>

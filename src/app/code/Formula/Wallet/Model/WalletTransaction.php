@@ -201,4 +201,36 @@ class WalletTransaction extends AbstractModel implements WalletTransactionInterf
     {
         return $this->setData(self::CREATED_AT, $createdAt);
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getAdminUserId()
+    {
+        return $this->getData(self::ADMIN_USER_ID);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setAdminUserId($adminUserId)
+    {
+        return $this->setData(self::ADMIN_USER_ID, $adminUserId);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getAdminUsername()
+    {
+        return $this->getData(self::ADMIN_USERNAME);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setAdminUsername($adminUsername)
+    {
+        return $this->setData(self::ADMIN_USERNAME, $adminUsername);
+    }
 }

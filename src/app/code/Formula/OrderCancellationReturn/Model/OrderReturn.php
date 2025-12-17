@@ -11,6 +11,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Psr\Log\LoggerInterface;
 
 class OrderReturn implements OrderReturnInterface
@@ -22,6 +23,7 @@ class OrderReturn implements OrderReturnInterface
     protected $refundResponseFactory;
     protected $logger;
     protected $objectManager;
+    protected $priceCurrency;
 
     public function __construct(
         OrderValidator $orderValidator,
@@ -29,7 +31,8 @@ class OrderReturn implements OrderReturnInterface
         ObjectManagerInterface $objectManager,
         OrderRepositoryInterface $orderRepository,
         RefundResponseInterfaceFactory $refundResponseFactory,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        PriceCurrencyInterface $priceCurrency
     ) {
         $this->orderValidator = $orderValidator;
         $this->refundProcessor = $refundProcessor;
@@ -37,6 +40,7 @@ class OrderReturn implements OrderReturnInterface
         $this->orderRepository = $orderRepository;
         $this->refundResponseFactory = $refundResponseFactory;
         $this->logger = $logger;
+        $this->priceCurrency = $priceCurrency;
     }
 
     /**
@@ -97,33 +101,44 @@ class OrderReturn implements OrderReturnInterface
                 );
             }
 
-            // Step 3: Process refund (immediate for better customer experience)
-            $refundResult = $this->refundProcessor->processRefund($order, 'return');
-            
-            // Add refund information to status history
-            $refundMessage = '';
-            if (isset($refundResult['status_message'])) {
-                $refundMessage = $refundResult['status_message'];
-            } else {
-                $refundMessage = 'Refund method: ' . $refundResult['refund_method'] . '. Refund amount: ' . $refundResult['refund_amount'];
-            }
-            
-            $order->addStatusHistoryComment('Return refund processed. ' . $refundMessage, $order->getStatus());
+            // SECURITY FIX: DO NOT process refund immediately
+            // Refund will be processed via Shiprocket webhook when return is received
+            // This prevents customers from getting refund without actually returning products
+
+            $paymentMethod = $this->orderValidator->getPaymentMethod($order);
+            $grandTotal = $order->getGrandTotal();
+            $walletAmountUsed = $order->getWalletAmountUsed() ?: 0;
+
+            // Store pending refund details for later processing
+            $order->setData('pending_return_refund_amount', $grandTotal);
+            $order->setData('pending_return_refund_method', $paymentMethod);
+            $order->setData('pending_return_wallet_amount', $walletAmountUsed);
+            $order->setData('pending_return_requested_at', date('Y-m-d H:i:s'));
+
+            // Add informative status history
+            $refundMessage = sprintf(
+                'Return initiated. Refund of %s will be processed after product is received and inspected.',
+                $this->formatCurrency($grandTotal)
+            );
+            $order->addStatusHistoryComment($refundMessage, $order->getStatus());
 
             // NOTE: Inventory will be restored only when product is physically received
-            // This will be handled by the webhook when return status becomes 'return_received'
+            // This will be handled by the Shiprocket webhook when return status becomes 'return_received'
 
             $this->orderRepository->save($order);
 
-            // Build successful response
+            // Build successful response - refund is PENDING, not processed
             $response->setSuccess(true);
             $response->setError(false);
             $response->setOrderId($order->getId());
             $response->setIncrementId($order->getIncrementId());
-            $response->setRefundAmount($refundResult['refund_amount']);
-            $response->setRefundMethod($refundResult['refund_method']);
-            $response->setTransactionId($refundResult['transaction_id']);
-            $response->setMessage('Order returned successfully and refund processed.');
+            $response->setRefundAmount(0);  // No immediate refund
+            $response->setRefundMethod('pending');
+            $response->setTransactionId('return_pending_' . $order->getIncrementId() . '_' . time());
+            $response->setMessage(
+                'Return request submitted successfully. ' .
+                'Refund will be processed within 5-7 business days after we receive and inspect the returned items.'
+            );
 
         } catch (\Exception $e) {
             $this->logger->error('Order return failed: ' . $e->getMessage());
@@ -147,5 +162,17 @@ class OrderReturn implements OrderReturnInterface
             $this->shiprocketReturnService = $this->objectManager->get(ShiprocketReturnService::class);
         }
         return $this->shiprocketReturnService;
+    }
+
+    /**
+     * Format currency amount with proper symbol
+     *
+     * @param float $amount
+     * @param int|null $storeId
+     * @return string
+     */
+    private function formatCurrency($amount, $storeId = null)
+    {
+        return $this->priceCurrency->format($amount, false, 2, $storeId);
     }
 }

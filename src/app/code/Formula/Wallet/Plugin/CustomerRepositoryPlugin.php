@@ -79,14 +79,17 @@ class CustomerRepositoryPlugin
         $passwordHash = null
     ) {
         try {
-            // Only apply this restriction in webapi_rest area (customer API calls)
             $areaCode = $this->appState->getAreaCode();
+
+            // SECURITY FIX: Protect BOTH webapi_rest AND graphql areas
+            // GraphQL was previously unprotected, allowing customers to set their own wallet balance
+            $protectedAreas = ['webapi_rest', 'graphql'];
 
             // Don't interfere with:
             // - adminhtml, webapi_soap: Admin operations
             // - frontend, global: Order placement and system operations
             // - crontab: Scheduled operations
-            if ($areaCode !== 'webapi_rest') {
+            if (!in_array($areaCode, $protectedAreas)) {
                 return [$customer, $passwordHash];
             }
 
@@ -143,8 +146,19 @@ class CustomerRepositoryPlugin
             }
 
         } catch (\Exception $e) {
-            // Log error but don't block the customer update
-            $this->logger->error('Error in CustomerRepositoryPlugin: ' . $e->getMessage());
+            // SECURITY FIX: Don't silently allow proceed on exception
+            // This could be exploited by triggering an exception intentionally
+            $this->logger->error('Error in CustomerRepositoryPlugin: ' . $e->getMessage(), [
+                'customer_id' => $customer->getId() ?? 'new',
+                'area_code' => $areaCode ?? 'unknown'
+            ]);
+
+            // For protected areas, throw exception instead of allowing proceed
+            if (isset($areaCode) && in_array($areaCode, ['webapi_rest', 'graphql'])) {
+                throw new LocalizedException(
+                    __('Unable to process customer update. Please try again later.')
+                );
+            }
         }
 
         return [$customer, $passwordHash];

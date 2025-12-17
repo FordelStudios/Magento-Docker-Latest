@@ -13,9 +13,24 @@
     <!-- Preference for Wallet Transaction Repository Interface -->
     <preference for="Formula\Wallet\Api\WalletTransactionRepositoryInterface" type="Formula\Wallet\Model\WalletTransactionRepository" />
 
-    <!-- Plugin to log wallet changes via customer repository -->
+    <!-- Preference for Wallet Balance Service Interface (atomic operations with locking) -->
+    <preference for="Formula\Wallet\Api\WalletBalanceServiceInterface" type="Formula\Wallet\Model\WalletBalanceService" />
+
+    <!-- Plugin to prevent customers from manipulating wallet_amount_used via Cart API -->
+    <type name="Magento\Quote\Api\CartRepositoryInterface">
+        <plugin name="formula_wallet_cart_save_protection"
+                type="Formula\Wallet\Plugin\CartRepositorySavePlugin"
+                sortOrder="1" />
+    </type>
+
+    <!-- Plugin to prevent customers from updating their own wallet balance -->
     <type name="Magento\Customer\Api\CustomerRepositoryInterface">
-        <plugin name="formula_wallet_customer_save_transaction_log" type="Formula\Wallet\Plugin\CustomerRepositorySavePlugin" sortOrder="100" />
+        <plugin name="formula_wallet_prevent_customer_balance_update"
+                type="Formula\Wallet\Plugin\CustomerRepositoryPlugin"
+                sortOrder="10" />
+        <plugin name="formula_wallet_customer_save_transaction_log"
+                type="Formula\Wallet\Plugin\CustomerRepositorySavePlugin"
+                sortOrder="100" />
     </type>
 
     <!-- Extension Attributes for Quote -->

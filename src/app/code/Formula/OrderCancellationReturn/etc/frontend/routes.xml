@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Frontend routes for OrderCancellationReturn module
+ *
+ * Registers webhook endpoints for external services like Shiprocket
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
+    <router id="standard">
+        <route id="ordercancellationreturn" frontName="ordercancellationreturn">
+            <module name="Formula_OrderCancellationReturn"/>
+        </route>
+    </router>
+</config>

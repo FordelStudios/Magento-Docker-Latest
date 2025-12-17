@@ -100,7 +100,10 @@ class CustomerRepositorySavePlugin
         }
 
         // If balance changed, log transaction
-        if ($oldBalance != $newBalance && $result->getId()) {
+        // SECURITY FIX: Use epsilon comparison for floats to avoid precision issues
+        $epsilon = 0.0001;
+        $balanceChanged = abs($oldBalance - $newBalance) > $epsilon;
+        if ($balanceChanged && $result->getId()) {
             try {
                 $balanceDifference = $newBalance - $oldBalance;
                 $transactionType = $balanceDifference > 0 ? WalletTransactionInterface::TYPE_CREDIT : WalletTransactionInterface::TYPE_DEBIT;

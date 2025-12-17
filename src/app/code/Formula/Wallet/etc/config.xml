@@ -14,5 +14,17 @@
                 <can_use_for_multishipping>0</can_use_for_multishipping>
             </walletpayment>
         </payment>
+        <!-- Wallet balance and security limits -->
+        <formula_wallet>
+            <limits>
+                <enable_limits>1</enable_limits>
+                <max_balance>1000000</max_balance><!-- 10 Lakhs -->
+                <max_transaction>100000</max_transaction><!-- 1 Lakh -->
+            </limits>
+            <security>
+                <enable_idempotency>1</enable_idempotency>
+                <idempotency_ttl>3600</idempotency_ttl><!-- 1 hour -->
+            </security>
+        </formula_wallet>
     </default>
 </config>

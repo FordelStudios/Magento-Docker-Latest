@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Database schema for OrderCancellationReturn module
+ *
+ * Extends sales_order table with pending return refund tracking columns
+ * and Shiprocket tracking information for webhook integration.
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+
+    <!-- Extend sales_order table with pending return refund columns -->
+    <table name="sales_order" resource="sales" comment="Sales Order (Extended)">
+        <!-- Pending return refund columns - populated when return is requested, cleared when refund is processed -->
+        <column xsi:type="decimal" name="pending_return_refund_amount" scale="4" precision="20" unsigned="false" nullable="true" comment="Pending Return Refund Amount"/>
+        <column xsi:type="varchar" name="pending_return_refund_method" nullable="true" length="50" comment="Pending Return Refund Method (razorpay, wallet, etc.)"/>
+        <column xsi:type="decimal" name="pending_return_wallet_amount" scale="4" precision="20" unsigned="false" nullable="true" comment="Pending Return Wallet Portion Amount"/>
+
+        <!-- Shiprocket tracking columns for return webhook integration -->
+        <column xsi:type="varchar" name="shiprocket_return_id" nullable="true" length="50" comment="Shiprocket Return Order ID"/>
+        <column xsi:type="varchar" name="shiprocket_awb_number" nullable="true" length="50" comment="Shiprocket AWB (Airway Bill) Number"/>
+        <column xsi:type="varchar" name="shiprocket_return_status" nullable="true" length="50" comment="Shiprocket Return Status"/>
+
+        <!-- Index for webhook lookups -->
+        <index referenceId="IDX_SALES_ORDER_SHIPROCKET_RETURN_ID" indexType="btree">
+            <column name="shiprocket_return_id"/>
+        </index>
+
+        <index referenceId="IDX_SALES_ORDER_SHIPROCKET_AWB" indexType="btree">
+            <column name="shiprocket_awb_number"/>
+        </index>
+    </table>
+
+</schema>

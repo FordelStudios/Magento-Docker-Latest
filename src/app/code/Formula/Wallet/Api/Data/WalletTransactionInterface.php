@@ -13,6 +13,8 @@ interface WalletTransactionInterface
     const REFERENCE_TYPE = 'reference_type';
     const REFERENCE_ID = 'reference_id';
     const CREATED_AT = 'created_at';
+    const ADMIN_USER_ID = 'admin_user_id';
+    const ADMIN_USERNAME = 'admin_username';
 
     const TYPE_CREDIT = 'credit';
     const TYPE_DEBIT = 'debit';
@@ -173,4 +175,34 @@ interface WalletTransactionInterface
      * @return $this
      */
     public function setCreatedAt($createdAt);
+
+    /**
+     * Get admin user ID
+     *
+     * @return int|null
+     */
+    public function getAdminUserId();
+
+    /**
+     * Set admin user ID
+     *
+     * @param int|null $adminUserId
+     * @return $this
+     */
+    public function setAdminUserId($adminUserId);
+
+    /**
+     * Get admin username
+     *
+     * @return string|null
+     */
+    public function getAdminUsername();
+
+    /**
+     * Set admin username
+     *
+     * @param string|null $adminUsername
+     * @return $this
+     */
+    public function setAdminUsername($adminUsername);
 }

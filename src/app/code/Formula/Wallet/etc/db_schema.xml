@@ -13,6 +13,8 @@
         <column xsi:type="varchar" name="reference_type" nullable="true" length="50" comment="Reference Type (order, refund, order_cancel, order_return, admin_api, admin_panel)"/>
         <column xsi:type="int" name="reference_id" unsigned="true" nullable="true" comment="Reference ID (Order ID, Creditmemo ID, etc.)"/>
         <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="false" comment="Created At"/>
+        <column xsi:type="int" name="admin_user_id" unsigned="true" nullable="true" comment="Admin User ID (for admin-initiated transactions)"/>
+        <column xsi:type="varchar" name="admin_username" nullable="true" length="100" comment="Admin Username (for audit trail)"/>
 
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="transaction_id"/>

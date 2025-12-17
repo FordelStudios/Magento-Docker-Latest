@@ -64,6 +64,8 @@ interface WalletTransactionRepositoryInterface
      * @param string|null $description
      * @param string|null $referenceType
      * @param int|null $referenceId
+     * @param int|null $adminUserId
+     * @param string|null $adminUsername
      * @return WalletTransactionInterface
      * @throws LocalizedException
      */
@@ -75,6 +77,8 @@ interface WalletTransactionRepositoryInterface
         $balanceAfter,
         $description = null,
         $referenceType = null,
-        $referenceId = null
+        $referenceId = null,
+        $adminUserId = null,
+        $adminUsername = null
     );
 }

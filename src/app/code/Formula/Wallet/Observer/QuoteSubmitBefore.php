@@ -31,8 +31,10 @@ class QuoteSubmitBefore implements ObserverInterface
             $order->setBaseWalletAmountUsed($baseWalletAmountUsed ?: $walletAmountUsed);
 
             // Restore original grand total to order (before wallet deduction)
+            // SECURITY FIX: Fixed operator precedence bug - parentheses ensure correct evaluation
             $originalGrandTotal = $order->getGrandTotal() + $walletAmountUsed;
-            $originalBaseGrandTotal = $order->getBaseGrandTotal() + $baseWalletAmountUsed ?: $walletAmountUsed;
+            $baseWallet = $baseWalletAmountUsed ?: $walletAmountUsed;
+            $originalBaseGrandTotal = $order->getBaseGrandTotal() + $baseWallet;
 
             $order->setGrandTotal($originalGrandTotal);
             $order->setBaseGrandTotal($originalBaseGrandTotal);

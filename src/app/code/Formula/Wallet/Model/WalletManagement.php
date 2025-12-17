@@ -19,6 +19,10 @@ use Formula\Shiprocket\Service\ShiprocketShipmentService;
 use Psr\Log\LoggerInterface;
 use Formula\RazorpayApi\Api\Data\OrderResponseInterfaceFactory;
 use Magento\Sales\Model\Order;
+use Magento\Backend\Model\Auth\Session as AdminSession;
+use Magento\Framework\Registry;
+use Magento\Framework\App\ResourceConnection;
+use Formula\Wallet\Plugin\CartRepositorySavePlugin;
 
 class WalletManagement implements WalletManagementInterface
 {
@@ -88,6 +92,21 @@ class WalletManagement implements WalletManagementInterface
     protected $orderResponseFactory;
 
     /**
+     * @var AdminSession
+     */
+    protected $adminSession;
+
+    /**
+     * @var Registry
+     */
+    protected $registry;
+
+    /**
+     * @var ResourceConnection
+     */
+    protected $resourceConnection;
+
+    /**
      * @param CustomerRepositoryInterface $customerRepository
      * @param CartRepositoryInterface $quoteRepository
      * @param CartManagementInterface $cartManagement
@@ -101,6 +120,9 @@ class WalletManagement implements WalletManagementInterface
      * @param ShiprocketShipmentService $shiprocketShipmentService
      * @param LoggerInterface $logger
      * @param OrderResponseInterfaceFactory $orderResponseFactory
+     * @param AdminSession|null $adminSession
+     * @param Registry|null $registry
+     * @param ResourceConnection|null $resourceConnection
      */
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
@@ -115,7 +137,10 @@ class WalletManagement implements WalletManagementInterface
         OrderRepositoryInterface $orderRepository,
         ShiprocketShipmentService $shiprocketShipmentService,
         LoggerInterface $logger,
-        OrderResponseInterfaceFactory $orderResponseFactory
+        OrderResponseInterfaceFactory $orderResponseFactory,
+        AdminSession $adminSession = null,
+        Registry $registry = null,
+        ResourceConnection $resourceConnection = null
     ) {
         $this->customerRepository = $customerRepository;
         $this->quoteRepository = $quoteRepository;
@@ -130,6 +155,9 @@ class WalletManagement implements WalletManagementInterface
         $this->shiprocketShipmentService = $shiprocketShipmentService;
         $this->logger = $logger;
         $this->orderResponseFactory = $orderResponseFactory;
+        $this->adminSession = $adminSession;
+        $this->registry = $registry ?: \Magento\Framework\App\ObjectManager::getInstance()->get(Registry::class);
+        $this->resourceConnection = $resourceConnection ?: \Magento\Framework\App\ObjectManager::getInstance()->get(ResourceConnection::class);
     }
 
     /**
@@ -151,21 +179,27 @@ class WalletManagement implements WalletManagementInterface
      */
     public function applyWalletToCart($customerId, $cartId, $amount = null)
     {
+        $this->logger->info('WalletManagement::applyWalletToCart called', [
+            'customer_id' => $customerId,
+            'cart_id' => $cartId,
+            'amount' => $amount
+        ]);
+
         try {
             $quote = $this->quoteRepository->get($cartId);
-            
+
             if ($quote->getCustomerId() != $customerId) {
                 throw new LocalizedException(__('You are not authorized to access this cart.'));
             }
 
             $walletBalance = $this->getWalletBalance($customerId);
-            
+
             if ($walletBalance <= 0) {
                 throw new LocalizedException(__('Insufficient wallet balance.'));
             }
 
             $grandTotal = $quote->getGrandTotal();
-            
+
             if (!$amount) {
                 $amount = min($walletBalance, $grandTotal);
             } else {
@@ -177,12 +211,36 @@ class WalletManagement implements WalletManagementInterface
                 }
             }
 
+            // Save wallet amount directly to the database
+            // This bypasses the CartRepository which doesn't persist custom fields
+            $this->saveWalletAmountToQuote((int)$cartId, (float)$amount, (float)$amount);
+
+            // Reload the quote (CartRepository doesn't load custom columns automatically)
+            $quote = $this->quoteRepository->get($cartId);
+
+            // Set wallet amount on quote object for collectTotals() to use
+            // This is necessary because CartRepository->get() doesn't load custom DB columns
             $quote->setWalletAmountUsed($amount);
             $quote->setBaseWalletAmountUsed($amount);
-            
-            $this->quoteRepository->save($quote);
+
+            // Recalculate totals with the wallet amount applied
             $quote->collectTotals();
-            $this->quoteRepository->save($quote);
+
+            // Save the quote with updated totals (registry flag to preserve wallet amount)
+            $this->registry->register(CartRepositorySavePlugin::REGISTRY_KEY_WALLET_OPERATION, true);
+            try {
+                $this->quoteRepository->save($quote);
+            } finally {
+                $this->registry->unregister(CartRepositorySavePlugin::REGISTRY_KEY_WALLET_OPERATION);
+            }
+
+            // Re-save wallet amount after totals collection (in case it was modified)
+            $this->saveWalletAmountToQuote((int)$cartId, (float)$amount, (float)$amount);
+
+            $this->logger->info('WalletManagement::applyWalletToCart completed successfully', [
+                'cart_id' => $cartId,
+                'wallet_amount_used' => $amount
+            ]);
 
             return true;
         } catch (NoSuchEntityException $e) {
@@ -197,17 +255,38 @@ class WalletManagement implements WalletManagementInterface
     {
         try {
             $quote = $this->quoteRepository->get($cartId);
-            
+
             if ($quote->getCustomerId() != $customerId) {
                 throw new LocalizedException(__('You are not authorized to access this cart.'));
             }
 
-            $quote->setWalletAmountUsed(0);
-            $quote->setBaseWalletAmountUsed(0);
-            
-            $this->quoteRepository->save($quote);
+            // Remove wallet amount directly from the database
+            $this->saveWalletAmountToQuote((int)$cartId, 0.0, 0.0);
+
+            // Reload the quote and recalculate totals
+            $quote = $this->quoteRepository->get($cartId);
+
+            // Explicitly set wallet amount to 0 on quote object
+            // This is necessary because CartRepository->get() doesn't load custom DB columns
+            $quote->setWalletAmountUsed(0.0);
+            $quote->setBaseWalletAmountUsed(0.0);
+
             $quote->collectTotals();
-            $this->quoteRepository->save($quote);
+
+            // Save the quote with updated totals
+            $this->registry->register(CartRepositorySavePlugin::REGISTRY_KEY_WALLET_OPERATION, true);
+            try {
+                $this->quoteRepository->save($quote);
+            } finally {
+                $this->registry->unregister(CartRepositorySavePlugin::REGISTRY_KEY_WALLET_OPERATION);
+            }
+
+            // Ensure wallet is removed after totals collection
+            $this->saveWalletAmountToQuote((int)$cartId, 0.0, 0.0);
+
+            $this->logger->info('WalletManagement::removeWalletFromCart completed', [
+                'cart_id' => $cartId
+            ]);
 
             return true;
         } catch (NoSuchEntityException $e) {
@@ -245,15 +324,16 @@ class WalletManagement implements WalletManagementInterface
                 throw new LocalizedException(__('Wallet payment is only allowed when the full order amount is covered by wallet. Current remaining amount: ' . $grandTotal . '. Please use Razorpay for partial payments.'));
             }
 
-            // Check for cash on delivery payment method (not allowed with wallet)
-            $paymentMethod = $quote->getPayment()->getMethod();
-            if ($paymentMethod === 'cashondelivery') {
-                throw new LocalizedException(__('Wallet payment cannot be combined with Cash on Delivery.'));
-            }
-
+            // Set payment method to wallet (overwriting any default like COD)
             $quote->getPayment()->setMethod('walletpayment');
 
-            $this->quoteRepository->save($quote);
+            // Set registry flag to bypass CartRepositorySavePlugin during legitimate wallet operations
+            $this->registry->register(CartRepositorySavePlugin::REGISTRY_KEY_WALLET_OPERATION, true);
+            try {
+                $this->quoteRepository->save($quote);
+            } finally {
+                $this->registry->unregister(CartRepositorySavePlugin::REGISTRY_KEY_WALLET_OPERATION);
+            }
 
             // Create order
             $orderId = $this->cartManagement->placeOrder($cartId);
@@ -344,47 +424,137 @@ class WalletManagement implements WalletManagementInterface
 
                 return $shipmentResult;
             } else {
-                // Log error but don't fail the order creation
+                // SECURITY FIX: Set order to shipment_pending_manual status for admin attention
                 $this->logger->warning('Shiprocket shipment creation failed for wallet order: ' . $order->getIncrementId(), $shipmentResult);
+
+                $order->setStatus('shipment_pending_manual');
+                $order->addStatusHistoryComment(
+                    sprintf(
+                        'Shiprocket shipment creation failed. Reason: %s. Manual intervention required.',
+                        $shipmentResult['message'] ?? 'Unknown error'
+                    ),
+                    'shipment_pending_manual'
+                );
+                $this->orderRepository->save($order);
+
                 return ['success' => false, 'message' => 'Shipment creation failed'];
             }
 
         } catch (\Exception $e) {
-            // Log error but don't fail the order creation
+            // SECURITY FIX: Set order to shipment_pending_manual status for admin attention
             $this->logger->error('Exception during shipment creation for wallet order: ' . $order->getIncrementId() . ' - ' . $e->getMessage());
+
+            try {
+                $order->setStatus('shipment_pending_manual');
+                $order->addStatusHistoryComment(
+                    sprintf(
+                        'Shiprocket shipment creation failed with exception: %s. Manual intervention required.',
+                        $e->getMessage()
+                    ),
+                    'shipment_pending_manual'
+                );
+                $this->orderRepository->save($order);
+            } catch (\Exception $saveException) {
+                $this->logger->error('Failed to update order status after Shiprocket failure: ' . $saveException->getMessage());
+            }
+
             return ['success' => false, 'message' => $e->getMessage()];
         }
     }
 
     /**
      * {@inheritdoc}
+     *
+     * SECURITY FIX: Now uses WalletBalanceService for atomic updates with validation
+     * - Validates amount is positive for add/subtract
+     * - Validates against max balance and transaction limits
+     * - Uses row locking to prevent race conditions
+     * - Transaction logging included atomically
      */
     public function updateWalletBalance($customerId, $amount, $action = 'add')
     {
+        // SECURITY FIX: Validate amount is numeric
+        if (!is_numeric($amount)) {
+            throw new LocalizedException(__('Amount must be a valid number.'));
+        }
+
+        $amount = (float)$amount;
+
+        // SECURITY FIX: For add/subtract, amount must be positive
+        // Using negative with 'add' would subtract, which is confusing and could be exploited
+        if ($action !== 'set' && $amount < 0) {
+            throw new LocalizedException(
+                __('Amount must be positive. Use "subtract" action to reduce balance.')
+            );
+        }
+
+        // Validate action type
+        if (!in_array($action, ['add', 'subtract', 'set'])) {
+            throw new LocalizedException(__('Invalid action. Use add, subtract, or set.'));
+        }
+
         try {
-            $customer = $this->customerRepository->getById($customerId);
-            $currentBalance = $this->getWalletBalance($customerId);
-            
-            switch ($action) {
-                case 'add':
-                    $newBalance = $currentBalance + $amount;
-                    break;
-                case 'subtract':
-                    $newBalance = max(0, $currentBalance - $amount);
-                    break;
-                case 'set':
-                    $newBalance = max(0, $amount);
-                    break;
-                default:
-                    throw new LocalizedException(__('Invalid action. Use add, subtract, or set.'));
+            // Use atomic balance service for thread-safe updates
+            // WalletBalanceService handles:
+            // - Row locking (SELECT FOR UPDATE)
+            // - Balance limit validation
+            // - Transaction limit validation
+            // - Atomic transaction logging
+
+            // Note: WalletBalanceService needs to be injected - for now using direct call
+            // The atomic service will handle the actual update with proper locking
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $balanceService = $objectManager->get(\Formula\Wallet\Api\WalletBalanceServiceInterface::class);
+
+            $description = sprintf(
+                'Admin adjustment - wallet %s via API',
+                $action === 'subtract' ? 'debited' : 'credited'
+            );
+
+            // Get admin user info for audit trail
+            $adminUserId = null;
+            $adminUsername = null;
+            if ($this->adminSession && $this->adminSession->isLoggedIn()) {
+                $adminUser = $this->adminSession->getUser();
+                if ($adminUser) {
+                    $adminUserId = (int)$adminUser->getId();
+                    $adminUsername = $adminUser->getUserName();
+                }
             }
 
-            $customer->setCustomAttribute('wallet_balance', $newBalance);
-            $this->customerRepository->save($customer);
+            $result = $balanceService->updateBalanceAtomic(
+                (int)$customerId,
+                $amount,
+                $action,
+                $description,
+                \Formula\Wallet\Api\Data\WalletTransactionInterface::REFERENCE_TYPE_ADMIN_API,
+                null,
+                $adminUserId,
+                $adminUsername
+            );
+
+            $this->logger->info('Admin wallet balance update', [
+                'customer_id' => $customerId,
+                'action' => $action,
+                'amount' => $amount,
+                'old_balance' => $result['old_balance'],
+                'new_balance' => $result['new_balance']
+            ]);
 
             return true;
+
         } catch (NoSuchEntityException $e) {
             throw new NoSuchEntityException(__('Customer with ID "%1" does not exist.', $customerId));
+        } catch (LocalizedException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to update wallet balance', [
+                'customer_id' => $customerId,
+                'action' => $action,
+                'amount' => $amount,
+                'error' => $e->getMessage()
+            ]);
+            throw new LocalizedException(__('Failed to update wallet balance. Please try again.'));
         }
     }
 
@@ -414,6 +584,51 @@ class WalletManagement implements WalletManagementInterface
             return $this->transactionRepository->getList($searchCriteria);
         } catch (NoSuchEntityException $e) {
             throw new NoSuchEntityException(__('Customer with ID "%1" does not exist.', $customerId));
+        }
+    }
+
+    /**
+     * Save wallet amount directly to the quote table
+     *
+     * This method bypasses the CartRepository to directly update the wallet fields
+     * in the database, ensuring the values are persisted regardless of how the
+     * repository handles custom fields.
+     *
+     * @param int $cartId
+     * @param float $walletAmount
+     * @param float|null $baseWalletAmount
+     * @return void
+     */
+    private function saveWalletAmountToQuote(int $cartId, float $walletAmount, float $baseWalletAmount = null): void
+    {
+        if ($baseWalletAmount === null) {
+            $baseWalletAmount = $walletAmount;
+        }
+
+        try {
+            $connection = $this->resourceConnection->getConnection();
+            $tableName = $this->resourceConnection->getTableName('quote');
+
+            $connection->update(
+                $tableName,
+                [
+                    'wallet_amount_used' => $walletAmount,
+                    'base_wallet_amount_used' => $baseWalletAmount
+                ],
+                ['entity_id = ?' => $cartId]
+            );
+
+            $this->logger->info('WalletManagement: Saved wallet amount directly to DB', [
+                'cart_id' => $cartId,
+                'wallet_amount_used' => $walletAmount,
+                'base_wallet_amount_used' => $baseWalletAmount
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('WalletManagement: Failed to save wallet amount to DB', [
+                'cart_id' => $cartId,
+                'error' => $e->getMessage()
+            ]);
+            throw new LocalizedException(__('Failed to apply wallet to cart.'));
         }
     }
 }
