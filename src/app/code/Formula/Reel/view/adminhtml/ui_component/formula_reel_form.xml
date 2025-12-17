@@ -231,6 +231,24 @@
 				</item>
 			</argument>
 		</field>
+		<field name="culture" formElement="select">
+			<argument name="data" xsi:type="array">
+				<item name="options" xsi:type="object">
+					Formula\Reel\Model\Config\Source\Culture
+				</item>
+				<item name="config" xsi:type="array">
+					<item name="dataType" xsi:type="string">text</item>
+					<item name="label" xsi:type="string" translate="true">Culture</item>
+					<item name="formElement" xsi:type="string">select</item>
+					<item name="source" xsi:type="string">reel</item>
+					<item name="sortOrder" xsi:type="number">65</item>
+					<item name="dataScope" xsi:type="string">culture</item>
+				</item>
+			</argument>
+			<settings>
+				<notice translate="true">Country/Culture for this reel (same as Country of Manufacture in products)</notice>
+			</settings>
+		</field>
 		<field name="category_ids" formElement="select">
 			<argument name="data" xsi:type="array">
 				<item name="options" xsi:type="object">

@@ -208,7 +208,8 @@ class ReelRepository implements ReelRepositoryInterface
                     'updated_at' => $item->getUpdatedAt(),
                     'product_ids' => $item->getProductIds(),
                     'products' => $this->getProductDetails($item->getProductIds()),
-                    'category_ids' => $item->getCategoryIds()
+                    'category_ids' => $item->getCategoryIds(),
+                    'culture' => $item->getCulture()
                 ];
             }
 
@@ -277,6 +278,7 @@ class ReelRepository implements ReelRepositoryInterface
         $existingReel->setThumbnail($reel->getThumbnail());
         $existingReel->setProductIds($reel->getProductIds());
         $existingReel->setCategoryIds($reel->getCategoryIds());
+        $existingReel->setCulture($reel->getCulture());
         $existingReel->setUpdatedAt(date('Y-m-d H:i:s'));
 
         // Save the updated reel

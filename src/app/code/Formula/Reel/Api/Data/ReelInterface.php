@@ -13,6 +13,7 @@ interface ReelInterface
     const PRODUCT_IDS    = 'product_ids';
     const CATEGORY_IDS   = 'category_ids';
     const THUMBNAIL      = 'thumbnail';
+    const CULTURE        = 'culture';
 
     /**
      * Get ID
@@ -152,5 +153,20 @@ interface ReelInterface
      * @return ReelInterface
      */
     public function setThumbnail($thumbnail);
+
+    /**
+     * Get culture/country code
+     *
+     * @return string|null
+     */
+    public function getCulture();
+
+    /**
+     * Set culture/country code
+     *
+     * @param string|null $culture
+     * @return ReelInterface
+     */
+    public function setCulture($culture);
 }
 

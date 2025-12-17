@@ -242,4 +242,25 @@ class Reel extends AbstractModel implements ReelInterface, IdentityInterface
     {
         return $this->setData(self::THUMBNAIL, $thumbnail);
     }
+
+    /**
+     * Get culture/country code
+     *
+     * @return string|null
+     */
+    public function getCulture()
+    {
+        return $this->getData(self::CULTURE);
+    }
+
+    /**
+     * Set culture/country code
+     *
+     * @param string|null $culture
+     * @return ReelInterface
+     */
+    public function setCulture($culture)
+    {
+        return $this->setData(self::CULTURE, $culture);
+    }
 }
