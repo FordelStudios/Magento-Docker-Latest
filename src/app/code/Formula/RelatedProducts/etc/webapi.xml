@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+
+    <!-- Get Related Products with full details -->
+    <route url="/V1/products/:sku/related-products" method="GET">
+        <service class="Formula\RelatedProducts\Api\RelatedProductsInterface" method="getRelatedProducts"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <!-- Get Up-sell Products with full details -->
+    <route url="/V1/products/:sku/upsell-products" method="GET">
+        <service class="Formula\RelatedProducts\Api\RelatedProductsInterface" method="getUpsellProducts"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <!-- Get Cross-sell Products with full details -->
+    <route url="/V1/products/:sku/crosssell-products" method="GET">
+        <service class="Formula\RelatedProducts\Api\RelatedProductsInterface" method="getCrosssellProducts"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+</routes>

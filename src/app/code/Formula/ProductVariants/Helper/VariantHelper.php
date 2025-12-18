@@ -369,4 +369,25 @@ class VariantHelper
     {
         $this->variantCache = [];
     }
+
+    /**
+     * Get a unique group key for a product
+     * Used for grouping products by base SKU and brand
+     *
+     * @param ProductInterface $product
+     * @return string
+     */
+    public function getGroupKey(ProductInterface $product): string
+    {
+        $parsed = $this->parseProductSku($product->getSku());
+        $brandId = $this->getProductBrandId($product);
+
+        // Products WITHOUT size patterns get standalone group key
+        if ($parsed['ml_size'] === null) {
+            return 'standalone_' . strtolower(trim($product->getSku())) . '_brand_' . ($brandId ?? 'none');
+        }
+
+        // Products WITH size patterns are grouped by base SKU + brand
+        return strtolower(trim($parsed['base_sku'])) . '_brand_' . ($brandId ?? 'none');
+    }
 }

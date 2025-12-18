@@ -18,3 +18,16 @@ esdata/
 .DS_Store
 # Ignore Magento media
 src/pub/media/
+
+# Local configuration
+.mcp.json
+
+# Database backups
+*.sql
+
+# Media backups
+media_backup.tar.gz
+
+# Local scripts
+import_media.sh
+test-*.sh
