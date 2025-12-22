@@ -6,6 +6,7 @@ namespace Formula\Wati\Service;
 use Formula\Wati\Helper\Data as WatiHelper;
 use Formula\Wati\Api\Data\MessageLogInterfaceFactory;
 use Formula\Wati\Api\MessageLogRepositoryInterface;
+use Formula\Wati\Model\TemplateVariables;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -44,24 +45,32 @@ class WatiApiService
     protected $messageLogRepository;
 
     /**
+     * @var TemplateVariables
+     */
+    protected $templateVariables;
+
+    /**
      * @param WatiHelper $watiHelper
      * @param Curl $curl
      * @param LoggerInterface $logger
      * @param MessageLogInterfaceFactory $messageLogFactory
      * @param MessageLogRepositoryInterface $messageLogRepository
+     * @param TemplateVariables $templateVariables
      */
     public function __construct(
         WatiHelper $watiHelper,
         Curl $curl,
         LoggerInterface $logger,
         MessageLogInterfaceFactory $messageLogFactory,
-        MessageLogRepositoryInterface $messageLogRepository
+        MessageLogRepositoryInterface $messageLogRepository,
+        TemplateVariables $templateVariables
     ) {
         $this->watiHelper = $watiHelper;
         $this->curl = $curl;
         $this->logger = $logger;
         $this->messageLogFactory = $messageLogFactory;
         $this->messageLogRepository = $messageLogRepository;
+        $this->templateVariables = $templateVariables;
     }
 
     /**
@@ -96,8 +105,9 @@ class WatiApiService
 
         $phoneNumber = $this->watiHelper->formatPhoneForWhatsApp($shippingAddress->getTelephone());
 
-        // Build template parameters
-        $parameters = $this->buildTemplateParameters($order, $status);
+        // Build template parameters using TemplateVariables model
+        $variables = $this->templateVariables->extractVariablesFromOrder($order, $status);
+        $parameters = $this->templateVariables->toWatiParameters($variables);
 
         // Create message log entry
         $messageLog = $this->messageLogFactory->create();
@@ -113,7 +123,8 @@ class WatiApiService
             $messageLog->setRequestPayload(json_encode([
                 'phone' => $phoneNumber,
                 'template' => $templateName,
-                'parameters' => $parameters
+                'parameters' => $parameters,
+                'variables' => $variables // Store readable variables for debugging
             ]));
             $messageLog->setResponsePayload(json_encode($result));
 
@@ -123,7 +134,8 @@ class WatiApiService
                 $this->logger->info('Wati: Message sent for order ' . $order->getIncrementId(), [
                     'message_id' => $result['message_id'] ?? 'N/A',
                     'phone' => $phoneNumber,
-                    'template' => $templateName
+                    'template' => $templateName,
+                    'variables_sent' => array_keys($variables)
                 ]);
             } else {
                 $messageLog->setDeliveryStatus('failed');
@@ -157,46 +169,13 @@ class WatiApiService
     }
 
     /**
-     * Build template parameters for the message
-     * Keep messages SHORT to minimize costs
+     * Get all available template variables
      *
-     * @param OrderInterface $order
-     * @param string $status
      * @return array
      */
-    protected function buildTemplateParameters(OrderInterface $order, string $status): array
+    public function getAvailableVariables(): array
     {
-        $customerName = $order->getCustomerFirstname();
-        if (!$customerName) {
-            $billingAddress = $order->getBillingAddress();
-            if ($billingAddress) {
-                $customerName = $billingAddress->getFirstname();
-            }
-        }
-        $customerName = $customerName ?: 'Customer';
-
-        // Base parameters (kept minimal for cost)
-        $params = [
-            ['name' => '1', 'value' => $customerName],
-            ['name' => '2', 'value' => $order->getIncrementId()],
-        ];
-
-        // Add status-specific parameters
-        $status = strtolower($status);
-        switch ($status) {
-            case 'shipped':
-            case 'in_transit':
-                // Add tracking info if available (from Shiprocket integration)
-                $trackingNumber = $order->getData('shiprocket_awb_number');
-                if ($trackingNumber) {
-                    $params[] = ['name' => '3', 'value' => $trackingNumber];
-                } else {
-                    $params[] = ['name' => '3', 'value' => 'N/A'];
-                }
-                break;
-        }
-
-        return $params;
+        return $this->templateVariables->getVariablesByCategory();
     }
 
     /**

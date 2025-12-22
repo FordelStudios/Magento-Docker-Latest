@@ -65,10 +65,25 @@
                 </field>
             </group>
 
+            <group id="variable_reference" translate="label comment" type="text" sortOrder="15"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Template Variables Reference</label>
+                <comment><![CDATA[<strong>How to use:</strong> When creating templates in the Wati dashboard, use the variable names listed below.
+                    Wati will replace these variables with actual order data when sending messages.<br/><br/>
+                    <strong>Example template:</strong> "Hi {{customer_name}}, your order #{{order_id}} worth {{order_total}} has been shipped via {{courier_name}}. Track here: {{tracking_url}}"]]></comment>
+
+                <field id="variables" translate="label" type="text" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Available Variables</label>
+                    <frontend_model>Formula\Wati\Block\Adminhtml\System\Config\VariableReference</frontend_model>
+                </field>
+            </group>
+
             <group id="templates" translate="label comment" type="text" sortOrder="20"
                    showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Message Templates</label>
-                <comment><![CDATA[Configure Wati template names for each order status. Templates must be pre-approved in your Wati dashboard before use.]]></comment>
+                <comment><![CDATA[Configure Wati template names for each order status. Templates must be pre-approved in your Wati dashboard before use.<br/>
+                    <strong>Note:</strong> The template name you enter here must exactly match the template name in your Wati dashboard.]]></comment>
 
                 <field id="order_placed" translate="label comment" type="text" sortOrder="10"
                        showInDefault="1" showInWebsite="1" showInStore="1">
