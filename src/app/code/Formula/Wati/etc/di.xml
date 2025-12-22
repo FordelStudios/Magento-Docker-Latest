@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- API Interface Preferences -->
+    <preference for="Formula\Wati\Api\WatiWebhookInterface" type="Formula\Wati\Model\WatiWebhook"/>
+    <preference for="Formula\Wati\Api\Data\MessageLogInterface" type="Formula\Wati\Model\MessageLog"/>
+    <preference for="Formula\Wati\Api\MessageLogRepositoryInterface" type="Formula\Wati\Model\MessageLogRepository"/>
+
+    <!-- Plugin for order status changes -->
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="formula_wati_order_status_change" type="Formula\Wati\Plugin\OrderStatusChangePlugin" sortOrder="200"/>
+    </type>
+
+    <!-- Console commands -->
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="formula_wati_test_config" xsi:type="object">Formula\Wati\Console\Command\TestConfiguration</item>
+                <item name="formula_wati_send_test" xsi:type="object">Formula\Wati\Console\Command\SendTestMessage</item>
+            </argument>
+        </arguments>
+    </type>
+
+</config>

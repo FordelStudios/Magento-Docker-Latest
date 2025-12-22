@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="formula" translate="label" sortOrder="200">
+            <label>Formula</label>
+        </tab>
+
+        <section id="formula_wati" translate="label" type="text" sortOrder="50"
+                 showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Wati WhatsApp</label>
+            <tab>formula</tab>
+            <resource>Formula_Wati::config</resource>
+
+            <group id="general" translate="label" type="text" sortOrder="10"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Settings</label>
+
+                <field id="enabled" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Wati Integration</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable/disable WhatsApp notifications via Wati</comment>
+                </field>
+
+                <field id="api_endpoint" translate="label comment" type="text" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API Endpoint</label>
+                    <comment><![CDATA[Your Wati API endpoint (e.g., https://live-mt-server.wati.io/329124). Found in Wati Dashboard > Settings > API]]></comment>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="api_token" translate="label comment" type="obscure" sortOrder="30"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API Access Token</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment><![CDATA[Your Wati API Bearer token. Found in Wati Dashboard > Settings > API]]></comment>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="webhook_secret" translate="label comment" type="text" sortOrder="40"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Webhook Secret Key</label>
+                    <comment><![CDATA[Secret key for webhook authentication. Configure same key in Wati webhook settings.<br/>
+                    <strong>Webhook URL:</strong> https://admin.theformulashop.com/rest/V1/wati/webhook/delivery-status]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="debug_mode" translate="label comment" type="select" sortOrder="50"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Debug Mode</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable detailed logging for API calls (logs to var/log/system.log)</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+
+            <group id="templates" translate="label comment" type="text" sortOrder="20"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Message Templates</label>
+                <comment><![CDATA[Configure Wati template names for each order status. Templates must be pre-approved in your Wati dashboard before use.]]></comment>
+
+                <field id="order_placed" translate="label comment" type="text" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Order Placed Template</label>
+                    <comment>Template name for new order confirmation (e.g., order_confirmation)</comment>
+                    <depends>
+                        <field id="formula_wati/general/enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="order_processing" translate="label comment" type="text" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Order Processing Template</label>
+                    <comment>Template name when order is being processed</comment>
+                    <depends>
+                        <field id="formula_wati/general/enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="order_shipped" translate="label comment" type="text" sortOrder="30"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Order Shipped Template</label>
+                    <comment>Template name when order is shipped</comment>
+                    <depends>
+                        <field id="formula_wati/general/enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="out_for_delivery" translate="label comment" type="text" sortOrder="40"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Out for Delivery Template</label>
+                    <comment>Template name when order is out for delivery</comment>
+                    <depends>
+                        <field id="formula_wati/general/enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="order_delivered" translate="label comment" type="text" sortOrder="50"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Order Delivered Template</label>
+                    <comment>Template name when order is delivered</comment>
+                    <depends>
+                        <field id="formula_wati/general/enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="order_cancelled" translate="label comment" type="text" sortOrder="60"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Order Cancelled Template</label>
+                    <comment>Template name when order is cancelled</comment>
+                    <depends>
+                        <field id="formula_wati/general/enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="order_refunded" translate="label comment" type="text" sortOrder="70"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Order Refunded Template</label>
+                    <comment>Template name when order is refunded</comment>
+                    <depends>
+                        <field id="formula_wati/general/enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+
+            <group id="retry" translate="label" type="text" sortOrder="30"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Retry Settings</label>
+
+                <field id="max_retries" translate="label comment" type="text" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Maximum Retry Attempts</label>
+                    <comment>Number of times to retry failed messages (default: 3)</comment>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                    <depends>
+                        <field id="formula_wati/general/enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

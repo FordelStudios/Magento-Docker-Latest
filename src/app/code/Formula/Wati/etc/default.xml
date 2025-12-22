@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <formula_wati>
+            <general>
+                <enabled>0</enabled>
+                <api_endpoint>https://live-mt-server.wati.io/329124</api_endpoint>
+                <debug_mode>0</debug_mode>
+            </general>
+            <templates>
+                <order_placed>order_confirmation</order_placed>
+                <order_processing>order_processing</order_processing>
+                <order_shipped>order_shipped</order_shipped>
+                <out_for_delivery>out_for_delivery</out_for_delivery>
+                <order_delivered>order_delivered</order_delivered>
+                <order_cancelled>order_cancelled</order_cancelled>
+                <order_refunded>order_refunded</order_refunded>
+            </templates>
+            <retry>
+                <max_retries>3</max_retries>
+            </retry>
+        </formula_wati>
+    </default>
+</config>

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+
+    <!-- Send WhatsApp notification when order is placed -->
+    <event name="sales_order_place_after">
+        <observer name="formula_wati_order_place_after" instance="Formula\Wati\Observer\OrderPlaceAfter"/>
+    </event>
+
+</config>

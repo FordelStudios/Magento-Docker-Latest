@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+
+    <table name="formula_wati_message_log" resource="default" engine="innodb" comment="Wati WhatsApp Message Log">
+        <column xsi:type="int" name="log_id" unsigned="true" nullable="false" identity="true" comment="Log ID"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="false" comment="Order Entity ID"/>
+        <column xsi:type="varchar" name="order_increment_id" length="32" nullable="false" comment="Order Increment ID"/>
+        <column xsi:type="varchar" name="phone_number" length="20" nullable="false" comment="WhatsApp Phone Number"/>
+        <column xsi:type="varchar" name="template_name" length="100" nullable="false" comment="Wati Template Name"/>
+        <column xsi:type="varchar" name="order_status" length="50" nullable="false" comment="Order Status at Send Time"/>
+        <column xsi:type="varchar" name="message_id" length="100" nullable="true" comment="Wati Message ID"/>
+        <column xsi:type="varchar" name="delivery_status" length="50" nullable="true" default="pending" comment="Delivery Status"/>
+        <column xsi:type="text" name="request_payload" nullable="true" comment="API Request Payload"/>
+        <column xsi:type="text" name="response_payload" nullable="true" comment="API Response Payload"/>
+        <column xsi:type="text" name="error_message" nullable="true" comment="Error Message if Failed"/>
+        <column xsi:type="smallint" name="retry_count" unsigned="true" nullable="false" default="0" comment="Retry Attempts"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="false" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="true" comment="Updated At"/>
+        <column xsi:type="timestamp" name="delivered_at" nullable="true" comment="Delivered At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="log_id"/>
+        </constraint>
+
+        <constraint xsi:type="foreign" referenceId="FK_WATI_MSG_LOG_ORDER_ID"
+                    table="formula_wati_message_log" column="order_id"
+                    referenceTable="sales_order" referenceColumn="entity_id" onDelete="CASCADE"/>
+
+        <index referenceId="IDX_WATI_MSG_LOG_ORDER_ID" indexType="btree">
+            <column name="order_id"/>
+        </index>
+
+        <index referenceId="IDX_WATI_MSG_LOG_ORDER_INCREMENT_ID" indexType="btree">
+            <column name="order_increment_id"/>
+        </index>
+
+        <index referenceId="IDX_WATI_MSG_LOG_MESSAGE_ID" indexType="btree">
+            <column name="message_id"/>
+        </index>
+
+        <index referenceId="IDX_WATI_MSG_LOG_DELIVERY_STATUS" indexType="btree">
+            <column name="delivery_status"/>
+        </index>
+
+        <index referenceId="IDX_WATI_MSG_LOG_CREATED_AT" indexType="btree">
+            <column name="created_at"/>
+        </index>
+    </table>
+</schema>

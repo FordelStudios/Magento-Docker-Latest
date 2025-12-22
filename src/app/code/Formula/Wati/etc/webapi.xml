@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+
+    <!-- Webhook endpoint for Wati delivery status callbacks -->
+    <route url="/V1/wati/webhook/delivery-status" method="POST">
+        <service class="Formula\Wati\Api\WatiWebhookInterface" method="handleDeliveryStatus"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+</routes>
