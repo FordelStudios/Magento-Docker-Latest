@@ -37,6 +37,14 @@ class OrderStatusChangePlugin
     protected $previousStatuses = [];
 
     /**
+     * Static registry to track notifications sent within this request
+     * Prevents duplicate notifications when order is saved multiple times
+     *
+     * @var array
+     */
+    protected static $notifiedOrders = [];
+
+    /**
      * Statuses that should trigger notifications
      *
      * @var array
@@ -119,6 +127,12 @@ class OrderStatusChangePlugin
             return $order;
         }
 
+        // Skip for newly created orders (previousStatus is null) - handled by OrderPlaceAfter observer
+        // This prevents duplicate notifications when order goes directly to 'processing'
+        if ($previousStatus === null) {
+            return $order;
+        }
+
         // Check if this status should trigger a notification
         if (!in_array(strtolower($newStatus), $this->notifiableStatuses)) {
             return $order;
@@ -128,6 +142,19 @@ class OrderStatusChangePlugin
         if ($order->getIsVirtual()) {
             return $order;
         }
+
+        // Check if we already sent notification for this order+status in this request
+        $notificationKey = $orderId . '_' . $newStatus;
+        if (isset(self::$notifiedOrders[$notificationKey])) {
+            $this->logger->debug('Wati: Skipping duplicate notification', [
+                'order_id' => $order->getIncrementId(),
+                'status' => $newStatus
+            ]);
+            return $order;
+        }
+
+        // Mark as notified before sending to prevent race conditions
+        self::$notifiedOrders[$notificationKey] = true;
 
         try {
             $this->logger->info('Wati: Order status changed', [

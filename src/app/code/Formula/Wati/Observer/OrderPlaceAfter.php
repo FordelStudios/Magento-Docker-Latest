@@ -52,13 +52,19 @@ class OrderPlaceAfter implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
+        $this->logger->info('Wati Observer: OrderPlaceAfter triggered');
+
         $order = $observer->getEvent()->getOrder();
 
         if (!$order || !$order->getId()) {
+            $this->logger->info('Wati Observer: No order or order ID');
             return;
         }
 
+        $this->logger->info('Wati Observer: Processing order ' . $order->getIncrementId());
+
         if (!$this->watiHelper->isEnabled()) {
+            $this->logger->info('Wati Observer: Wati is disabled');
             return;
         }
 

@@ -206,7 +206,11 @@ class WatiApiService
 
         // Reset curl for new request
         $this->curl = new Curl();
-        $this->curl->addHeader('Content-Type', 'application/json');
+        $this->curl->addHeader('Content-Type', 'application/json-patch+json');
+        // Ensure Bearer prefix is present
+        if (stripos($token, 'Bearer ') !== 0) {
+            $token = 'Bearer ' . $token;
+        }
         $this->curl->addHeader('Authorization', $token);
         $this->curl->setOption(CURLOPT_TIMEOUT, 30);
 
