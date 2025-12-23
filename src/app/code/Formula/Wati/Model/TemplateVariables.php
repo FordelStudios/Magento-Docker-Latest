@@ -255,7 +255,7 @@ class TemplateVariables
         $variables['product_names'] = $this->getProductNames($order);
         $variables['coupon_code'] = $order->getCouponCode() ?: '';
         $variables['discount_amount'] = $order->getDiscountAmount()
-            ? $this->priceHelper->currency(abs($order->getDiscountAmount()), true, false)
+            ? $this->priceHelper->currency(abs((float)$order->getDiscountAmount()), true, false)
             : '';
 
         // Shipping Information
