@@ -8,6 +8,7 @@ interface FaceConcernInterface
     const DESCRIPTION = 'description';
     const LOGO = 'logo';
     const TAGS = 'tags';
+    const SORT_ORDER = 'sort_order';
 
     /**
      * @return int|null
@@ -63,5 +64,16 @@ interface FaceConcernInterface
      * @return $this
      */
     public function setTags($tags);
+
+    /**
+     * @return int
+     */
+    public function getSortOrder();
+
+    /**
+     * @param int $sortOrder
+     * @return $this
+     */
+    public function setSortOrder($sortOrder);
 
 }

@@ -130,6 +130,15 @@
 				</label>
 			</settings>
 		</field>
+		<field name="sort_order" formElement="input">
+			<settings>
+				<dataType>number</dataType>
+				<label translate="true">Sort Order</label>
+				<validation>
+					<rule name="validate-number" xsi:type="boolean">true</rule>
+				</validation>
+			</settings>
+		</field>
 		<field name="logo" formElement="imageUploader">
 			<settings>
 				<label translate="true">

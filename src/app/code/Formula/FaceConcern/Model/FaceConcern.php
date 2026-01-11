@@ -15,6 +15,7 @@ class FaceConcern extends AbstractModel implements FaceConcernInterface
     const DESCRIPTION = 'description';
     const LOGO = 'logo';
     const TAGS = 'tags';
+    const SORT_ORDER = 'sort_order';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
@@ -166,8 +167,29 @@ class FaceConcern extends AbstractModel implements FaceConcernInterface
     }
 
     /**
+     * Get Sort Order
+     *
+     * @return int
+     */
+    public function getSortOrder()
+    {
+        return $this->getData(self::SORT_ORDER);
+    }
+
+    /**
+     * Set Sort Order
+     *
+     * @param int $sortOrder
+     * @return $this
+     */
+    public function setSortOrder($sortOrder)
+    {
+        return $this->setData(self::SORT_ORDER, $sortOrder);
+    }
+
+    /**
      * Get FaceConcern Creation Time
-     * 
+     *
      * @return string|null
      */
     public function getCreatedAt()

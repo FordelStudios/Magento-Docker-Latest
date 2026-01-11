@@ -67,7 +67,6 @@
             <settings>
                 <filter>textRange</filter>
                 <label translate="true">ID</label>
-                <sorting>asc</sorting>
             </settings>
         </column>
         <column name="name">
@@ -99,6 +98,12 @@
             <settings>
                 <filter>text</filter>
                 <label translate="true">Tags</label>
+            </settings>
+        </column>
+        <column name="sort_order">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Sort Order</label>
             </settings>
         </column>
         <actionsColumn name="actions" class="Formula\FaceConcern\Ui\Component\Listing\Column\Actions">

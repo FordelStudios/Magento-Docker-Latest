@@ -7,6 +7,7 @@
         <column xsi:type="text" name="description" nullable="true" comment="FaceConcern Description"/>
         <column xsi:type="varchar" name="logo" nullable="true" length="255" comment="FaceConcern Logo Path"/>
         <column xsi:type="text" name="tags" nullable="true" comment="FaceConcern Tags (JSON)"/>
+        <column xsi:type="int" name="sort_order" nullable="false" default="0" comment="Sort Order"/>
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Creation Time"/>
         <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Update Time"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">

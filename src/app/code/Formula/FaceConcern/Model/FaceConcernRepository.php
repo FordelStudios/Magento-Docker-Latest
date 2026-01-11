@@ -111,6 +111,9 @@ class FaceConcernRepository implements FaceConcernRepositoryInterface
                         ($sortOrder->getDirection() == \Magento\Framework\Api\SortOrder::SORT_ASC) ? 'ASC' : 'DESC'
                     );
                 }
+            } else {
+                // Default sorting by sort_order
+                $collection->setOrder('sort_order', 'ASC');
             }
             
             // Apply pagination
@@ -129,6 +132,7 @@ class FaceConcernRepository implements FaceConcernRepositoryInterface
                     'description' => $item->getDescription(),
                     'logo' => $item->getLogo(),
                     'tags' => $item->getTags(),
+                    'sort_order' => $item->getSortOrder(),
                     'created_at' => $item->getCreatedAt(),
                     'updated_at' => $item->getUpdatedAt()
                 ];
