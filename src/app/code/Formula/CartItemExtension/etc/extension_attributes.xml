@@ -5,5 +5,6 @@
         <attribute code="product_id_display" type="int"/>
         <attribute code="salable_qty" type="int"/>
         <attribute code="product_media" type="Formula\CartItemExtension\Api\Data\ProductMediaInterface[]"/>
+        <attribute code="category_names" type="string[]"/>
     </extension_attributes>
 </config> 

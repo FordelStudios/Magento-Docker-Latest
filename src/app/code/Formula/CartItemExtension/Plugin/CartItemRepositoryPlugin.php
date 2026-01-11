@@ -9,6 +9,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Quote\Api\Data\CartItemExtensionFactory;
 use Psr\Log\LoggerInterface;
 use Formula\CartItemExtension\Model\Data\ProductMediaFactory;
+use Magento\Catalog\Api\CategoryRepositoryInterface;
 
 class CartItemRepositoryPlugin
 {
@@ -17,19 +18,22 @@ class CartItemRepositoryPlugin
     protected $extensionFactory;
     protected $logger;
     protected $productMediaFactory;
+    protected $categoryRepository;
 
     public function __construct(
         BrandRepository $brandRepository,
         ProductRepositoryInterface $productRepository,
         CartItemExtensionFactory $extensionFactory,
         LoggerInterface $logger,
-        ProductMediaFactory $productMediaFactory
+        ProductMediaFactory $productMediaFactory,
+        CategoryRepositoryInterface $categoryRepository
     ) {
         $this->brandRepository = $brandRepository;
         $this->productRepository = $productRepository;
         $this->extensionFactory = $extensionFactory;
         $this->logger = $logger;
         $this->productMediaFactory = $productMediaFactory;
+        $this->categoryRepository = $categoryRepository;
     }
 
     /**
@@ -157,6 +161,34 @@ class CartItemRepositoryPlugin
                     }
                 } catch (\Throwable $t) {
                     $this->logger->warning('[CartItemExtension] Failed to set product_media: ' . $t->getMessage());
+                }
+
+                // Populate category_names
+                try {
+                    $categoryIds = $product->getCategoryIds();
+                    if (is_array($categoryIds) && !empty($categoryIds)) {
+                        $categoryNames = [];
+                        foreach ($categoryIds as $categoryId) {
+                            try {
+                                $category = $this->categoryRepository->get($categoryId);
+                                $categoryName = $category->getName();
+                                // Skip "Categories" root category
+                                if ($categoryName && $categoryName !== 'Categories') {
+                                    $categoryNames[] = $categoryName;
+                                }
+                            } catch (NoSuchEntityException $e) {
+                                $this->logger->warning('[CartItemExtension] Category not found: ' . $categoryId);
+                            }
+                        }
+                        if (!empty($categoryNames)) {
+                            $extensionAttributes->setCategoryNames($categoryNames);
+                            $this->logger->info('[CartItemExtension] category_names set: ' . implode(', ', $categoryNames));
+                        }
+                    } else {
+                        $this->logger->info('[CartItemExtension] No category IDs for product');
+                    }
+                } catch (\Throwable $t) {
+                    $this->logger->warning('[CartItemExtension] Failed to set category_names: ' . $t->getMessage());
                 }
 
                 $cartItem->setExtensionAttributes($extensionAttributes);

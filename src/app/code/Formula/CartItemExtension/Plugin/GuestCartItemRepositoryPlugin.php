@@ -9,6 +9,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Formula\CartItemExtension\Model\Data\ProductMediaFactory;
 use Magento\Quote\Api\Data\CartItemExtensionFactory;
 use Psr\Log\LoggerInterface;
+use Magento\Catalog\Api\CategoryRepositoryInterface;
 
 class GuestCartItemRepositoryPlugin
 {
@@ -17,19 +18,22 @@ class GuestCartItemRepositoryPlugin
     protected $productMediaFactory;
     protected $extensionFactory;
     protected $logger;
-    
+    protected $categoryRepository;
+
     public function __construct(
         BrandRepository $brandRepository,
         ProductRepositoryInterface $productRepository,
         ProductMediaFactory $productMediaFactory,
         CartItemExtensionFactory $extensionFactory,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        CategoryRepositoryInterface $categoryRepository
     ) {
         $this->brandRepository = $brandRepository;
         $this->productRepository = $productRepository;
         $this->productMediaFactory = $productMediaFactory;
         $this->extensionFactory = $extensionFactory;
         $this->logger = $logger;
+        $this->categoryRepository = $categoryRepository;
     }
     
     /**
@@ -159,6 +163,34 @@ class GuestCartItemRepositoryPlugin
                     }
                 } catch (\Throwable $t) {
                     $this->logger->warning('[CartItemExtension] Guest Failed to set product_media: ' . $t->getMessage());
+                }
+
+                // Populate category_names
+                try {
+                    $categoryIds = $product->getCategoryIds();
+                    if (is_array($categoryIds) && !empty($categoryIds)) {
+                        $categoryNames = [];
+                        foreach ($categoryIds as $categoryId) {
+                            try {
+                                $category = $this->categoryRepository->get($categoryId);
+                                $categoryName = $category->getName();
+                                // Skip "Categories" root category
+                                if ($categoryName && $categoryName !== 'Categories') {
+                                    $categoryNames[] = $categoryName;
+                                }
+                            } catch (NoSuchEntityException $e) {
+                                $this->logger->warning('[CartItemExtension] Guest Category not found: ' . $categoryId);
+                            }
+                        }
+                        if (!empty($categoryNames)) {
+                            $extensionAttributes->setCategoryNames($categoryNames);
+                            $this->logger->info('[CartItemExtension] Guest category_names set: ' . implode(', ', $categoryNames));
+                        }
+                    } else {
+                        $this->logger->info('[CartItemExtension] Guest No category IDs for product');
+                    }
+                } catch (\Throwable $t) {
+                    $this->logger->warning('[CartItemExtension] Guest Failed to set category_names: ' . $t->getMessage());
                 }
 
                 $cartItem->setExtensionAttributes($extensionAttributes);
