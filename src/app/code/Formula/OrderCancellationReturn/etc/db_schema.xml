@@ -22,6 +22,12 @@
         <column xsi:type="varchar" name="shiprocket_awb_number" nullable="true" length="50" comment="Shiprocket AWB (Airway Bill) Number"/>
         <column xsi:type="varchar" name="shiprocket_return_status" nullable="true" length="50" comment="Shiprocket Return Status"/>
 
+        <!-- Return request details -->
+        <column xsi:type="text" name="return_reason" nullable="true" comment="Customer Return Reason"/>
+        <column xsi:type="text" name="return_images" nullable="true" comment="JSON array of return image paths"/>
+        <column xsi:type="int" name="return_pickup_address_id" unsigned="true" nullable="true" comment="Pickup Address ID for Return"/>
+        <column xsi:type="timestamp" name="pending_return_requested_at" on_update="false" nullable="true" comment="Return Request Timestamp"/>
+
         <!-- Index for webhook lookups -->
         <index referenceId="IDX_SALES_ORDER_SHIPROCKET_RETURN_ID" indexType="btree">
             <column name="shiprocket_return_id"/>

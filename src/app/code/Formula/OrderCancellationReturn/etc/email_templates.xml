@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
+    <template id="formula_return_requested" label="Return Request Confirmation" file="return_requested.html" type="html" module="Formula_OrderCancellationReturn" area="frontend"/>
+    <template id="formula_return_approved" label="Return Approved" file="return_approved.html" type="html" module="Formula_OrderCancellationReturn" area="frontend"/>
+    <template id="formula_return_rejected" label="Return Rejected" file="return_rejected.html" type="html" module="Formula_OrderCancellationReturn" area="frontend"/>
+    <template id="formula_refund_completed" label="Refund Completed" file="refund_completed.html" type="html" module="Formula_OrderCancellationReturn" area="frontend"/>
+</config>

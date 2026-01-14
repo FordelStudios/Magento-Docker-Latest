@@ -1,0 +1,59 @@
+<!--@subject Return Request Received - Order #{{var order.increment_id}} @-->
+<!--@vars {
+"var order.increment_id":"Order ID",
+"var order.customer_name":"Customer Name",
+"var return_reason":"Return Reason",
+"var order.grand_total":"Order Total",
+"var store.frontend_name":"Store Name"
+} @-->
+
+{{template config_path="design/email/header_template"}}
+
+<table>
+    <tr class="email-intro">
+        <td>
+            <p class="greeting">Dear {{var order.customer_name}},</p>
+            <p>
+                We have received your return request for <strong>Order #{{var order.increment_id}}</strong>.
+            </p>
+        </td>
+    </tr>
+    <tr class="email-summary">
+        <td>
+            <h2>Return Request Details</h2>
+            <table class="order-details">
+                <tr>
+                    <td><strong>Order ID:</strong></td>
+                    <td>#{{var order.increment_id}}</td>
+                </tr>
+                <tr>
+                    <td><strong>Order Total:</strong></td>
+                    <td>{{var order.grand_total}}</td>
+                </tr>
+                <tr>
+                    <td><strong>Return Reason:</strong></td>
+                    <td>{{var return_reason}}</td>
+                </tr>
+                <tr>
+                    <td><strong>Request Date:</strong></td>
+                    <td>{{var request_date}}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr class="email-information">
+        <td>
+            <h2>What Happens Next?</h2>
+            <ol>
+                <li>Our team will review your return request within 24-48 hours.</li>
+                <li>Once approved, we will schedule a pickup from your address.</li>
+                <li>After we receive and inspect the returned items, your refund will be processed within 5-7 business days.</li>
+            </ol>
+            <p>
+                If you have any questions, please contact our customer support team.
+            </p>
+        </td>
+    </tr>
+</table>
+
+{{template config_path="design/email/footer_template"}}

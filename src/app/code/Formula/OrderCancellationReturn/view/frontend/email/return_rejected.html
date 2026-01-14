@@ -1,0 +1,55 @@
+<!--@subject Return Request Update - Order #{{var order.increment_id}} @-->
+<!--@vars {
+"var order.increment_id":"Order ID",
+"var order.customer_name":"Customer Name",
+"var rejection_reason":"Rejection Reason",
+"var order.grand_total":"Order Total",
+"var store.frontend_name":"Store Name"
+} @-->
+
+{{template config_path="design/email/header_template"}}
+
+<table>
+    <tr class="email-intro">
+        <td>
+            <p class="greeting">Dear {{var order.customer_name}},</p>
+            <p>
+                We regret to inform you that your return request for <strong>Order #{{var order.increment_id}}</strong> could not be processed.
+            </p>
+        </td>
+    </tr>
+    <tr class="email-summary">
+        <td>
+            <h2>Return Request Details</h2>
+            <table class="order-details">
+                <tr>
+                    <td><strong>Order ID:</strong></td>
+                    <td>#{{var order.increment_id}}</td>
+                </tr>
+                <tr>
+                    <td><strong>Order Total:</strong></td>
+                    <td>{{var order.grand_total}}</td>
+                </tr>
+                <tr>
+                    <td><strong>Reason:</strong></td>
+                    <td>{{var rejection_reason}}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr class="email-information">
+        <td>
+            <h2>What You Can Do</h2>
+            <ul>
+                <li>If the pickup was missed, you can submit a new return request.</li>
+                <li>Contact our customer support for assistance with your return.</li>
+                <li>Review our return policy for eligibility requirements.</li>
+            </ul>
+            <p>
+                We apologize for any inconvenience. Our customer support team is here to help resolve any issues.
+            </p>
+        </td>
+    </tr>
+</table>
+
+{{template config_path="design/email/footer_template"}}

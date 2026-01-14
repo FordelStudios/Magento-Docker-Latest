@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Formula Order Increment ID Module
+ * Custom order ID format: TFS-DDMMYY-NNNN
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+    <module name="Formula_OrderIncrementId">
+        <sequence>
+            <module name="Magento_SalesSequence"/>
+            <module name="Magento_Sales"/>
+        </sequence>
+    </module>
+</config>

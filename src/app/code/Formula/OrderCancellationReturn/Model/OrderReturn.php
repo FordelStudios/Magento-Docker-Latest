@@ -6,6 +6,7 @@ use Formula\OrderCancellationReturn\Api\Data\RefundResponseInterface;
 use Formula\OrderCancellationReturn\Api\Data\RefundResponseInterfaceFactory;
 use Formula\OrderCancellationReturn\Service\OrderValidator;
 use Formula\OrderCancellationReturn\Service\RefundProcessor;
+use Formula\OrderCancellationReturn\Service\ReturnEmailSender;
 use Formula\Shiprocket\Service\ShiprocketReturnService;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -24,6 +25,7 @@ class OrderReturn implements OrderReturnInterface
     protected $logger;
     protected $objectManager;
     protected $priceCurrency;
+    protected $returnEmailSender;
 
     public function __construct(
         OrderValidator $orderValidator,
@@ -32,7 +34,8 @@ class OrderReturn implements OrderReturnInterface
         OrderRepositoryInterface $orderRepository,
         RefundResponseInterfaceFactory $refundResponseFactory,
         LoggerInterface $logger,
-        PriceCurrencyInterface $priceCurrency
+        PriceCurrencyInterface $priceCurrency,
+        ReturnEmailSender $returnEmailSender
     ) {
         $this->orderValidator = $orderValidator;
         $this->refundProcessor = $refundProcessor;
@@ -41,6 +44,7 @@ class OrderReturn implements OrderReturnInterface
         $this->refundResponseFactory = $refundResponseFactory;
         $this->logger = $logger;
         $this->priceCurrency = $priceCurrency;
+        $this->returnEmailSender = $returnEmailSender;
     }
 
     /**
@@ -49,11 +53,13 @@ class OrderReturn implements OrderReturnInterface
      * @param int $customerId Customer ID
      * @param int $orderId Order ID to return
      * @param string|null $reason Optional reason for return
+     * @param string[]|null $images Optional array of image paths (from upload endpoint)
+     * @param int|null $pickupAddressId Optional pickup address ID
      * @return \Formula\OrderCancellationReturn\Api\Data\RefundResponseInterface
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function returnOrder($customerId, $orderId, $reason = null)
+    public function returnOrder($customerId, $orderId, $reason = null, $images = null, $pickupAddressId = null)
     {
         $response = $this->refundResponseFactory->create();
 
@@ -64,7 +70,18 @@ class OrderReturn implements OrderReturnInterface
             // Step 1: Change status to return_requested
             $order->setState(Order::STATE_PROCESSING);
             $order->setStatus('return_requested');
-            
+
+            // Store return request details
+            if ($reason) {
+                $order->setData('return_reason', $reason);
+            }
+            if ($images && is_array($images)) {
+                $order->setData('return_images', json_encode($images));
+            }
+            if ($pickupAddressId) {
+                $order->setData('return_pickup_address_id', $pickupAddressId);
+            }
+
             $returnReason = $reason ? ': ' . $reason : '';
             $order->addStatusHistoryComment(
                 'Return requested by customer' . $returnReason,
@@ -126,6 +143,9 @@ class OrderReturn implements OrderReturnInterface
             // This will be handled by the Shiprocket webhook when return status becomes 'return_received'
 
             $this->orderRepository->save($order);
+
+            // Send confirmation email
+            $this->returnEmailSender->sendReturnRequestedEmail($order, $reason ?? '');
 
             // Build successful response - refund is PENDING, not processed
             $response->setSuccess(true);

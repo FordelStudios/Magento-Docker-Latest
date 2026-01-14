@@ -5,6 +5,7 @@
     <preference for="Formula\OrderCancellationReturn\Api\Data\RefundResponseInterface" type="Formula\OrderCancellationReturn\Model\Data\RefundResponse"/>
     <preference for="Formula\OrderCancellationReturn\Api\OrderCancellationInterface" type="Formula\OrderCancellationReturn\Model\OrderCancellation"/>
     <preference for="Formula\OrderCancellationReturn\Api\OrderReturnInterface" type="Formula\OrderCancellationReturn\Model\OrderReturn"/>
+    <preference for="Formula\OrderCancellationReturn\Api\ReturnImageUploadInterface" type="Formula\OrderCancellationReturn\Model\ReturnImageUpload"/>
 
     <!-- Virtual type for concrete service -->
     <virtualType name="Formula\OrderCancellationReturn\Service\ShiprocketShipmentService" type="Formula\Shiprocket\Service\ShiprocketShipmentService" />

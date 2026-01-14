@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Database schema for daily order counter
+ * Tracks order count per store per day for TFS-DDMMYY-NNNN format
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="formula_order_daily_counter" resource="default" engine="innodb"
+           comment="Daily Order Counter for Custom Order ID Format">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true"
+                comment="Counter ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" default="1"
+                comment="Store ID"/>
+        <column xsi:type="date" name="order_date" nullable="false"
+                comment="Order Date"/>
+        <column xsi:type="int" name="daily_counter" unsigned="true" nullable="false" default="0"
+                comment="Daily Order Counter"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false"
+                default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false"
+                default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="FORMULA_ORDER_DAILY_COUNTER_STORE_DATE_UNIQUE">
+            <column name="store_id"/>
+            <column name="order_date"/>
+        </constraint>
+        <index referenceId="FORMULA_ORDER_DAILY_COUNTER_ORDER_DATE" indexType="btree">
+            <column name="order_date"/>
+        </index>
+    </table>
+</schema>

@@ -2,6 +2,8 @@
 namespace Formula\Shiprocket\Model;
 
 use Formula\OrderCancellationReturn\Service\InventoryService;
+use Formula\OrderCancellationReturn\Service\RefundProcessor;
+use Formula\OrderCancellationReturn\Service\ReturnEmailSender;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Framework\Exception\LocalizedException;
@@ -10,17 +12,23 @@ use Psr\Log\LoggerInterface;
 class ShiprocketWebhookHandler
 {
     protected $inventoryService;
+    protected $refundProcessor;
+    protected $returnEmailSender;
     protected $orderRepository;
     protected $orderCollectionFactory;
     protected $logger;
 
     public function __construct(
         InventoryService $inventoryService,
+        RefundProcessor $refundProcessor,
+        ReturnEmailSender $returnEmailSender,
         OrderRepositoryInterface $orderRepository,
         OrderCollectionFactory $orderCollectionFactory,
         LoggerInterface $logger
     ) {
         $this->inventoryService = $inventoryService;
+        $this->refundProcessor = $refundProcessor;
+        $this->returnEmailSender = $returnEmailSender;
         $this->orderRepository = $orderRepository;
         $this->orderCollectionFactory = $orderCollectionFactory;
         $this->logger = $logger;
@@ -91,18 +99,25 @@ class ShiprocketWebhookHandler
     protected function handleReturnPickupScheduled($order, $webhookData)
     {
         $order->setStatus('return_pickup_scheduled');
-        
+
+        $pickupDetails = [];
         $message = 'Return pickup scheduled by Shiprocket';
         if (isset($webhookData['pickup_date'])) {
             $message .= ' (Pickup Date: ' . $webhookData['pickup_date'] . ')';
+            $pickupDetails[] = 'Pickup Date: ' . $webhookData['pickup_date'];
         }
         if (isset($webhookData['awb'])) {
             $message .= ' (AWB: ' . $webhookData['awb'] . ')';
+            $pickupDetails[] = 'AWB: ' . $webhookData['awb'];
         }
-        
+
         $order->addStatusHistoryComment($message, 'return_pickup_scheduled');
         $this->orderRepository->save($order);
-        
+
+        // Send return approved email with pickup details
+        $pickupDetailsString = !empty($pickupDetails) ? implode(', ', $pickupDetails) : 'Our courier partner will contact you shortly.';
+        $this->returnEmailSender->sendReturnApprovedEmail($order, $pickupDetailsString);
+
         return ['success' => true, 'message' => 'Return pickup scheduled status updated'];
     }
 
@@ -142,28 +157,73 @@ class ShiprocketWebhookHandler
     {
         // Update order status
         $order->setStatus('return_received');
-        
+
         // Restore inventory now that product is physically received
         $restoredItems = $this->inventoryService->restoreInventoryForReturn($order);
-        
+
         $message = 'Return package received at warehouse';
         if (isset($webhookData['delivered_date'])) {
             $message .= ' (Delivered: ' . $webhookData['delivered_date'] . ')';
         }
-        
+
         // Add inventory restoration info
         $inventoryMessage = $this->inventoryService->createInventoryRestorationMessage($restoredItems);
         $message .= $inventoryMessage;
-        
+
         $order->addStatusHistoryComment($message, 'return_received');
-        
-        // Mark return as completed
-        $order->setStatus('return_completed');
-        $order->addStatusHistoryComment('Return process completed successfully', 'return_completed');
-        
         $this->orderRepository->save($order);
-        
-        return ['success' => true, 'message' => 'Return received and inventory restored'];
+
+        // Process refund now that product is received
+        $refundResult = null;
+        try {
+            $order->setStatus('refund_initiated');
+            $order->addStatusHistoryComment('Processing refund for returned order', 'refund_initiated');
+            $this->orderRepository->save($order);
+
+            $refundResult = $this->refundProcessor->processRefund($order, 'return');
+
+            // Update status based on refund result
+            $order->setStatus('refund_completed');
+            $refundMessage = 'Refund processed successfully';
+            if (isset($refundResult['status_message'])) {
+                $refundMessage .= '. ' . $refundResult['status_message'];
+            }
+            if (isset($refundResult['transaction_id'])) {
+                $refundMessage .= ' (Transaction: ' . $refundResult['transaction_id'] . ')';
+            }
+            $order->addStatusHistoryComment($refundMessage, 'refund_completed');
+
+            // Send refund completion email
+            $refundAmount = $refundResult['refund_amount'] ?? $order->getGrandTotal();
+            $refundMethod = $refundResult['refund_method'] ?? 'wallet';
+            $this->returnEmailSender->sendRefundCompletedEmail($order, (float)$refundAmount, $refundMethod);
+
+            $this->logger->info('Return refund processed', [
+                'order_id' => $order->getIncrementId(),
+                'refund_amount' => $refundAmount,
+                'refund_method' => $refundMethod
+            ]);
+
+        } catch (\Exception $e) {
+            $this->logger->error('Return refund failed', [
+                'order_id' => $order->getIncrementId(),
+                'error' => $e->getMessage()
+            ]);
+
+            $order->setStatus('return_received');
+            $order->addStatusHistoryComment(
+                'Refund processing failed: ' . $e->getMessage() . '. Manual intervention required.',
+                'return_received'
+            );
+        }
+
+        $this->orderRepository->save($order);
+
+        return [
+            'success' => true,
+            'message' => 'Return received, inventory restored, and refund processed',
+            'refund_result' => $refundResult
+        ];
     }
 
     /**
@@ -176,19 +236,23 @@ class ShiprocketWebhookHandler
     protected function handleReturnCancelled($order, $webhookData)
     {
         $order->setStatus('return_cancelled');
-        
+
         $message = 'Return pickup cancelled/failed';
         if (isset($webhookData['reason'])) {
             $message .= ' (Reason: ' . $webhookData['reason'] . ')';
         }
-        
-        // Note: Refund was already processed, so we don't reverse it
-        // Customer service may need to handle this manually
-        $message .= '. Refund was already processed - manual review may be required.';
-        
+
+        // No refund was processed since we only refund when return is received
+        $message .= '. No refund was processed - customer may retry return request.';
+
         $order->addStatusHistoryComment($message, 'return_cancelled');
+
+        // Send return rejected email to notify customer
+        $rejectionReason = $webhookData['reason'] ?? 'Return pickup could not be completed';
+        $this->returnEmailSender->sendReturnRejectedEmail($order, $rejectionReason);
+
         $this->orderRepository->save($order);
-        
+
         return ['success' => true, 'message' => 'Return cancelled status updated'];
     }
 

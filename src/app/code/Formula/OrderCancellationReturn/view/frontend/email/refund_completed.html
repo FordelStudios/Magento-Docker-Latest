@@ -1,0 +1,55 @@
+<!--@subject Refund Processed - Order #{{var order.increment_id}} @-->
+<!--@vars {
+"var order.increment_id":"Order ID",
+"var order.customer_name":"Customer Name",
+"var refund_amount":"Refund Amount",
+"var refund_method":"Refund Method",
+"var order.grand_total":"Order Total",
+"var store.frontend_name":"Store Name"
+} @-->
+
+{{template config_path="design/email/header_template"}}
+
+<table>
+    <tr class="email-intro">
+        <td>
+            <p class="greeting">Dear {{var order.customer_name}},</p>
+            <p>
+                Your refund for <strong>Order #{{var order.increment_id}}</strong> has been successfully processed!
+            </p>
+        </td>
+    </tr>
+    <tr class="email-summary">
+        <td>
+            <h2>Refund Details</h2>
+            <table class="order-details">
+                <tr>
+                    <td><strong>Order ID:</strong></td>
+                    <td>#{{var order.increment_id}}</td>
+                </tr>
+                <tr>
+                    <td><strong>Refund Amount:</strong></td>
+                    <td>Rs. {{var refund_amount}}</td>
+                </tr>
+                <tr>
+                    <td><strong>Refund Method:</strong></td>
+                    <td>{{var refund_method}}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr class="email-information">
+        <td>
+            <h2>When Will I Receive My Refund?</h2>
+            <ul>
+                <li><strong>Wallet Refund:</strong> Instantly credited to your Formula wallet balance. Use it on your next purchase!</li>
+                <li><strong>Razorpay/Card Refund:</strong> Will reflect in your account within 5-7 business days depending on your bank.</li>
+            </ul>
+            <p>
+                Thank you for shopping with us. We hope to serve you again soon!
+            </p>
+        </td>
+    </tr>
+</table>
+
+{{template config_path="design/email/footer_template"}}
