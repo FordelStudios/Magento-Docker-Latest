@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Magento_Backend::content">
+                    <resource id="Formula_SpecialOffer::special_offer" title="Special Offers" sortOrder="50">
+                        <resource id="Formula_SpecialOffer::special_offer_view" title="View Special Offers" sortOrder="10"/>
+                        <resource id="Formula_SpecialOffer::special_offer_save" title="Save Special Offers" sortOrder="20"/>
+                        <resource id="Formula_SpecialOffer::special_offer_delete" title="Delete Special Offers" sortOrder="30"/>
+                    </resource>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="formula_special_offer" resource="default" engine="innodb" comment="Formula Special Offer Table">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="title" nullable="false" length="255" comment="Title"/>
+        <column xsi:type="varchar" name="subtitle" nullable="true" length="255" comment="Subtitle"/>
+        <column xsi:type="varchar" name="image" nullable="false" length="255" comment="Image Path"/>
+        <column xsi:type="varchar" name="url" nullable="false" length="255" comment="URL"/>
+        <column xsi:type="smallint" name="is_active" unsigned="true" nullable="false" default="1" comment="Is Active"/>
+        <column xsi:type="datetime" name="start_date" nullable="true" comment="Start Date"/>
+        <column xsi:type="datetime" name="end_date" nullable="true" comment="End Date"/>
+        <column xsi:type="int" name="sort_order" unsigned="false" nullable="false" default="0" comment="Sort Order"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="true" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <index referenceId="FORMULA_SPECIAL_OFFER_IS_ACTIVE" indexType="btree">
+            <column name="is_active"/>
+        </index>
+        <index referenceId="FORMULA_SPECIAL_OFFER_SORT_ORDER" indexType="btree">
+            <column name="sort_order"/>
+        </index>
+    </table>
+</schema>

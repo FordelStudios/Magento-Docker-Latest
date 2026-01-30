@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <!-- Get all active offers (public endpoint) -->
+    <route url="/V1/formula-special-offers" method="GET">
+        <service class="Formula\SpecialOffer\Api\SpecialOfferRepositoryInterface" method="getActiveOffers"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <!-- Get single offer by ID -->
+    <route url="/V1/formula-special-offers/:entityId" method="GET">
+        <service class="Formula\SpecialOffer\Api\SpecialOfferRepositoryInterface" method="getById"/>
+        <resources>
+            <resource ref="Formula_SpecialOffer::special_offer_view"/>
+        </resources>
+    </route>
+
+    <!-- Create/Update offer -->
+    <route url="/V1/formula-special-offers" method="POST">
+        <service class="Formula\SpecialOffer\Api\SpecialOfferRepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="Formula_SpecialOffer::special_offer_save"/>
+        </resources>
+    </route>
+
+    <!-- Delete offer -->
+    <route url="/V1/formula-special-offers/:entityId" method="DELETE">
+        <service class="Formula\SpecialOffer\Api\SpecialOfferRepositoryInterface" method="deleteById"/>
+        <resources>
+            <resource ref="Formula_SpecialOffer::special_offer_delete"/>
+        </resources>
+    </route>
+</routes>

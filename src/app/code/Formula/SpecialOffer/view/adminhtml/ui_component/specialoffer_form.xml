@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">specialoffer_form.specialoffer_form_data_source</item>
+        </item>
+        <item name="label" xsi:type="string" translate="true">Special Offer Information</item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="back" class="Formula\SpecialOffer\Block\Adminhtml\SpecialOffer\Edit\BackButton"/>
+            <button name="delete" class="Formula\SpecialOffer\Block\Adminhtml\SpecialOffer\Edit\DeleteButton"/>
+            <button name="save" class="Formula\SpecialOffer\Block\Adminhtml\SpecialOffer\Edit\SaveButton"/>
+            <button name="save_and_continue">
+                <label translate="true">Save and Continue Edit</label>
+                <class>save</class>
+                <data_attribute>
+                    <item name="mage-init" xsi:type="array">
+                        <item name="button" xsi:type="array">
+                            <item name="event" xsi:type="string">saveAndContinueEdit</item>
+                        </item>
+                    </item>
+                </data_attribute>
+            </button>
+        </buttons>
+        <namespace>specialoffer_form</namespace>
+        <dataScope>data</dataScope>
+        <deps>
+            <dep>specialoffer_form.specialoffer_form_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="specialoffer_form_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
+            </item>
+        </argument>
+        <settings>
+            <submitUrl path="specialoffer/specialoffer/save"/>
+        </settings>
+        <dataProvider class="Formula\SpecialOffer\Model\SpecialOffer\DataProvider"
+                      name="specialoffer_form_data_source">
+            <settings>
+                <requestFieldName>entity_id</requestFieldName>
+                <primaryFieldName>entity_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="general">
+        <settings>
+            <label translate="true">General Information</label>
+        </settings>
+        <field name="entity_id" formElement="input">
+            <settings>
+                <dataType>text</dataType>
+                <visible>false</visible>
+            </settings>
+        </field>
+        <field name="is_active" sortOrder="10" formElement="checkbox">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">special_offer</item>
+                    <item name="default" xsi:type="number">1</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>boolean</dataType>
+                <label translate="true">Active</label>
+                <dataScope>is_active</dataScope>
+            </settings>
+            <formElements>
+                <checkbox>
+                    <settings>
+                        <valueMap>
+                            <map name="false" xsi:type="number">0</map>
+                            <map name="true" xsi:type="number">1</map>
+                        </valueMap>
+                        <prefer>toggle</prefer>
+                    </settings>
+                </checkbox>
+            </formElements>
+        </field>
+        <field name="title" sortOrder="20" formElement="input">
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>text</dataType>
+                <label translate="true">Title</label>
+                <dataScope>title</dataScope>
+            </settings>
+        </field>
+        <field name="subtitle" sortOrder="30" formElement="input">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Subtitle</label>
+                <dataScope>subtitle</dataScope>
+            </settings>
+        </field>
+        <field name="image" sortOrder="40" formElement="imageUploader">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">special_offer</item>
+                </item>
+            </argument>
+            <settings>
+                <elementTmpl>ui/form/element/uploader/image</elementTmpl>
+                <dataType>string</dataType>
+                <label translate="true">Image</label>
+                <visible>true</visible>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+            <formElements>
+                <imageUploader>
+                    <settings>
+                        <required>true</required>
+                        <uploaderConfig>
+                            <param xsi:type="url" name="url" path="specialoffer/specialoffer/upload"/>
+                        </uploaderConfig>
+                        <previewTmpl>Magento_Catalog/image-preview</previewTmpl>
+                        <openDialogTitle>Media Gallery</openDialogTitle>
+                        <allowedExtensions>jpg jpeg gif png webp</allowedExtensions>
+                        <maxFileSize>4194304</maxFileSize>
+                    </settings>
+                </imageUploader>
+            </formElements>
+        </field>
+        <field name="url" sortOrder="50" formElement="input">
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>text</dataType>
+                <label translate="true">URL</label>
+                <dataScope>url</dataScope>
+                <notice translate="true">The destination URL when the offer card is clicked. Can be relative (e.g., /category/sale) or absolute.</notice>
+            </settings>
+        </field>
+    </fieldset>
+    <fieldset name="scheduling">
+        <settings>
+            <label translate="true">Scheduling</label>
+            <collapsible>true</collapsible>
+        </settings>
+        <field name="start_date" sortOrder="10" formElement="date">
+            <settings>
+                <dataType>string</dataType>
+                <label translate="true">Start Date</label>
+                <dataScope>start_date</dataScope>
+                <notice translate="true">Leave empty to make the offer active immediately.</notice>
+            </settings>
+            <formElements>
+                <date>
+                    <settings>
+                        <options>
+                            <option name="showsTime" xsi:type="boolean">true</option>
+                            <option name="dateFormat" xsi:type="string">yyyy-MM-dd</option>
+                            <option name="timeFormat" xsi:type="string">HH:mm:ss</option>
+                        </options>
+                    </settings>
+                </date>
+            </formElements>
+        </field>
+        <field name="end_date" sortOrder="20" formElement="date">
+            <settings>
+                <dataType>string</dataType>
+                <label translate="true">End Date</label>
+                <dataScope>end_date</dataScope>
+                <notice translate="true">Leave empty to keep the offer active indefinitely.</notice>
+            </settings>
+            <formElements>
+                <date>
+                    <settings>
+                        <options>
+                            <option name="showsTime" xsi:type="boolean">true</option>
+                            <option name="dateFormat" xsi:type="string">yyyy-MM-dd</option>
+                            <option name="timeFormat" xsi:type="string">HH:mm:ss</option>
+                        </options>
+                    </settings>
+                </date>
+            </formElements>
+        </field>
+        <field name="sort_order" sortOrder="30" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">special_offer</item>
+                    <item name="default" xsi:type="number">0</item>
+                </item>
+            </argument>
+            <settings>
+                <validation>
+                    <rule name="validate-number" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>number</dataType>
+                <label translate="true">Sort Order</label>
+                <dataScope>sort_order</dataScope>
+                <notice translate="true">Lower numbers appear first.</notice>
+            </settings>
+        </field>
+    </fieldset>
+</form>
