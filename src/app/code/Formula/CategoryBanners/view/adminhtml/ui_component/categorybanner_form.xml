@@ -223,6 +223,19 @@
             </formElements>
         </field>
 
+        <field name="sale_end_date" formElement="date">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">categorybanner</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>string</dataType>
+                <label translate="true">Sale End Date</label>
+                <dataScope>sale_end_date</dataScope>
+            </settings>
+        </field>
+
         <field name="is_sale_banner" formElement="checkbox">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">

@@ -21,7 +21,7 @@ interface CategoryBannerInterface
 
     const IS_SALE_BANNER = 'is_sale_banner';
 
-
+    const SALE_END_DATE = 'sale_end_date';
 
     /**
      * Get ID
@@ -172,5 +172,19 @@ interface CategoryBannerInterface
      * @return $this
      */
     public function setIsSaleBanner($isSaleBanner);
-        
+
+    /**
+     * Get sale end date
+     *
+     * @return string|null
+     */
+    public function getSaleEndDate();
+
+    /**
+     * Set sale end date
+     *
+     * @param string|null $saleEndDate
+     * @return $this
+     */
+    public function setSaleEndDate($saleEndDate);
 }

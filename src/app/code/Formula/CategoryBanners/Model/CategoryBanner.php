@@ -195,6 +195,22 @@ class CategoryBanner extends AbstractModel implements CategoryBannerInterface
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function getSaleEndDate()
+    {
+        return $this->getData(self::SALE_END_DATE);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setSaleEndDate($saleEndDate)
+    {
+        return $this->setData(self::SALE_END_DATE, $saleEndDate);
+    }
+
+    /**
      * Process data before saving
      *
      * @return $this
