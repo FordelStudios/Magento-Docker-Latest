@@ -108,6 +108,16 @@ class HomeContent extends AbstractModel implements HomeContentInterface
         return $this->setData(self::BOTTOM_BANNER, $bottomBanner);
     }
 
+    public function getBottomBannerUrl()
+    {
+        return $this->getData(self::BOTTOM_BANNER_URL);
+    }
+
+    public function setBottomBannerUrl($bottomBannerUrl)
+    {
+        return $this->setData(self::BOTTOM_BANNER_URL, $bottomBannerUrl);
+    }
+
     public function getActive()
     {
         return (bool)$this->getData(self::ACTIVE);

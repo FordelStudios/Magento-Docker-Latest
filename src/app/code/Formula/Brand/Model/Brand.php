@@ -26,6 +26,7 @@ class Brand extends AbstractModel implements BrandInterface
     const IS_TRENDING = 'is_trending';
     const IS_POPULAR = 'is_popular';
     const IS_SALE = 'is_sale';
+    const DISCOUNT_TEXT = 'discount_text';
     const COUNTRY = 'country';
     const CERTIFICATIONS = 'certifications';
     const CREATED_AT = 'created_at';
@@ -326,6 +327,16 @@ class Brand extends AbstractModel implements BrandInterface
     public function setIsSale($isSale)
     {
         return $this->setData(self::IS_SALE, $isSale);
+    }
+
+    public function getDiscountText()
+    {
+        return $this->getData(self::DISCOUNT_TEXT);
+    }
+
+    public function setDiscountText($discountText)
+    {
+        return $this->setData(self::DISCOUNT_TEXT, $discountText);
     }
 
     public function getCountry()

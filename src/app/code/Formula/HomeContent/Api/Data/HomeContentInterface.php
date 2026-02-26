@@ -14,6 +14,7 @@ interface HomeContentInterface
     const DISCOVER_KOREAN_INGREDIENTS_BANNERS = 'discover_korean_ingredients_banners';
     const PERFECT_GIFT_IMAGE = 'perfect_gift_image';
     const BOTTOM_BANNER = 'bottom_banner';
+    const BOTTOM_BANNER_URL = 'bottom_banner_url';
     const ACTIVE = 'active';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -152,6 +153,21 @@ interface HomeContentInterface
      * @return $this
      */
     public function setBottomBanner($bottomBanner);
+
+    /**
+     * Get bottom banner URL
+     *
+     * @return string|null
+     */
+    public function getBottomBannerUrl();
+
+    /**
+     * Set bottom banner URL
+     *
+     * @param string $bottomBannerUrl
+     * @return $this
+     */
+    public function setBottomBannerUrl($bottomBannerUrl);
 
     /**
      * Get active status

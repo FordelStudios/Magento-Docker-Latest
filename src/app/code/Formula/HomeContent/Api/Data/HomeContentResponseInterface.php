@@ -124,4 +124,19 @@ interface HomeContentResponseInterface
      * @return $this
      */
     public function setBottomBanner($banner);
+
+    /**
+     * Get bottom banner URL
+     *
+     * @return string
+     */
+    public function getBottomBannerUrl();
+
+    /**
+     * Set bottom banner URL
+     *
+     * @param string $url
+     * @return $this
+     */
+    public function setBottomBannerUrl($url);
 }

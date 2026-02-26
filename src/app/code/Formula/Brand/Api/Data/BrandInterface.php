@@ -19,6 +19,7 @@ interface BrandInterface
     const IS_TRENDING = 'is_trending';
     const IS_POPULAR = 'is_popular';
     const IS_SALE = 'is_sale';
+    const DISCOUNT_TEXT = 'discount_text';
     const COUNTRY = 'country';
     const CERTIFICATIONS = 'certifications';
     const CREATED_AT = 'created_at';
@@ -200,6 +201,17 @@ interface BrandInterface
      * @return $this
      */
     public function setIsSale($isSale);
+
+    /**
+     * @return string|null
+     */
+    public function getDiscountText();
+
+    /**
+     * @param string $discountText
+     * @return $this
+     */
+    public function setDiscountText($discountText);
 
     /**
      * @return string|null

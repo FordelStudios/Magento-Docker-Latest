@@ -59,6 +59,7 @@ class HomeContentManagement implements HomeContentManagementInterface
             $response->setDiscoverKoreanIngredientsBanners([]);
             $response->setPerfectGiftImage('');
             $response->setBottomBanner('');
+            $response->setBottomBannerUrl('');
             return $response;
         }
 
@@ -130,6 +131,7 @@ class HomeContentManagement implements HomeContentManagementInterface
         $response->setDiscoverKoreanIngredientsBanners($koreanIngredientsObjects);
         $response->setPerfectGiftImage($this->getFullImageUrl($homeContent->getPerfectGiftImage(), $baseUrl));
         $response->setBottomBanner($this->getFullImageUrl($homeContent->getBottomBanner(), $baseUrl));
+        $response->setBottomBannerUrl($homeContent->getBottomBannerUrl() ?: '');
 
         return $response;
     }

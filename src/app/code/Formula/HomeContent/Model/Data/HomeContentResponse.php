@@ -16,6 +16,7 @@ class HomeContentResponse extends AbstractExtensibleObject implements HomeConten
     const DISCOVER_KOREAN_INGREDIENTS_BANNERS = 'discover_korean_ingredients_banners';
     const PERFECT_GIFT_IMAGE = 'perfect_gift_image';
     const BOTTOM_BANNER = 'bottom_banner';
+    const BOTTOM_BANNER_URL = 'bottom_banner_url';
 
     public function getHeroBanners()
     {
@@ -95,5 +96,15 @@ class HomeContentResponse extends AbstractExtensibleObject implements HomeConten
     public function setBottomBanner($banner)
     {
         return $this->setData(self::BOTTOM_BANNER, $banner);
+    }
+
+    public function getBottomBannerUrl()
+    {
+        return $this->_get(self::BOTTOM_BANNER_URL) ?: '';
+    }
+
+    public function setBottomBannerUrl($url)
+    {
+        return $this->setData(self::BOTTOM_BANNER_URL, $url);
     }
 }

@@ -11,6 +11,7 @@
         <column xsi:type="text" name="discover_korean_ingredients_banners" nullable="true" comment="Discover Korean Ingredients Banners JSON"/>
         <column xsi:type="varchar" name="perfect_gift_image" nullable="true" length="255" comment="Perfect Gift Image URL"/>
         <column xsi:type="varchar" name="bottom_banner" nullable="true" length="255" comment="Bottom Banner URL"/>
+        <column xsi:type="varchar" name="bottom_banner_url" nullable="true" length="255" comment="Bottom Banner Redirect URL"/>
         <column xsi:type="boolean" name="active" nullable="false" default="0" comment="Active Status"/>
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
         <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>

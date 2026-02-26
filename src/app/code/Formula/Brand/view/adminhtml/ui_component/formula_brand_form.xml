@@ -406,6 +406,20 @@
                     </checkbox>
                 </formElements>
             </field>
+
+            <field name="discount_text" formElement="input">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="source" xsi:type="string">brand</item>
+                    </item>
+                </argument>
+                <settings>
+                    <dataType>text</dataType>
+                    <label translate="true">Discount Text</label>
+                    <dataScope>discount_text</dataScope>
+                    <notice translate="true">Discount text shown on sale page (e.g., "Up to 9% off", "Flat 15% off")</notice>
+                </settings>
+            </field>
         </fieldset>
     </fieldset>
 </form>

@@ -356,6 +356,22 @@
             </formElements>
         </field>
 
+        <!-- Bottom Banner URL -->
+        <field name="bottom_banner_url" sortOrder="85" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">homecontent</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Bottom Banner Redirect URL</label>
+                <visible>true</visible>
+                <required>false</required>
+                <notice translate="true">URL to redirect when the bottom banner is clicked (e.g., /category/sale)</notice>
+            </settings>
+        </field>
+
         <!-- Active Status -->
         <field name="active" sortOrder="90" formElement="select">
             <argument name="data" xsi:type="array">
