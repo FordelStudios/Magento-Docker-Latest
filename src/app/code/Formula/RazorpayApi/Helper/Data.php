@@ -2,6 +2,8 @@
 namespace Formula\RazorpayApi\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Store\Model\ScopeInterface;
 
 class Data extends AbstractHelper
@@ -9,17 +11,29 @@ class Data extends AbstractHelper
     const XML_PATH_WEBHOOK_SECRET = 'formula_razorpayapi/webhook/secret';
     const XML_PATH_WEBHOOK_ENABLED = 'formula_razorpayapi/webhook/enabled';
 
+    /** @var EncryptorInterface */
+    private $encryptor;
+
+    public function __construct(
+        Context $context,
+        EncryptorInterface $encryptor
+    ) {
+        parent::__construct($context);
+        $this->encryptor = $encryptor;
+    }
+
     /**
-     * Get webhook secret from admin config
+     * Get webhook secret from admin config (decrypted)
      *
      * @return string|null
      */
     public function getWebhookSecret()
     {
-        return $this->scopeConfig->getValue(
+        $value = $this->scopeConfig->getValue(
             self::XML_PATH_WEBHOOK_SECRET,
             ScopeInterface::SCOPE_STORE
         );
+        return $value ? $this->encryptor->decrypt($value) : null;
     }
 
     /**
