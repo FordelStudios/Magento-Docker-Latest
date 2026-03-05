@@ -3,7 +3,7 @@
     <route url="/V1/blog" method="POST">
         <service class="Formula\Blog\Api\BlogRepositoryInterface" method="save"/>
         <resources>
-            <resource ref="anonymous" />
+            <resource ref="Magento_Backend::admin" />
         </resources>
     </route>
     <route url="/V1/blog/:blogId" method="GET">
@@ -24,13 +24,13 @@
     <route url="/V1/blog/:blogId" method="DELETE">
         <service class="Formula\Blog\Api\BlogRepositoryInterface" method="deleteById"/>
         <resources>
-            <resource ref="anonymous" />
+            <resource ref="Magento_Backend::admin" />
         </resources>
     </route>
     <route url="/V1/blog/:blogId" method="PUT">
         <service class="Formula\Blog\Api\BlogRepositoryInterface" method="update"/>
         <resources>
-            <resource ref="anonymous" />
+            <resource ref="Magento_Backend::admin" />
         </resources>
     </route>
 </routes>

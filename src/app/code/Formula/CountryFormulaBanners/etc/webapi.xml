@@ -31,23 +31,23 @@
     <route url="/V1/formula-country-banners" method="POST">
         <service class="Formula\CountryFormulaBanners\Api\CountryFormulaBannerRepositoryInterface" method="save"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="Magento_Backend::admin"/>
         </resources>
     </route>
-    
+
     <!-- Delete a banner -->
     <route url="/V1/formula-country-banners/:id" method="DELETE">
         <service class="Formula\CountryFormulaBanners\Api\CountryFormulaBannerRepositoryInterface" method="deleteById"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="Magento_Backend::admin"/>
         </resources>
     </route>
-    
+
     <!-- Upload an image for a banner -->
     <route url="/V1/formula-country-banners/image/upload" method="POST">
         <service class="Formula\CountryFormulaBanners\Api\BannerImageUploaderInterface" method="uploadImage"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="Magento_Backend::admin"/>
         </resources>
     </route>
     
