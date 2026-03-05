@@ -23,23 +23,23 @@
     <route url="/V1/formula-category-banners" method="POST">
         <service class="Formula\CategoryBanners\Api\CategoryBannerRepositoryInterface" method="save"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="Magento_Backend::admin"/>
         </resources>
     </route>
-    
+
     <!-- Delete a banner -->
     <route url="/V1/formula-category-banners/:id" method="DELETE">
         <service class="Formula\CategoryBanners\Api\CategoryBannerRepositoryInterface" method="deleteById"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="Magento_Backend::admin"/>
         </resources>
     </route>
-    
+
     <!-- Upload an image for a banner -->
     <route url="/V1/formula-category-banners/image/upload" method="POST">
         <service class="Formula\CategoryBanners\Api\BannerImageUploaderInterface" method="uploadImage"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="Magento_Backend::admin"/>
         </resources>
     </route>
     

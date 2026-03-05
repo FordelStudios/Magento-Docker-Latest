@@ -34,17 +34,27 @@ class MassDelete extends Action
             // Get selected IDs from mass action
             $ids = $this->getRequest()->getParam('selected');
             if (!$ids) {
-                $ids = $this->getRequest()->getParam('excluded') ? [] : null;
-                if ($ids === null) {
+                $excluded = $this->getRequest()->getParam('excluded');
+                if (!$excluded) {
                     $this->messageManager->addErrorMessage(__('Please select brand(s) to delete.'));
                     return $resultRedirect->setPath('*/*/');
                 }
-                
-                // If excluded is set, get all IDs except excluded ones
+
+                // If excluded is "false" (select-all with no exclusions), require explicit selection
+                if ($excluded === 'false' || (is_array($excluded) && empty(array_filter($excluded)))) {
+                    $this->messageManager->addErrorMessage(__('Please select specific brand(s) to delete. Select-all deletion is disabled for safety.'));
+                    return $resultRedirect->setPath('*/*/');
+                }
+
+                // If excluded has actual IDs, get all IDs except excluded ones
                 $collection = $this->collectionFactory->create();
-                $excluded = $this->getRequest()->getParam('excluded');
-                if ($excluded && $excluded[0] !== '') {
-                    $collection->addFieldToFilter('brand_id', ['nin' => $excluded]);
+                if (is_array($excluded)) {
+                    $excluded = array_filter($excluded, function ($val) {
+                        return $val !== '' && $val !== null;
+                    });
+                    if (!empty($excluded)) {
+                        $collection->addFieldToFilter('brand_id', ['nin' => $excluded]);
+                    }
                 }
                 $ids = $collection->getAllIds();
             }

@@ -3,7 +3,7 @@
     <route url="/V1/brand" method="POST">
         <service class="Formula\Brand\Api\BrandRepositoryInterface" method="save"/>
         <resources>
-            <resource ref="anonymous" />
+            <resource ref="Magento_Backend::admin" />
         </resources>
     </route>
     <route url="/V1/brand/:brandId" method="GET">
@@ -24,13 +24,13 @@
     <route url="/V1/brand/:brandId" method="DELETE">
         <service class="Formula\Brand\Api\BrandRepositoryInterface" method="deleteById"/>
         <resources>
-            <resource ref="anonymous" />
+            <resource ref="Magento_Backend::admin" />
         </resources>
     </route>
     <route url="/V1/brand/:brandId" method="PUT">
         <service class="Formula\Brand\Api\BrandRepositoryInterface" method="update"/>
         <resources>
-            <resource ref="anonymous" />
+            <resource ref="Magento_Backend::admin" />
         </resources>
     </route>
 </routes>
