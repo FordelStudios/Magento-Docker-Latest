@@ -151,6 +151,33 @@ class WebhookHandler
             return ['status' => 'error', 'message' => 'Failed to set payment: ' . $e->getMessage()];
         }
 
+        // 4b. Ensure shipping address is set (prevents NULL country_id failures)
+        $shippingAddress = $quote->getShippingAddress();
+        if ($shippingAddress && !$shippingAddress->getCountryId()) {
+            $billingAddress = $quote->getBillingAddress();
+            if ($billingAddress && $billingAddress->getCountryId()) {
+                $shippingAddress->setFirstname($billingAddress->getFirstname());
+                $shippingAddress->setLastname($billingAddress->getLastname());
+                $shippingAddress->setStreet($billingAddress->getStreet());
+                $shippingAddress->setCity($billingAddress->getCity());
+                $shippingAddress->setCountryId($billingAddress->getCountryId());
+                $shippingAddress->setRegion($billingAddress->getRegion());
+                $shippingAddress->setRegionId($billingAddress->getRegionId());
+                $shippingAddress->setPostcode($billingAddress->getPostcode());
+                $shippingAddress->setTelephone($billingAddress->getTelephone());
+                $shippingAddress->setEmail($billingAddress->getEmail());
+                if (!$shippingAddress->getShippingMethod()) {
+                    $shippingAddress->setShippingMethod('flatrate_flatrate');
+                    $shippingAddress->setCollectShippingRates(true);
+                    $shippingAddress->collectShippingRates();
+                }
+                $this->cartRepository->save($quote);
+                $this->logger->info('RazorpayWebhook: Copied billing address to shipping address', [
+                    'cart_id' => $cartId,
+                ]);
+            }
+        }
+
         // 5. Place order
         try {
             $orderId = $this->cartManagement->placeOrder($cartId);

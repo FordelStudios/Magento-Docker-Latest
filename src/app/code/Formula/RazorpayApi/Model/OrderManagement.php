@@ -80,6 +80,27 @@ class OrderManagement implements OrderManagementInterface
                     $existingAddress->setTelephone($billingAddress['telephone'] ?? '1234567890');
                     $existingAddress->setEmail($billingAddress['email'] ?? 'test@example.com');
                 }
+
+                // Also set shipping address (same as billing) to prevent NULL shipping address failures
+                $shippingAddress = $quote->getShippingAddress();
+                if ($shippingAddress) {
+                    $shippingAddress->setFirstname($billingAddress['firstname'] ?? 'John');
+                    $shippingAddress->setLastname($billingAddress['lastname'] ?? 'Doe');
+                    $shippingAddress->setStreet($billingAddress['street'] ?? ['123 Street']);
+                    $shippingAddress->setCity($billingAddress['city'] ?? 'City');
+                    $shippingAddress->setCountryId($billingAddress['country_id'] ?? 'IN');
+                    $shippingAddress->setRegion($billingAddress['region'] ?? 'State');
+                    $shippingAddress->setRegionId($billingAddress['region_id'] ?? 0);
+                    $shippingAddress->setPostcode($billingAddress['postcode'] ?? '123456');
+                    $shippingAddress->setTelephone($billingAddress['telephone'] ?? '1234567890');
+                    $shippingAddress->setEmail($billingAddress['email'] ?? 'test@example.com');
+                    // Ensure shipping method is set if missing
+                    if (!$shippingAddress->getShippingMethod()) {
+                        $shippingAddress->setShippingMethod('flatrate_flatrate');
+                        $shippingAddress->setCollectShippingRates(true);
+                        $shippingAddress->collectShippingRates();
+                    }
+                }
             }
             
             // Save quote before placing order
