@@ -149,7 +149,13 @@ class OrderManagement implements OrderManagementInterface
             
         } catch (\Exception $e) {
             // Check if webhook already created the order (race condition)
-            $existingOrder = $this->findOrderByRazorpayPayment($paymentData['razorpay_payment_id']);
+            // Retry up to 3 times with 1s delay — webhook may still be processing
+            $existingOrder = null;
+            for ($attempt = 1; $attempt <= 3; $attempt++) {
+                $existingOrder = $this->findOrderByRazorpayPayment($paymentData['razorpay_payment_id'], $cartId);
+                if ($existingOrder) break;
+                if ($attempt < 3) sleep(1);
+            }
             if ($existingOrder) {
                 $this->logger->info('RazorpayOrderManagement: Webhook already created order, returning it', [
                     'increment_id' => $existingOrder->getIncrementId(),
@@ -324,23 +330,23 @@ class OrderManagement implements OrderManagementInterface
     }
 
     /**
-     * Find an existing order by Razorpay payment ID (webhook may have created it)
+     * Find an existing order by Razorpay payment ID or quote ID (webhook may have created it)
      */
-    private function findOrderByRazorpayPayment($razorpayPaymentId)
+    private function findOrderByRazorpayPayment($razorpayPaymentId, $cartId = null)
     {
         try {
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
             $resource = $objectManager->get('\Magento\Framework\App\ResourceConnection');
             $connection = $resource->getConnection();
-            $tableName = $resource->getTableName('razorpay_sales_order');
 
+            // Strategy 1: Look up in razorpay_sales_order table by payment ID
+            $tableName = $resource->getTableName('razorpay_sales_order');
             $select = $connection->select()
                 ->from($tableName, ['order_id'])
                 ->where('rzp_payment_id = ?', $razorpayPaymentId);
 
             $row = $connection->fetchRow($select);
             if ($row && !empty($row['order_id'])) {
-                // order_id in this table is the increment_id (e.g. TFS-090326-0002)
                 $searchCriteria = $objectManager->get('\Magento\Framework\Api\SearchCriteriaBuilder')
                     ->addFilter('increment_id', $row['order_id'])
                     ->create();
@@ -349,9 +355,21 @@ class OrderManagement implements OrderManagementInterface
                     return reset($orders);
                 }
             }
+
+            // Strategy 2: Look up in sales_order by quote_id (faster — no dependency on razorpay table timing)
+            if ($cartId) {
+                $searchCriteria = $objectManager->get('\Magento\Framework\Api\SearchCriteriaBuilder')
+                    ->addFilter('quote_id', $cartId)
+                    ->create();
+                $orders = $this->orderRepository->getList($searchCriteria)->getItems();
+                if (!empty($orders)) {
+                    return reset($orders);
+                }
+            }
         } catch (\Exception $e) {
-            $this->logger->error('RazorpayOrderManagement: Failed to find existing order by payment ID', [
+            $this->logger->error('RazorpayOrderManagement: Failed to find existing order', [
                 'payment_id' => $razorpayPaymentId,
+                'cart_id' => $cartId,
                 'error' => $e->getMessage(),
             ]);
         }
