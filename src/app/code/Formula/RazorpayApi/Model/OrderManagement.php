@@ -148,7 +148,32 @@ class OrderManagement implements OrderManagementInterface
             }
             
         } catch (\Exception $e) {
+            // Check if webhook already created the order (race condition)
+            $existingOrder = $this->findOrderByRazorpayPayment($paymentData['razorpay_payment_id']);
+            if ($existingOrder) {
+                $this->logger->info('RazorpayOrderManagement: Webhook already created order, returning it', [
+                    'increment_id' => $existingOrder->getIncrementId(),
+                    'razorpay_payment_id' => $paymentData['razorpay_payment_id'],
+                ]);
+                $response->setSuccess(true);
+                $response->setOrderId($existingOrder->getId());
+                $response->setIncrementId($existingOrder->getIncrementId());
+                $response->setStatus($existingOrder->getStatus());
+                $response->setState($existingOrder->getState());
+                $response->setTotalAmount($existingOrder->getGrandTotal());
+                $response->setCurrency($existingOrder->getOrderCurrencyCode());
+                $response->setCreatedAt($existingOrder->getCreatedAt());
+                $response->setRazorpayPaymentId($paymentData['razorpay_payment_id']);
+                $response->setRazorpayOrderId($paymentData['razorpay_order_id']);
+                $response->setMessage('Order already created via webhook');
+                return $response;
+            }
+
             // Build error response
+            $this->logger->error('RazorpayOrderManagement: Order creation failed', [
+                'cart_id' => $cartId,
+                'error' => $e->getMessage(),
+            ]);
             $response->setSuccess(false);
             $response->setError(true);
             $response->setMessage($e->getMessage());
@@ -296,5 +321,40 @@ class OrderManagement implements OrderManagementInterface
             // Log error but don't fail the order creation
             error_log('Razorpay table update failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Find an existing order by Razorpay payment ID (webhook may have created it)
+     */
+    private function findOrderByRazorpayPayment($razorpayPaymentId)
+    {
+        try {
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $resource = $objectManager->get('\Magento\Framework\App\ResourceConnection');
+            $connection = $resource->getConnection();
+            $tableName = $resource->getTableName('razorpay_sales_order');
+
+            $select = $connection->select()
+                ->from($tableName, ['order_id'])
+                ->where('rzp_payment_id = ?', $razorpayPaymentId);
+
+            $row = $connection->fetchRow($select);
+            if ($row && !empty($row['order_id'])) {
+                // order_id in this table is the increment_id (e.g. TFS-090326-0002)
+                $searchCriteria = $objectManager->get('\Magento\Framework\Api\SearchCriteriaBuilder')
+                    ->addFilter('increment_id', $row['order_id'])
+                    ->create();
+                $orders = $this->orderRepository->getList($searchCriteria)->getItems();
+                if (!empty($orders)) {
+                    return reset($orders);
+                }
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('RazorpayOrderManagement: Failed to find existing order by payment ID', [
+                'payment_id' => $razorpayPaymentId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+        return null;
     }
 }
