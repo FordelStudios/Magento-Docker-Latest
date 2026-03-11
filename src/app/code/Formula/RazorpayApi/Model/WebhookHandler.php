@@ -12,6 +12,7 @@ use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollection
 use Formula\Shiprocket\Service\ShiprocketShipmentService;
 use Formula\OrderCancellationReturn\Service\RefundProcessor;
 use Formula\OrderCancellationReturn\Service\InventoryService;
+use Formula\OrderCancellationReturn\Service\WalletRefundService;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -55,6 +56,9 @@ class WebhookHandler
     /** @var InventoryService */
     private $inventoryService;
 
+    /** @var WalletRefundService */
+    private $walletRefundService;
+
     /** @var LoggerInterface */
     private $logger;
 
@@ -69,6 +73,7 @@ class WebhookHandler
         ShiprocketShipmentService $shiprocketShipmentService,
         RefundProcessor $refundProcessor,
         InventoryService $inventoryService,
+        WalletRefundService $walletRefundService,
         LoggerInterface $logger
     ) {
         $this->cartManagement = $cartManagement;
@@ -81,6 +86,7 @@ class WebhookHandler
         $this->shiprocketShipmentService = $shiprocketShipmentService;
         $this->refundProcessor = $refundProcessor;
         $this->inventoryService = $inventoryService;
+        $this->walletRefundService = $walletRefundService;
         $this->logger = $logger;
     }
 
@@ -335,23 +341,34 @@ class WebhookHandler
             ]);
         }
 
-        // 4. Credit wallet portion back via RefundProcessor (handles mixed payments correctly).
-        // Razorpay portion will hit "already refunded" and be handled gracefully.
-        try {
-            $refundResult = $this->refundProcessor->processRefund($order, 'cancel');
-            if (isset($refundResult['status_message'])) {
-                $order->addCommentToStatusHistory(
-                    '[Razorpay Refund] ' . $refundResult['status_message']
+        // 4. Credit wallet portion ONLY. Do NOT call RefundProcessor or RazorpayRefundService
+        // here — the Razorpay refund already happened (that's what triggered this webhook).
+        // Calling RefundProcessor would attempt to refund Razorpay again, which fails for
+        // partial refunds (mixed payments) with a non-matching error message.
+        $walletAmountUsed = $order->getWalletAmountUsed() ?: 0;
+        if ($walletAmountUsed > 0) {
+            try {
+                $walletResult = $this->walletRefundService->processRefund(
+                    $order,
+                    $walletAmountUsed,
+                    \Formula\Wallet\Api\Data\WalletTransactionInterface::REFERENCE_TYPE_ORDER_CANCEL
                 );
+                $order->addCommentToStatusHistory(
+                    sprintf('[Razorpay Refund] Wallet refunded: %s', $walletAmountUsed)
+                );
+                $this->logger->info('RazorpayWebhook: Wallet portion refunded', [
+                    'order' => $incrementId,
+                    'wallet_amount' => $walletAmountUsed,
+                ]);
+            } catch (\Exception $e) {
+                $order->addCommentToStatusHistory(
+                    '[Razorpay Refund] Wallet refund failed: ' . $e->getMessage()
+                );
+                $this->logger->error('RazorpayWebhook: Wallet refund failed', [
+                    'order' => $incrementId,
+                    'error' => $e->getMessage(),
+                ]);
             }
-        } catch (\Exception $e) {
-            $order->addCommentToStatusHistory(
-                '[Razorpay Refund] Refund processing note: ' . $e->getMessage()
-            );
-            $this->logger->error('RazorpayWebhook: Refund processing failed', [
-                'order' => $incrementId,
-                'error' => $e->getMessage(),
-            ]);
         }
 
         $this->orderRepository->save($order);
