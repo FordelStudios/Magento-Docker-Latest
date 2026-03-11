@@ -85,10 +85,19 @@ class ShiprocketShipmentService
             ];
             
             $response = $this->callShiprocketAPI(self::CANCEL_SHIPMENT_ENDPOINT, $cancelData, 'POST');
-            
+
+            // Validate response — Shiprocket may return 200 with an error in the body
+            if (isset($response['status_code']) && $response['status_code'] >= 400) {
+                throw new LocalizedException(__(
+                    'Shiprocket cancel returned error: %1',
+                    $response['message'] ?? json_encode($response)
+                ));
+            }
+
             return [
                 'success' => true,
-                'message' => 'Shipment cancelled successfully'
+                'message' => 'Shipment cancelled successfully',
+                'response' => $response
             ];
             
         } catch (\Exception $e) {

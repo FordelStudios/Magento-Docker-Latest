@@ -108,17 +108,25 @@ class PaymentCaptured implements HttpPostActionInterface, CsrfAwareActionInterfa
             $event = $payload['event'] ?? '';
             $this->logger->info('RazorpayWebhook: Received event: ' . $event);
 
-            // 5. Only handle payment.captured events
-            if ($event !== 'payment.captured') {
-                $this->logger->info('RazorpayWebhook: Ignoring event: ' . $event);
-                return $result->setHttpResponseCode(200)->setData([
-                    'status' => 'ok',
-                    'message' => 'Event ignored: ' . $event
-                ]);
-            }
+            // 5. Route to appropriate handler based on event type
+            switch ($event) {
+                case 'payment.captured':
+                    $handlerResult = $this->webhookHandler->handlePaymentCaptured($payload);
+                    break;
 
-            // 6. Delegate to handler
-            $handlerResult = $this->webhookHandler->handlePaymentCaptured($payload);
+                case 'refund.created':
+                case 'refund.processed':
+                case 'payment.refunded':
+                    $handlerResult = $this->webhookHandler->handlePaymentRefunded($payload);
+                    break;
+
+                default:
+                    $this->logger->info('RazorpayWebhook: Ignoring event: ' . $event);
+                    return $result->setHttpResponseCode(200)->setData([
+                        'status' => 'ok',
+                        'message' => 'Event ignored: ' . $event
+                    ]);
+            }
 
             return $result->setHttpResponseCode(200)->setData($handlerResult);
 

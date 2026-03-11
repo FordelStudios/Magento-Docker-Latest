@@ -8,7 +8,10 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
 use Magento\Sales\Api\TransactionRepositoryInterface;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Formula\Shiprocket\Service\ShiprocketShipmentService;
+use Formula\OrderCancellationReturn\Service\RefundProcessor;
+use Formula\OrderCancellationReturn\Service\InventoryService;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -40,8 +43,17 @@ class WebhookHandler
     /** @var ResourceConnection */
     private $resourceConnection;
 
+    /** @var OrderCollectionFactory */
+    private $orderCollectionFactory;
+
     /** @var ShiprocketShipmentService */
     private $shiprocketShipmentService;
+
+    /** @var RefundProcessor */
+    private $refundProcessor;
+
+    /** @var InventoryService */
+    private $inventoryService;
 
     /** @var LoggerInterface */
     private $logger;
@@ -53,7 +65,10 @@ class WebhookHandler
         BuilderInterface $transactionBuilder,
         TransactionRepositoryInterface $transactionRepository,
         ResourceConnection $resourceConnection,
+        OrderCollectionFactory $orderCollectionFactory,
         ShiprocketShipmentService $shiprocketShipmentService,
+        RefundProcessor $refundProcessor,
+        InventoryService $inventoryService,
         LoggerInterface $logger
     ) {
         $this->cartManagement = $cartManagement;
@@ -62,7 +77,10 @@ class WebhookHandler
         $this->transactionBuilder = $transactionBuilder;
         $this->transactionRepository = $transactionRepository;
         $this->resourceConnection = $resourceConnection;
+        $this->orderCollectionFactory = $orderCollectionFactory;
         $this->shiprocketShipmentService = $shiprocketShipmentService;
+        $this->refundProcessor = $refundProcessor;
+        $this->inventoryService = $inventoryService;
         $this->logger = $logger;
     }
 
@@ -215,6 +233,175 @@ class WebhookHandler
             'message' => 'Order created via webhook',
             'order_id' => $order->getIncrementId(),
         ];
+    }
+
+    /**
+     * Handle refund events from Razorpay (manual refund on dashboard or API).
+     *
+     * When a refund happens on Razorpay side, we must:
+     * 1. Find the corresponding Magento order
+     * 2. Cancel the Shiprocket shipment (if active)
+     * 3. Restore inventory
+     * 4. Credit wallet portion (if any) back to customer wallet
+     * 5. Update order status to cancelled
+     *
+     * Note: We do NOT call RazorpayRefundService here because the refund
+     * already happened on Razorpay's side — we'd get "already refunded".
+     *
+     * @param array $payload Full webhook payload
+     * @return array
+     */
+    public function handlePaymentRefunded(array $payload)
+    {
+        // Extract payment entity from refund payload
+        $paymentEntity = $payload['payload']['payment']['entity'] ?? [];
+        $refundEntity = $payload['payload']['refund']['entity'] ?? $paymentEntity;
+
+        $rzpPaymentId = $paymentEntity['id'] ?? ($refundEntity['payment_id'] ?? '');
+        $rzpOrderId = $paymentEntity['order_id'] ?? ($refundEntity['order_id'] ?? '');
+
+        $this->logger->info('RazorpayWebhook: Processing refund event', [
+            'rzp_payment_id' => $rzpPaymentId,
+            'rzp_order_id' => $rzpOrderId,
+        ]);
+
+        if (empty($rzpPaymentId)) {
+            $this->logger->error('RazorpayWebhook: Missing payment_id in refund event');
+            return ['status' => 'error', 'message' => 'Missing payment ID in refund event'];
+        }
+
+        // Find the Magento order by Razorpay payment ID
+        $order = $this->findOrderByRazorpayPaymentId($rzpPaymentId);
+        if (!$order) {
+            $this->logger->warning('RazorpayWebhook: Order not found for refunded payment', [
+                'rzp_payment_id' => $rzpPaymentId,
+            ]);
+            return ['status' => 'error', 'message' => 'Order not found for payment: ' . $rzpPaymentId];
+        }
+
+        $incrementId = $order->getIncrementId();
+
+        // Idempotency: skip if order is already cancelled/closed
+        if (in_array($order->getState(), [Order::STATE_CANCELED, Order::STATE_CLOSED])) {
+            $this->logger->info('RazorpayWebhook: Order already cancelled/closed, skipping refund handling', [
+                'order' => $incrementId,
+                'state' => $order->getState(),
+            ]);
+            return ['status' => 'ok', 'message' => 'Order already in terminal state'];
+        }
+
+        // 1. Cancel Shiprocket shipment if exists
+        $shipmentId = $order->getData('shiprocket_shipment_id');
+        if ($shipmentId) {
+            try {
+                $this->shiprocketShipmentService->cancelShipment($shipmentId);
+                $order->addCommentToStatusHistory(
+                    '[Razorpay Refund] Shiprocket shipment cancelled (ID: ' . $shipmentId . ')'
+                );
+                $this->logger->info('RazorpayWebhook: Shiprocket shipment cancelled', [
+                    'order' => $incrementId,
+                    'shipment_id' => $shipmentId,
+                ]);
+            } catch (\Exception $e) {
+                $order->addCommentToStatusHistory(
+                    '[Razorpay Refund] Failed to cancel Shiprocket shipment: ' . $e->getMessage()
+                );
+                $this->logger->error('RazorpayWebhook: Shiprocket cancellation failed', [
+                    'order' => $incrementId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // 2. Restore inventory
+        try {
+            $this->inventoryService->restoreInventoryForCancellation($order);
+            $this->logger->info('RazorpayWebhook: Inventory restored for refunded order', [
+                'order' => $incrementId,
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('RazorpayWebhook: Inventory restoration failed', [
+                'order' => $incrementId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // 3. Credit wallet portion back (Razorpay portion is already refunded by Razorpay)
+        $walletAmountUsed = $order->getWalletAmountUsed() ?: 0;
+        if ($walletAmountUsed > 0) {
+            try {
+                $walletRefundService = \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Formula\OrderCancellationReturn\Service\WalletRefundService::class);
+                $walletRefundService->processRefund(
+                    $order,
+                    $walletAmountUsed,
+                    \Formula\Wallet\Api\Data\WalletTransactionInterface::REFERENCE_TYPE_ORDER_CANCEL
+                );
+                $order->addCommentToStatusHistory(
+                    sprintf('[Razorpay Refund] Wallet refunded: %s', $walletAmountUsed)
+                );
+            } catch (\Exception $e) {
+                $order->addCommentToStatusHistory(
+                    '[Razorpay Refund] Wallet refund failed: ' . $e->getMessage()
+                );
+                $this->logger->error('RazorpayWebhook: Wallet refund failed', [
+                    'order' => $incrementId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // 4. Update order status
+        $order->setState(Order::STATE_CANCELED);
+        $order->setStatus(Order::STATE_CANCELED);
+        $order->addCommentToStatusHistory(
+            '[Razorpay Refund] Order cancelled due to Razorpay refund. Payment ID: ' . $rzpPaymentId
+        );
+        $this->orderRepository->save($order);
+
+        $this->logger->info('RazorpayWebhook: Order cancelled due to Razorpay refund', [
+            'order' => $incrementId,
+            'rzp_payment_id' => $rzpPaymentId,
+        ]);
+
+        return [
+            'status' => 'ok',
+            'message' => 'Order cancelled due to refund',
+            'order_id' => $incrementId,
+        ];
+    }
+
+    /**
+     * Find order by Razorpay payment ID via razorpay_sales_order table
+     *
+     * @param string $rzpPaymentId
+     * @return Order|null
+     */
+    private function findOrderByRazorpayPaymentId($rzpPaymentId)
+    {
+        try {
+            $connection = $this->resourceConnection->getConnection();
+            $tableName = $this->resourceConnection->getTableName('razorpay_sales_order');
+
+            $select = $connection->select()
+                ->from($tableName, ['order_id'])
+                ->where('rzp_payment_id = ?', $rzpPaymentId);
+
+            $row = $connection->fetchRow($select);
+            if ($row && !empty($row['order_id'])) {
+                $collection = $this->orderCollectionFactory->create();
+                $collection->addFieldToFilter('increment_id', $row['order_id']);
+                $collection->setPageSize(1);
+                $order = $collection->getFirstItem();
+                return $order->getId() ? $order : null;
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('RazorpayWebhook: Failed to find order by payment ID', [
+                'rzp_payment_id' => $rzpPaymentId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+        return null;
     }
 
     /**

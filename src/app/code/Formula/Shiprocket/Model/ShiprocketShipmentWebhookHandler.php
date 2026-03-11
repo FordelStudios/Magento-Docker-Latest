@@ -56,6 +56,21 @@ class ShiprocketShipmentWebhookHandler
                 throw new LocalizedException(__('Order not found: %1', $orderIncrementId));
             }
 
+            // Idempotency: Skip if order is already in a terminal state
+            $orderState = $order->getState();
+            $terminalStates = [
+                \Magento\Sales\Model\Order::STATE_CANCELED,
+                \Magento\Sales\Model\Order::STATE_CLOSED
+            ];
+            if (in_array($orderState, $terminalStates)) {
+                $this->logger->info('Shiprocket webhook: Order already in terminal state, skipping', [
+                    'order' => $orderIncrementId,
+                    'state' => $orderState,
+                    'incoming_status' => $currentStatus,
+                ]);
+                return ['success' => true, 'message' => 'Order already in terminal state: ' . $orderState];
+            }
+
             // Process based on shipment status
             switch (strtolower($currentStatus)) {
                 case 'shipped':

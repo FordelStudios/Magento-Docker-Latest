@@ -31,12 +31,13 @@ class CodOrderShiprocketSync implements ObserverInterface
     private $logger;
 
     /**
-     * Payment methods that already handle their own Shiprocket sync
+     * Payment methods that already handle their own Shiprocket sync.
+     * Razorpay orders sync via OrderManagement.php after payment capture.
+     * Wallet-only orders sync here (previously excluded — bug fix).
      * @var array
      */
     private $excludedPaymentMethods = [
-        'razorpay',
-        'walletpayment'
+        'razorpay'
     ];
 
     /**
@@ -83,7 +84,7 @@ class CodOrderShiprocketSync implements ObserverInterface
                 return;
             }
 
-            $this->logger->info('CodOrderShiprocketSync: Starting Shiprocket sync for COD order ' . $order->getIncrementId());
+            $this->logger->info('CodOrderShiprocketSync: Starting Shiprocket sync for order ' . $order->getIncrementId());
 
             // Create shipment through ShiprocketShipmentService
             $shipmentResult = $this->shiprocketShipmentService->createShipment($order);
@@ -97,7 +98,7 @@ class CodOrderShiprocketSync implements ObserverInterface
 
                 // Add order comment
                 $comment = sprintf(
-                    'Shiprocket shipment created for COD order. Shipment ID: %s, AWB: %s, Courier: %s',
+                    'Shiprocket shipment created for order. Shipment ID: %s, AWB: %s, Courier: %s',
                     $shipmentResult['shipment_id'],
                     $shipmentResult['awb_code'] ?: 'Pending',
                     $shipmentResult['courier_name'] ?: 'Pending'
@@ -152,9 +153,10 @@ class CodOrderShiprocketSync implements ObserverInterface
             return false;
         }
 
-        // Only process COD orders
-        if ($paymentMethod !== 'cashondelivery') {
-            $this->logger->debug('CodOrderShiprocketSync: Skipping order ' . $order->getIncrementId() . ' - not a COD order (method: ' . $paymentMethod . ')');
+        // Process COD and wallet-only orders (Razorpay is handled by OrderManagement)
+        $allowedMethods = ['cashondelivery', 'walletpayment'];
+        if (!in_array($paymentMethod, $allowedMethods)) {
+            $this->logger->debug('CodOrderShiprocketSync: Skipping order ' . $order->getIncrementId() . ' - payment method ' . $paymentMethod . ' not handled here');
             return false;
         }
 

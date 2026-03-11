@@ -60,6 +60,19 @@ class ShiprocketWebhookHandler
                 throw new LocalizedException(__('Order not found: %1', $orderIncrementId));
             }
 
+            // Idempotency: Skip refund-related processing if already refunded
+            $orderStatus = $order->getStatus();
+            $refundedStatuses = ['refund_completed', 'refund_initiated'];
+            if (in_array($orderStatus, $refundedStatuses) &&
+                in_array(strtolower($currentStatus), ['return_delivered', 'return_received'])) {
+                $this->logger->info('Shiprocket return webhook: Refund already processed, skipping', [
+                    'order' => $orderIncrementId,
+                    'status' => $orderStatus,
+                    'incoming_status' => $currentStatus,
+                ]);
+                return ['success' => true, 'message' => 'Refund already processed for this order'];
+            }
+
             // Process based on return status
             switch (strtolower($currentStatus)) {
                 case 'return_pickup_scheduled':

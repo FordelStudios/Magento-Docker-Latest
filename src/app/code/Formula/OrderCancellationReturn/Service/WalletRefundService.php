@@ -49,6 +49,20 @@ class WalletRefundService
                 throw new LocalizedException(__('Customer ID not found for this order.'));
             }
 
+            // Idempotency: Check if a refund transaction already exists for this order
+            if ($referenceType && $this->hasExistingRefundTransaction($customerId, $order->getId(), $referenceType)) {
+                $this->logger->info('Wallet refund already processed for order', [
+                    'order_id' => $order->getIncrementId(),
+                    'reference_type' => $referenceType,
+                ]);
+                return [
+                    'success' => true,
+                    'transaction_id' => 'already_refunded_wallet_' . $order->getIncrementId(),
+                    'refund_amount' => $amount,
+                    'refund_method' => 'wallet'
+                ];
+            }
+
             // Get current balance before update
             $currentBalance = $this->walletManagement->getWalletBalance($customerId);
 
@@ -108,6 +122,38 @@ class WalletRefundService
      * @param string $referenceType
      * @return string
      */
+    /**
+     * Check if a wallet refund transaction already exists for this order
+     *
+     * @param int $customerId
+     * @param int $orderId
+     * @param string $referenceType
+     * @return bool
+     */
+    protected function hasExistingRefundTransaction($customerId, $orderId, $referenceType)
+    {
+        try {
+            $transactions = $this->transactionRepository->getByCustomerId($customerId);
+            if ($transactions && is_array($transactions)) {
+                foreach ($transactions as $transaction) {
+                    if ($transaction->getReferenceType() === $referenceType
+                        && $transaction->getReferenceId() == $orderId
+                        && $transaction->getType() === WalletTransactionInterface::TYPE_CREDIT
+                    ) {
+                        return true;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // If we can't check, proceed with refund (fail-open for customer benefit)
+            $this->logger->warning('Could not check existing wallet refund transactions', [
+                'order_id' => $orderId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+        return false;
+    }
+
     protected function getRefundDescription($order, $referenceType)
     {
         $orderNumber = $order->getIncrementId();
