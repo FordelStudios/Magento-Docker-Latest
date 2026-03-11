@@ -73,16 +73,15 @@ class ShiprocketShipmentWebhookHandler
 
             // Process based on shipment status
             switch (strtolower($currentStatus)) {
-                case 'shipped':
                 case 'pickup_scheduled':
                     return $this->handleShipmentPickupScheduled($order, $webhookData);
-                    
+
+                case 'shipped':
                 case 'picked':
                 case 'picked_up':
                     return $this->handleShipmentPicked($order, $webhookData);
-                    
+
                 case 'in_transit':
-                case 'shipped':
                     return $this->handleShipmentInTransit($order, $webhookData);
                     
                 case 'out_for_delivery':

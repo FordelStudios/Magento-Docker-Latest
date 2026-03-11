@@ -5,6 +5,7 @@ use Formula\Wallet\Api\WalletManagementInterface;
 use Formula\Wallet\Api\WalletTransactionRepositoryInterface;
 use Formula\Wallet\Api\Data\WalletTransactionInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Registry;
 use Psr\Log\LoggerInterface;
@@ -14,6 +15,7 @@ class WalletRefundService
     protected $walletManagement;
     protected $transactionRepository;
     protected $customerRepository;
+    protected $searchCriteriaBuilder;
     protected $logger;
     protected $registry;
 
@@ -21,12 +23,14 @@ class WalletRefundService
         WalletManagementInterface $walletManagement,
         WalletTransactionRepositoryInterface $transactionRepository,
         CustomerRepositoryInterface $customerRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
         Registry $registry,
         LoggerInterface $logger
     ) {
         $this->walletManagement = $walletManagement;
         $this->transactionRepository = $transactionRepository;
         $this->customerRepository = $customerRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->registry = $registry;
         $this->logger = $logger;
     }
@@ -116,13 +120,6 @@ class WalletRefundService
     }
 
     /**
-     * Get refund description based on reference type
-     *
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
-     * @param string $referenceType
-     * @return string
-     */
-    /**
      * Check if a wallet refund transaction already exists for this order
      *
      * @param int $customerId
@@ -133,17 +130,16 @@ class WalletRefundService
     protected function hasExistingRefundTransaction($customerId, $orderId, $referenceType)
     {
         try {
-            $transactions = $this->transactionRepository->getByCustomerId($customerId);
-            if ($transactions && is_array($transactions)) {
-                foreach ($transactions as $transaction) {
-                    if ($transaction->getReferenceType() === $referenceType
-                        && $transaction->getReferenceId() == $orderId
-                        && $transaction->getType() === WalletTransactionInterface::TYPE_CREDIT
-                    ) {
-                        return true;
-                    }
-                }
-            }
+            $searchCriteria = $this->searchCriteriaBuilder
+                ->addFilter('customer_id', $customerId)
+                ->addFilter('reference_type', $referenceType)
+                ->addFilter('reference_id', $orderId)
+                ->addFilter('type', WalletTransactionInterface::TYPE_CREDIT)
+                ->setPageSize(1)
+                ->create();
+
+            $results = $this->transactionRepository->getList($searchCriteria);
+            return $results->getTotalCount() > 0;
         } catch (\Exception $e) {
             // If we can't check, proceed with refund (fail-open for customer benefit)
             $this->logger->warning('Could not check existing wallet refund transactions', [

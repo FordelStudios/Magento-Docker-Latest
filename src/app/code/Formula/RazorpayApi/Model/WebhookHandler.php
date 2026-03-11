@@ -290,7 +290,16 @@ class WebhookHandler
             return ['status' => 'ok', 'message' => 'Order already in terminal state'];
         }
 
-        // 1. Cancel Shiprocket shipment if exists
+        // 1. Set order to cancelled FIRST — this is the cross-process lock.
+        // If Shiprocket webhook arrives after this, it will see terminal state and skip.
+        $order->setState(Order::STATE_CANCELED);
+        $order->setStatus(Order::STATE_CANCELED);
+        $order->addCommentToStatusHistory(
+            '[Razorpay Refund] Order cancelled due to Razorpay refund. Payment ID: ' . $rzpPaymentId
+        );
+        $this->orderRepository->save($order);
+
+        // 2. Cancel Shiprocket shipment if exists
         $shipmentId = $order->getData('shiprocket_shipment_id');
         if ($shipmentId) {
             try {
@@ -313,7 +322,7 @@ class WebhookHandler
             }
         }
 
-        // 2. Restore inventory
+        // 3. Restore inventory
         try {
             $this->inventoryService->restoreInventoryForCancellation($order);
             $this->logger->info('RazorpayWebhook: Inventory restored for refunded order', [
@@ -326,37 +335,25 @@ class WebhookHandler
             ]);
         }
 
-        // 3. Credit wallet portion back (Razorpay portion is already refunded by Razorpay)
-        $walletAmountUsed = $order->getWalletAmountUsed() ?: 0;
-        if ($walletAmountUsed > 0) {
-            try {
-                $walletRefundService = \Magento\Framework\App\ObjectManager::getInstance()
-                    ->get(\Formula\OrderCancellationReturn\Service\WalletRefundService::class);
-                $walletRefundService->processRefund(
-                    $order,
-                    $walletAmountUsed,
-                    \Formula\Wallet\Api\Data\WalletTransactionInterface::REFERENCE_TYPE_ORDER_CANCEL
-                );
+        // 4. Credit wallet portion back via RefundProcessor (handles mixed payments correctly).
+        // Razorpay portion will hit "already refunded" and be handled gracefully.
+        try {
+            $refundResult = $this->refundProcessor->processRefund($order, 'cancel');
+            if (isset($refundResult['status_message'])) {
                 $order->addCommentToStatusHistory(
-                    sprintf('[Razorpay Refund] Wallet refunded: %s', $walletAmountUsed)
+                    '[Razorpay Refund] ' . $refundResult['status_message']
                 );
-            } catch (\Exception $e) {
-                $order->addCommentToStatusHistory(
-                    '[Razorpay Refund] Wallet refund failed: ' . $e->getMessage()
-                );
-                $this->logger->error('RazorpayWebhook: Wallet refund failed', [
-                    'order' => $incrementId,
-                    'error' => $e->getMessage(),
-                ]);
             }
+        } catch (\Exception $e) {
+            $order->addCommentToStatusHistory(
+                '[Razorpay Refund] Refund processing note: ' . $e->getMessage()
+            );
+            $this->logger->error('RazorpayWebhook: Refund processing failed', [
+                'order' => $incrementId,
+                'error' => $e->getMessage(),
+            ]);
         }
 
-        // 4. Update order status
-        $order->setState(Order::STATE_CANCELED);
-        $order->setStatus(Order::STATE_CANCELED);
-        $order->addCommentToStatusHistory(
-            '[Razorpay Refund] Order cancelled due to Razorpay refund. Payment ID: ' . $rzpPaymentId
-        );
         $this->orderRepository->save($order);
 
         $this->logger->info('RazorpayWebhook: Order cancelled due to Razorpay refund', [
