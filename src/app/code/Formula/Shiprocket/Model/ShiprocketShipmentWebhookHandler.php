@@ -1,6 +1,8 @@
 <?php
 namespace Formula\Shiprocket\Model;
 
+use Formula\OrderCancellationReturn\Service\RefundProcessor;
+use Formula\OrderCancellationReturn\Service\InventoryService;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Framework\Exception\LocalizedException;
@@ -8,15 +10,21 @@ use Psr\Log\LoggerInterface;
 
 class ShiprocketShipmentWebhookHandler
 {
+    protected $refundProcessor;
+    protected $inventoryService;
     protected $orderRepository;
     protected $orderCollectionFactory;
     protected $logger;
 
     public function __construct(
+        RefundProcessor $refundProcessor,
+        InventoryService $inventoryService,
         OrderRepositoryInterface $orderRepository,
         OrderCollectionFactory $orderCollectionFactory,
         LoggerInterface $logger
     ) {
+        $this->refundProcessor = $refundProcessor;
+        $this->inventoryService = $inventoryService;
         $this->orderRepository = $orderRepository;
         $this->orderCollectionFactory = $orderCollectionFactory;
         $this->logger = $logger;
@@ -247,7 +255,43 @@ class ShiprocketShipmentWebhookHandler
         $order->addCommentToStatusHistory($message);
         $this->orderRepository->save($order);
 
-        return ['success' => true, 'message' => 'Shipment cancelled status updated'];
+        // Restore inventory
+        $restoredItems = $this->inventoryService->restoreInventoryForReturn($order);
+        if (!empty($restoredItems)) {
+            $inventoryMessage = $this->inventoryService->createInventoryRestorationMessage($restoredItems);
+            $order->addCommentToStatusHistory('[Shiprocket] Inventory restored' . $inventoryMessage);
+            $this->orderRepository->save($order);
+        }
+
+        // Process refund (wallet + payment gateway)
+        $refundResult = null;
+        try {
+            $refundResult = $this->refundProcessor->processRefund($order, 'cancel');
+
+            $refundMessage = '[Shiprocket] Refund processed';
+            if (isset($refundResult['status_message'])) {
+                $refundMessage .= ': ' . $refundResult['status_message'];
+            }
+            $order->addCommentToStatusHistory($refundMessage);
+            $this->orderRepository->save($order);
+
+            $this->logger->info('Shiprocket cancellation refund processed', [
+                'order_id' => $order->getIncrementId(),
+                'refund_amount' => $refundResult['refund_amount'] ?? 0,
+                'refund_method' => $refundResult['refund_method'] ?? 'unknown'
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('Shiprocket cancellation refund failed', [
+                'order_id' => $order->getIncrementId(),
+                'error' => $e->getMessage()
+            ]);
+            $order->addCommentToStatusHistory(
+                '[Shiprocket] Refund failed: ' . $e->getMessage() . '. Manual intervention required.'
+            );
+            $this->orderRepository->save($order);
+        }
+
+        return ['success' => true, 'message' => 'Shipment cancelled, refund processed', 'refund_result' => $refundResult];
     }
 
     /**
@@ -295,12 +339,47 @@ class ShiprocketShipmentWebhookHandler
         if (isset($webhookData['awb']) && !empty($webhookData['awb'])) {
             $message .= ' | AWB: ' . $webhookData['awb'];
         }
-        $message .= ' | Manual review required for refund';
 
         $order->addCommentToStatusHistory($message);
         $this->orderRepository->save($order);
 
-        return ['success' => true, 'message' => 'RTO delivered status updated'];
+        // Restore inventory
+        $restoredItems = $this->inventoryService->restoreInventoryForReturn($order);
+        if (!empty($restoredItems)) {
+            $inventoryMessage = $this->inventoryService->createInventoryRestorationMessage($restoredItems);
+            $order->addCommentToStatusHistory('[Shiprocket] Inventory restored' . $inventoryMessage);
+            $this->orderRepository->save($order);
+        }
+
+        // Process refund (wallet + payment gateway)
+        $refundResult = null;
+        try {
+            $refundResult = $this->refundProcessor->processRefund($order, 'cancel');
+
+            $refundMessage = '[Shiprocket] RTO refund processed';
+            if (isset($refundResult['status_message'])) {
+                $refundMessage .= ': ' . $refundResult['status_message'];
+            }
+            $order->addCommentToStatusHistory($refundMessage);
+            $this->orderRepository->save($order);
+
+            $this->logger->info('Shiprocket RTO refund processed', [
+                'order_id' => $order->getIncrementId(),
+                'refund_amount' => $refundResult['refund_amount'] ?? 0,
+                'refund_method' => $refundResult['refund_method'] ?? 'unknown'
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('Shiprocket RTO refund failed', [
+                'order_id' => $order->getIncrementId(),
+                'error' => $e->getMessage()
+            ]);
+            $order->addCommentToStatusHistory(
+                '[Shiprocket] RTO refund failed: ' . $e->getMessage() . '. Manual intervention required.'
+            );
+            $this->orderRepository->save($order);
+        }
+
+        return ['success' => true, 'message' => 'RTO delivered, refund processed', 'refund_result' => $refundResult];
     }
 
     /**
