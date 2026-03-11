@@ -188,7 +188,7 @@ class ShiprocketShipmentService
         return [
             'order_id' => $order->getIncrementId(),
             'order_date' => $order->getCreatedAt(),
-            'pickup_location' => 'Primary', // Default pickup location
+            'pickup_location' => $this->shiprocketHelper->getPickupLocation(),
             'billing_customer_name' => $billingAddress->getFirstname() . ' ' . $billingAddress->getLastname(),
             'billing_last_name' => $billingAddress->getLastname(),
             'billing_address' => implode(', ', $billingAddress->getStreet()),

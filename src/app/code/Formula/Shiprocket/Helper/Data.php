@@ -71,6 +71,17 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Get pickup location name
+     *
+     * @param string|null $storeId
+     * @return string
+     */
+    public function getPickupLocation($storeId = null)
+    {
+        return $this->getConfigValue('pickup_location', $storeId) ?: 'Primary';
+    }
+
+    /**
      * Get pickup postcode
      *
      * @param string|null $storeId

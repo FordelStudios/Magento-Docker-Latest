@@ -22,6 +22,11 @@
                     <comment>Enter your Shiprocket account password</comment>
                     <validate>required-entry</validate>
                 </field>
+                <field id="pickup_location" translate="label" type="text" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Pickup Location Name</label>
+                    <comment><![CDATA[Enter the exact pickup location name as configured in Shiprocket dashboard (Settings > Pickup Addresses). Example: "Office", "Primary", "Warehouse"]]></comment>
+                    <validate>required-entry</validate>
+                </field>
                 <field id="pickup_postcode" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup Postcode</label>
                     <comment>Enter the postcode from where shipments will be picked up</comment>

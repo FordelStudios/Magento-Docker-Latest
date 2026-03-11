@@ -6,6 +6,7 @@
                 <enabled>0</enabled>
                 <email></email>
                 <password></password>
+                <pickup_location>Office</pickup_location>
                 <pickup_postcode></pickup_postcode>
                 <debug_mode>0</debug_mode>
             </general>
