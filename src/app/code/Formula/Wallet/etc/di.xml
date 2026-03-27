@@ -16,6 +16,13 @@
     <!-- Preference for Wallet Balance Service Interface (atomic operations with locking) -->
     <preference for="Formula\Wallet\Api\WalletBalanceServiceInterface" type="Formula\Wallet\Model\WalletBalanceService" />
 
+    <!-- Credit ₹100 signup bonus on new account creation -->
+    <type name="Magento\Customer\Api\AccountManagementInterface">
+        <plugin name="formula_wallet_customer_registration_bonus"
+                type="Formula\Wallet\Plugin\CustomerRegistrationPlugin"
+                sortOrder="200" />
+    </type>
+
     <!-- Plugin to prevent customers from manipulating wallet_amount_used via Cart API -->
     <type name="Magento\Quote\Api\CartRepositoryInterface">
         <plugin name="formula_wallet_cart_save_protection"
