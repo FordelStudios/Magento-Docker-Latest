@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Custom search API that queries OpenSearch directly -->
+    <preference for="Formula\SearchRelevance\Api\SearchInterface" type="Formula\SearchRelevance\Model\Search" />
+    <preference for="Formula\SearchRelevance\Api\Data\SearchResultInterface" type="Formula\SearchRelevance\Model\SearchResult" />
+    <preference for="Formula\SearchRelevance\Api\Data\SearchItemInterface" type="Formula\SearchRelevance\Model\SearchItem" />
+
+    <!-- Add synonym filter to the default_search analyzer -->
+    <type name="Magento\Elasticsearch\Model\Adapter\Index\Builder">
+        <plugin name="formula-search-index-builder" type="Formula\SearchRelevance\Plugin\IndexBuilderPlugin" sortOrder="10" />
+    </type>
+</config>
