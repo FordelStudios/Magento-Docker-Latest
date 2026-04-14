@@ -13,6 +13,7 @@
 		<column xsi:type="boolean" name="is_discount_banner" nullable="false" default="0" comment="Is Discount Banner"/>
 		<column xsi:type="boolean" name="is_sale_banner" nullable="false" default="0" comment="Is Sale Banner"/>
 		<column xsi:type="datetime" name="sale_end_date" nullable="true" comment="Sale End Date for Countdown Timer"/>
+		<column xsi:type="datetime" name="sale_start_date" nullable="true" comment="Sale Start Date for Countdown Timer"/>
 
 		<constraint xsi:type="primary" referenceId="PRIMARY">
 			<column name="entity_id" />
