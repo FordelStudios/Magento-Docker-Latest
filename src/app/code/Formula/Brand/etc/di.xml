@@ -1,5 +1,14 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+	<!-- Export RowCustomizer: adds brand_name column to product CSV export -->
+	<type name="Magento\CatalogImportExport\Model\Export\RowCustomizer\Composite">
+		<arguments>
+			<argument name="customizers" xsi:type="array">
+				<item name="brandName" xsi:type="string">Formula\Brand\Model\Export\RowCustomizer</item>
+			</argument>
+		</arguments>
+	</type>
+
 	<!-- Add these preference declarations -->
 	<preference for="Formula\Brand\Api\BrandRepositoryInterface" type="Formula\Brand\Model\BrandRepository" />
 	<preference for="Formula\Brand\Api\Data\BrandInterface" type="Formula\Brand\Model\Brand" />
