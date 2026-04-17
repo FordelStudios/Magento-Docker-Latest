@@ -271,6 +271,27 @@ class Blog extends AbstractModel implements BlogInterface, IdentityInterface
     }
 
     /**
+     * Get URL key (slug)
+     *
+     * @return string|null
+     */
+    public function getUrlKey()
+    {
+        return $this->getData(self::URL_KEY);
+    }
+
+    /**
+     * Set URL key (slug)
+     *
+     * @param string $urlKey
+     * @return BlogInterface
+     */
+    public function setUrlKey($urlKey)
+    {
+        return $this->setData(self::URL_KEY, $urlKey);
+    }
+
+    /**
      * Get category IDs
      *
      * @return int[]|null

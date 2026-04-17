@@ -10,6 +10,7 @@
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Blog Creation Time"/>
         <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Blog Update Time"/>
         <column xsi:type="smallint" name="is_published" nullable="false" default="1" comment="Is Blog Published"/>
+        <column xsi:type="varchar" name="url_key" nullable="true" length="255" comment="URL Key (slug)"/>
         <column xsi:type="varchar" name="meta_title" nullable="true" length="255" comment="Meta Title"/>
         <column xsi:type="text" name="product_ids" nullable="true" comment="Related Product IDs"/>
         <column xsi:type="text" name="category_ids" nullable="true" comment="Related Category IDs (JSON)"/>

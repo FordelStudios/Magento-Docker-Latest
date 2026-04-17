@@ -169,6 +169,7 @@ class BlogRepository implements BlogRepositoryInterface
             foreach ($items as $item) {
                 $blogItems[] = [
                     'id' => $item->getId(),
+                    'url_key' => $item->getUrlKey(),
                     'title' => $item->getTitle(),
                     'content' => $item->getContent(),
                     'image' => $item->getImage(),

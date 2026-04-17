@@ -26,6 +26,7 @@ interface BlogInterface
     const IS_PUBLISHED      = 'is_published';
     const PRODUCT_IDS    = 'product_ids';
     const CATEGORY_IDS = 'category_ids';
+    const URL_KEY        = 'url_key';
 
     /**
      * Get ID
@@ -165,6 +166,21 @@ interface BlogInterface
      * @return BlogInterface
      */
     public function setProductIds($productIds);
+
+    /**
+     * Get URL key (slug)
+     *
+     * @return string|null
+     */
+    public function getUrlKey();
+
+    /**
+     * Set URL key (slug)
+     *
+     * @param string $urlKey
+     * @return BlogInterface
+     */
+    public function setUrlKey($urlKey);
 
     /**
      * Get category IDs

@@ -111,6 +111,12 @@ class Save extends Action
             if (isset($data['product_ids']) && is_array($data['product_ids'])) {
                 $data['product_ids'] = implode(',', $data['product_ids']);
             }
+
+            // Auto-generate url_key from title if not set
+            if (empty($data['url_key']) && !empty($data['title'])) {
+                $data['url_key'] = strtolower(preg_replace('/[\s-]+/', '-', preg_replace('/[^a-z0-9\s-]/i', '', $data['title'])));
+                $data['url_key'] = trim($data['url_key'], '-');
+            }
             
             // Handle category_ids if it's an array
             if (isset($data['category_ids']) && is_array($data['category_ids'])) {
