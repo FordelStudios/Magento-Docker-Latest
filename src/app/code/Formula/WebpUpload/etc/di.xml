@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Magento\Catalog\Model\Product\Gallery\Processor"
+                type="Formula\WebpUpload\Model\Product\Gallery\Processor"/>
+
+    <type name="Magento\Catalog\Controller\Adminhtml\Product\Gallery\Upload">
+        <plugin name="formula_webp_allow_upload" type="Formula\WebpUpload\Plugin\AllowWebpUpload"/>
+    </type>
+
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="formulaConvertImages" xsi:type="object">Formula\WebpUpload\Console\Command\ConvertImages</item>
+            </argument>
+        </arguments>
+    </type>
+</config>
