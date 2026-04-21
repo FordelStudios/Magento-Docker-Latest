@@ -19,4 +19,20 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="Formula\Brand\Model\ImageUploader">
+        <plugin name="formula_webp_brand_upload" type="Formula\WebpUpload\Plugin\BrandImageUploaderPlugin"/>
+    </type>
+
+    <type name="Formula\HomeContent\Model\ImageUploader">
+        <plugin name="formula_webp_homecontent_upload" type="Formula\WebpUpload\Plugin\HomeContentImageUploaderPlugin"/>
+    </type>
+
+    <type name="Formula\CategoryBanners\Model\BannerImageUploader">
+        <plugin name="formula_webp_categorybanner_upload" type="Formula\WebpUpload\Plugin\CategoryBannersUploaderPlugin"/>
+    </type>
+
+    <type name="Formula\CountryFormulaBanners\Model\BannerImageUploader">
+        <plugin name="formula_webp_countryformulabanner_upload" type="Formula\WebpUpload\Plugin\CountryFormulaBannersUploaderPlugin"/>
+    </type>
 </config>
