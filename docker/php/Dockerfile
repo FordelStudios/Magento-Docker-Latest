@@ -8,12 +8,13 @@ RUN apt-get update && apt-get install -y \
     libmagickwand-dev \
     libpng-dev \
     libwebp-dev \
+    libavif-dev \
     libxslt1-dev \
     libzip-dev \
     ffmpeg 
 
 # Configure and install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-avif
 RUN docker-php-ext-install \
     bcmath \
     gd \
