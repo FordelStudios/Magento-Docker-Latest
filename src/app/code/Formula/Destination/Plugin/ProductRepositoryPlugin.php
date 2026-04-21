@@ -57,10 +57,10 @@ class ProductRepositoryPlugin
             return;
         }
 
-        $destinationAttribute = $product->getCustomAttribute('destination');
-        $destination = $destinationAttribute ? $destinationAttribute->getValue() : null;
+        $destinationTypeAttribute = $product->getCustomAttribute('destination_type');
+        $destinationType = $destinationTypeAttribute ? $destinationTypeAttribute->getValue() : null;
+        $extensionAttributes->setDestinationType($destinationType);
 
-        $extensionAttributes->setDestination($destination);
         $product->setExtensionAttributes($extensionAttributes);
     }
 }
