@@ -8,6 +8,10 @@
         <plugin name="formula_webp_allow_upload" type="Formula\WebpUpload\Plugin\AllowWebpUpload"/>
     </type>
 
+    <type name="Magento\Framework\Image\Adapter\Gd2">
+        <plugin name="formula_webp_gd2_support" type="Formula\WebpUpload\Plugin\Gd2WebpSupport"/>
+    </type>
+
     <type name="Magento\Framework\Console\CommandList">
         <arguments>
             <argument name="commands" xsi:type="array">
