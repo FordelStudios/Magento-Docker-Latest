@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <fieldset name="rule_information">
+        <field name="is_storefront_hidden" sortOrder="35" formElement="checkbox">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">sales_rule</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>boolean</dataType>
+                <label translate="true">Hide from storefront coupon listing</label>
+                <dataScope>is_storefront_hidden</dataScope>
+                <prefer>toggle</prefer>
+                <valueMap>
+                    <map name="false" xsi:type="number">0</map>
+                    <map name="true" xsi:type="number">1</map>
+                </valueMap>
+                <default>0</default>
+                <tooltip>
+                    <description translate="true">When enabled, this coupon will not appear in the website coupon popup. Users can still apply it manually at checkout.</description>
+                </tooltip>
+            </settings>
+        </field>
+    </fieldset>
+</form>

@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="salesrule" resource="default" engine="innodb" comment="Sales Rule">
+        <column xsi:type="smallint" name="is_storefront_hidden" padding="6" unsigned="false" nullable="false" identity="false" default="0" comment="Hide coupon from storefront listing"/>
+    </table>
+</schema>
