@@ -34,3 +34,8 @@ Created custom modules are:
 29. Formula UserQuiz
 30. Formula Wallet
 31. Formula Wishlist
+
+## Care by Travel modules (product attributes for travel-based filtering)
+32. Formula Destination  — adds `destination_type` multiselect attribute (1=Cities, 2=Beaches, 3=Hill stations, 4=Mountains, 5=Deserts)
+33. Formula Month        — adds `month` multiselect attribute (1–12)
+34. Formula RoutineType  — adds `routine_type` multiselect attribute (1=Face, 2=Hair, 3=Body)
