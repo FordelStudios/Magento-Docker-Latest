@@ -26,6 +26,7 @@ interface WalletTransactionInterface
     const REFERENCE_TYPE_ADMIN_API = 'admin_api';
     const REFERENCE_TYPE_ADMIN_PANEL = 'admin_panel';
     const REFERENCE_TYPE_SIGNUP = 'signup';
+    const REFERENCE_TYPE_REVIEW = 'review';
 
     /**
      * Get transaction ID
