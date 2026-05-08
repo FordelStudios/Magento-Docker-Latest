@@ -55,13 +55,17 @@ class OrderReturn implements OrderReturnInterface
      * @param string|null $reason Optional reason for return
      * @param string[]|null $images Optional array of image paths (from upload endpoint)
      * @param int|null $pickupAddressId Optional pickup address ID
+     * @param string|null $refundTarget Where to route the refund once return is received: 'wallet' or 'source'. Defaults to 'wallet'.
      * @return \Formula\OrderCancellationReturn\Api\Data\RefundResponseInterface
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function returnOrder($customerId, $orderId, $reason = null, $images = null, $pickupAddressId = null)
+    public function returnOrder($customerId, $orderId, $reason = null, $images = null, $pickupAddressId = null, $refundTarget = null)
     {
         $response = $this->refundResponseFactory->create();
+
+        // Normalise: unknown values fall back to 'wallet'
+        $resolvedRefundTarget = ($refundTarget === 'source') ? 'source' : 'wallet';
 
         try {
             // Validate order for return
@@ -131,6 +135,8 @@ class OrderReturn implements OrderReturnInterface
             $order->setData('pending_return_refund_method', $paymentMethod);
             $order->setData('pending_return_wallet_amount', $walletAmountUsed);
             $order->setData('pending_return_requested_at', date('Y-m-d H:i:s'));
+            // Store customer's refund target preference — read by Shiprocket webhook on return receipt
+            $order->setData('pending_return_refund_target', $resolvedRefundTarget);
 
             // Add informative status history
             $refundMessage = sprintf(
