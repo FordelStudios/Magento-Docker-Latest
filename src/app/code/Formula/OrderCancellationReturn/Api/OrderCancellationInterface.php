@@ -11,9 +11,10 @@ interface OrderCancellationInterface
      * @param int $customerId Customer ID
      * @param int $orderId Order ID to cancel
      * @param string|null $reason Optional reason for cancellation
+     * @param string|null $refundTarget Where to route the refund: 'wallet' or 'source'. Defaults to 'wallet'.
      * @return \Formula\OrderCancellationReturn\Api\Data\RefundResponseInterface
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function cancelOrder($customerId, $orderId, $reason = null);
+    public function cancelOrder($customerId, $orderId, $reason = null, $refundTarget = null);
 }
