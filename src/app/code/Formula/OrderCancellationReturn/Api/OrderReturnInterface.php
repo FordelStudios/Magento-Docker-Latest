@@ -13,9 +13,10 @@ interface OrderReturnInterface
      * @param string|null $reason Optional reason for return
      * @param string[]|null $images Optional array of image paths (from upload endpoint)
      * @param int|null $pickupAddressId Optional pickup address ID
+     * @param string|null $refundTarget Where to route the refund once return is received: 'wallet' or 'source'. Defaults to 'wallet'.
      * @return \Formula\OrderCancellationReturn\Api\Data\RefundResponseInterface
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function returnOrder($customerId, $orderId, $reason = null, $images = null, $pickupAddressId = null);
+    public function returnOrder($customerId, $orderId, $reason = null, $images = null, $pickupAddressId = null, $refundTarget = null);
 }

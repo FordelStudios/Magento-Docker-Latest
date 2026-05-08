@@ -4,6 +4,7 @@
     <!-- Sync review aggregation when a review is saved -->
     <event name="review_save_after">
         <observer name="formula_review_aggregation_save" instance="Formula\Review\Observer\ReviewSaveAfter" />
+        <observer name="formula_review_approved_credit_wallet" instance="Formula\Review\Observer\ReviewApprovedCreditWallet" />
     </event>
 
     <!-- Sync review aggregation when a review is deleted -->

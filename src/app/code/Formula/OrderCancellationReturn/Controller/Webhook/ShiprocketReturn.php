@@ -221,8 +221,11 @@ class ShiprocketReturn implements HttpPostActionInterface, CsrfAwareActionInterf
             return ['refund_amount' => 0, 'refund_method' => 'none'];
         }
 
-        // Process the deferred refund
-        $refundResult = $this->refundProcessor->processRefund($order, 'return');
+        // Read the customer's refund target preference stored at return-request time
+        $pendingRefundTarget = $order->getData('pending_return_refund_target') ?: 'wallet';
+
+        // Process the deferred refund, honouring the stored preference
+        $refundResult = $this->refundProcessor->processRefund($order, 'return', $pendingRefundTarget);
 
         // Restore inventory
         $restoredItems = $this->inventoryService->restoreInventoryForReturn($order);
@@ -245,6 +248,7 @@ class ShiprocketReturn implements HttpPostActionInterface, CsrfAwareActionInterf
         $order->setData('pending_return_refund_amount', null);
         $order->setData('pending_return_refund_method', null);
         $order->setData('pending_return_wallet_amount', null);
+        $order->setData('pending_return_refund_target', null);
 
         $this->orderRepository->save($order);
 

@@ -27,6 +27,8 @@
         <column xsi:type="text" name="return_images" nullable="true" comment="JSON array of return image paths"/>
         <column xsi:type="int" name="return_pickup_address_id" unsigned="true" nullable="true" comment="Pickup Address ID for Return"/>
         <column xsi:type="timestamp" name="pending_return_requested_at" on_update="false" nullable="true" comment="Return Request Timestamp"/>
+        <!-- Refund target preference stored at return-request time, cleared after refund is processed -->
+        <column xsi:type="varchar" name="pending_return_refund_target" nullable="true" length="20" comment="Customer refund destination: wallet or source"/>
 
         <!-- Index for webhook lookups -->
         <index referenceId="IDX_SALES_ORDER_SHIPROCKET_RETURN_ID" indexType="btree">

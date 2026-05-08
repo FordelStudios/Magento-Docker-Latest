@@ -168,6 +168,41 @@ class ShiprocketWebhookHandler
      */
     protected function handleReturnReceived($order, $webhookData)
     {
+        // Defensive guard: only process a refund when the order is genuinely in
+        // a customer-return workflow.  If the order is in any other status it
+        // means this event was mis-routed (e.g. an RTO webhook that slipped past
+        // the router) and we must NOT issue a refund.
+        $validReturnStatuses = [
+            'return_requested',
+            'return_approved',
+            'return_pickup_scheduled',
+            'return_in_transit',
+            'return_received',
+        ];
+
+        $orderStatus = $order->getStatus();
+        if (!in_array($orderStatus, $validReturnStatuses, true)) {
+            $this->logger->warning(
+                'handleReturnReceived called on order with unexpected status — '
+                . 'refusing to process refund to prevent erroneous credit',
+                [
+                    'order_id'     => $order->getIncrementId(),
+                    'order_status' => $orderStatus,
+                    'webhook_data' => $webhookData,
+                ]
+            );
+
+            return [
+                'success' => false,
+                'message' => sprintf(
+                    'Refund refused: order %s has status "%s" which is not a valid '
+                    . 'customer-return status. Webhook data logged for audit.',
+                    $order->getIncrementId(),
+                    $orderStatus
+                ),
+            ];
+        }
+
         // Update order status
         $order->setStatus('return_received');
 
