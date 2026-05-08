@@ -10,6 +10,7 @@ use Formula\CartItemExtension\Model\Data\ProductMediaFactory;
 use Magento\Quote\Api\Data\CartItemExtensionFactory;
 use Psr\Log\LoggerInterface;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
+use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 
 class GuestCartItemRepositoryPlugin
 {
@@ -19,6 +20,7 @@ class GuestCartItemRepositoryPlugin
     protected $extensionFactory;
     protected $logger;
     protected $categoryRepository;
+    protected $productResource;
 
     public function __construct(
         BrandRepository $brandRepository,
@@ -26,7 +28,8 @@ class GuestCartItemRepositoryPlugin
         ProductMediaFactory $productMediaFactory,
         CartItemExtensionFactory $extensionFactory,
         LoggerInterface $logger,
-        CategoryRepositoryInterface $categoryRepository
+        CategoryRepositoryInterface $categoryRepository,
+        ProductResource $productResource
     ) {
         $this->brandRepository = $brandRepository;
         $this->productRepository = $productRepository;
@@ -34,6 +37,7 @@ class GuestCartItemRepositoryPlugin
         $this->extensionFactory = $extensionFactory;
         $this->logger = $logger;
         $this->categoryRepository = $categoryRepository;
+        $this->productResource = $productResource;
     }
     
     /**
@@ -193,16 +197,21 @@ class GuestCartItemRepositoryPlugin
                     $this->logger->warning('[CartItemExtension] Guest Failed to set category_names: ' . $t->getMessage());
                 }
 
-                // Populate pricing attributes for price breakdown display
+                // Populate pricing attributes for price breakdown display.
+                // Read raw EAV values via the resource model. ProductRepository
+                // goes through plugin chains (e.g. Formula_ProductVariants sets
+                // minimum-variant price for sort), so the in-memory product
+                // object cannot be trusted for canonical catalog MRP.
                 try {
-                    $extensionAttributes->setOriginalPrice((float) $product->getPrice());
-                    $specialPrice = $product->getSpecialPrice();
-                    $extensionAttributes->setSpecialPrice($specialPrice !== null ? (float) $specialPrice : 0.0);
-                    $specialFromDate = $product->getSpecialFromDate();
-                    $extensionAttributes->setSpecialFromDate($specialFromDate !== null ? (string) $specialFromDate : '');
-                    $specialToDate = $product->getSpecialToDate();
-                    $extensionAttributes->setSpecialToDate($specialToDate !== null ? (string) $specialToDate : '');
-                    $this->logger->info('[CartItemExtension] Guest pricing attributes set: original=' . (float) $product->getPrice());
+                    $rawPrice = $this->productResource->getAttributeRawValue($productId, 'price', 0);
+                    $extensionAttributes->setOriginalPrice(is_numeric($rawPrice) ? (float) $rawPrice : 0.0);
+                    $rawSpecialPrice = $this->productResource->getAttributeRawValue($productId, 'special_price', 0);
+                    $extensionAttributes->setSpecialPrice(is_numeric($rawSpecialPrice) ? (float) $rawSpecialPrice : 0.0);
+                    $rawSpecialFrom = $this->productResource->getAttributeRawValue($productId, 'special_from_date', 0);
+                    $extensionAttributes->setSpecialFromDate(is_string($rawSpecialFrom) ? $rawSpecialFrom : '');
+                    $rawSpecialTo = $this->productResource->getAttributeRawValue($productId, 'special_to_date', 0);
+                    $extensionAttributes->setSpecialToDate(is_string($rawSpecialTo) ? $rawSpecialTo : '');
+                    $this->logger->info('[CartItemExtension] Guest pricing attributes set: original=' . (is_numeric($rawPrice) ? (float) $rawPrice : 0));
                 } catch (\Throwable $t) {
                     $this->logger->warning('[CartItemExtension] Guest Failed to set pricing attributes: ' . $t->getMessage());
                 }
