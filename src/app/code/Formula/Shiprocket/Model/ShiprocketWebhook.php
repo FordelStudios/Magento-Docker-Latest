@@ -67,14 +67,37 @@ class ShiprocketWebhook implements ShiprocketWebhookInterface
                 throw new LocalizedException(__('Invalid API key'));
             }
 
-            // Determine if this is a return or shipment update
-            if (isset($webhookData['return_id']) || 
-                (isset($webhookData['current_status']) && 
-                 strpos(strtolower($webhookData['current_status']), 'return') !== false)) {
-                // Handle return status update
+            // Determine if this is a return or shipment update.
+            //
+            // IMPORTANT: Use a strict prefix match on current_status.
+            //
+            // The old strpos(..., 'return') check caused misrouting: Shiprocket
+            // fires RETURN_DELIVERED for RTO (Return To Origin / failed forward
+            // delivery) events.  That status contains the word "return" but it is
+            // NOT a customer-initiated return — routing it to the return handler
+            // unconditionally triggered a refund for a delivery failure.
+            //
+            // Genuine customer-return statuses issued by Shiprocket all start with
+            // the prefix "return_" (return_pickup_scheduled, return_in_transit,
+            // return_received, etc.).
+            //
+            // RTO / forward-delivery statuses that happen to contain "return" in
+            // their name (e.g. rto_initiated, rto_delivered, return_delivered when
+            // used for RTO) are handled by the shipment handler.
+            //
+            // We also deliberately ignore the presence of return_id in the payload:
+            // Shiprocket includes return_id on forward-delivery webhooks to
+            // reference the associated return shipment; its presence alone is not
+            // a reliable signal that this is a customer return event.
+            $currentStatus = isset($webhookData['current_status'])
+                ? strtolower($webhookData['current_status'])
+                : '';
+
+            if (preg_match('/^return_/', $currentStatus)) {
+                // Genuine customer-return status update
                 $result = $this->returnWebhookHandler->handleReturnWebhook($webhookData);
             } else {
-                // Handle shipment status update
+                // Forward-shipment or RTO status update
                 $result = $this->shipmentWebhookHandler->handleShipmentWebhook($webhookData);
             }
 
