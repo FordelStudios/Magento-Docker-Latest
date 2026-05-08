@@ -191,6 +191,20 @@ class CartItemRepositoryPlugin
                     $this->logger->warning('[CartItemExtension] Failed to set category_names: ' . $t->getMessage());
                 }
 
+                // Populate pricing attributes for price breakdown display
+                try {
+                    $extensionAttributes->setOriginalPrice((float) $product->getPrice());
+                    $specialPrice = $product->getSpecialPrice();
+                    $extensionAttributes->setSpecialPrice($specialPrice !== null ? (float) $specialPrice : 0.0);
+                    $specialFromDate = $product->getSpecialFromDate();
+                    $extensionAttributes->setSpecialFromDate($specialFromDate !== null ? (string) $specialFromDate : '');
+                    $specialToDate = $product->getSpecialToDate();
+                    $extensionAttributes->setSpecialToDate($specialToDate !== null ? (string) $specialToDate : '');
+                    $this->logger->info('[CartItemExtension] pricing attributes set: original=' . (float) $product->getPrice());
+                } catch (\Throwable $t) {
+                    $this->logger->warning('[CartItemExtension] Failed to set pricing attributes: ' . $t->getMessage());
+                }
+
                 $cartItem->setExtensionAttributes($extensionAttributes);
 
             } catch (NoSuchEntityException $e) {
