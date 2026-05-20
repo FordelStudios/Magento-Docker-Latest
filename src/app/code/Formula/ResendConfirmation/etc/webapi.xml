@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi/etc/webapi.xsd">
+
+    <!--
+        Anonymous wrapper around Magento\Customer\Api\AccountManagementInterface::resendConfirmation.
+        The native /V1/customers/confirm route requires Magento_Customer::manage
+        ACL (admin), which a not-yet-logged-in storefront user obviously can't
+        produce. We expose the same behaviour at a separate path with
+        resource ref="anonymous" so the React Verify-Email screen can hit it
+        without auth.
+    -->
+    <route url="/V1/customers/resend-confirmation" method="POST">
+        <service class="Formula\ResendConfirmation\Api\ResendConfirmationInterface" method="execute"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+</routes>
