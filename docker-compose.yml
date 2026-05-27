@@ -52,9 +52,19 @@ services:
 
   redis:
     image: redis:6.2
+    restart: unless-stopped
+    command: >
+      redis-server
+      --maxmemory 4gb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 100
     ports:
       - "127.0.0.1:6380:6379"
+    volumes:
+      - redisdata:/data
 
 volumes:
   dbdata:
   osdata:
+  redisdata:
