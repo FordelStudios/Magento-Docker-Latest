@@ -66,35 +66,48 @@ class EmailRecovery implements EmailRecoveryInterface
     {
         $email = strtolower(trim($email));
 
-        /** @var \Formula\LoginOtp\Api\Data\SendOtpResultInterface $result */
-        $result = $this->sendResultFactory->create();
-
-        // Don't leak account existence. Always return success for valid-looking
-        // emails, only issue+send if a matching customer actually exists.
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new LocalizedException(__('Please enter a valid email address.'));
         }
 
+        // Reject unknown / placeholder emails explicitly. The earlier
+        // implementation returned success-shaped responses for unknown emails
+        // to avoid leaking account existence, but it left users staring at a
+        // "Check your email" screen waiting for a code that would never
+        // arrive. We accept the modest enumeration leak (consumer e-commerce
+        // risk profile, not a bank) in exchange for a flow that fails fast
+        // and tells the user what to do next.
         $customer = $this->customerFinder->findByEmail($email);
-        if ($customer) {
-            $issued = $this->emailOtpRepo->issue($email);
-            $expiryMinutes = max(1, (int) round($issued['expires_in'] / 60));
-            $sendResult = $this->emailSender->send($email, $issued['otp'], $expiryMinutes);
-
-            if (empty($sendResult['success'])) {
-                $this->emailOtpRepo->deleteById($issued['otp_id']);
-                throw new LocalizedException(__('Could not send recovery email. Please try again.'));
-            }
-
-            $result->setExpiresIn($issued['expires_in']);
-        } else {
-            // Fake expires_in to keep response shape consistent.
-            $result->setExpiresIn(300);
-            $this->logger->info('Formula\LoginOtp recovery requested for unknown email', ['email' => $email]);
+        if (!$customer) {
+            throw new LocalizedException(
+                __('No account is registered with this email. Create an account to continue.')
+            );
         }
 
+        $customerEmail = (string) $customer->getEmail();
+        if ($this->isPlaceholderEmail($customerEmail)) {
+            // The account exists but its email is a synthetic
+            // <phone>@formula.placeholder — there's no real inbox to deliver
+            // a recovery OTP to. Push the user to phone sign-in instead.
+            throw new LocalizedException(
+                __('This account uses phone sign-in. Sign in with your mobile number instead.')
+            );
+        }
+
+        $issued = $this->emailOtpRepo->issue($email);
+        $expiryMinutes = max(1, (int) round($issued['expires_in'] / 60));
+        $sendResult = $this->emailSender->send($email, $issued['otp'], $expiryMinutes);
+
+        if (empty($sendResult['success'])) {
+            $this->emailOtpRepo->deleteById($issued['otp_id']);
+            throw new LocalizedException(__('Could not send recovery email. Please try again.'));
+        }
+
+        /** @var \Formula\LoginOtp\Api\Data\SendOtpResultInterface $result */
+        $result = $this->sendResultFactory->create();
         $result->setSuccess(true);
-        $result->setMessage('If an account exists for that email, a code has been sent.');
+        $result->setExpiresIn($issued['expires_in']);
+        $result->setMessage('Recovery code sent. Check your email.');
         return $result;
     }
 
