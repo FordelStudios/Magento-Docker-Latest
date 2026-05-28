@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- API interface → implementation bindings -->
+    <preference for="Formula\LoginOtp\Api\LoginOtpInterface"
+                type="Formula\LoginOtp\Model\Api\LoginOtp"/>
+
+    <preference for="Formula\LoginOtp\Api\EmailRecoveryInterface"
+                type="Formula\LoginOtp\Model\Api\EmailRecovery"/>
+
+    <!-- Data DTO bindings -->
+    <preference for="Formula\LoginOtp\Api\Data\SendOtpResultInterface"
+                type="Formula\LoginOtp\Model\Data\SendOtpResult"/>
+
+    <preference for="Formula\LoginOtp\Api\Data\VerifyOtpResultInterface"
+                type="Formula\LoginOtp\Model\Data\VerifyOtpResult"/>
+
+    <preference for="Formula\LoginOtp\Api\Data\VerifyEmailOtpResultInterface"
+                type="Formula\LoginOtp\Model\Data\VerifyEmailOtpResult"/>
+</config>

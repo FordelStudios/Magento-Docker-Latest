@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+
+    <!--
+        OTPs for phone-OTP login.
+        Keyed by phone only (not customer_id) because first-time users
+        request an OTP before any customer record exists.
+    -->
+    <table name="formula_login_otp" resource="default" engine="innodb"
+           comment="Phone OTP requests for login/signup">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="phone" length="15" nullable="false" comment="Phone number (10-digit India)"/>
+        <column xsi:type="varchar" name="otp_code" length="10" nullable="false" comment="OTP code"/>
+        <column xsi:type="timestamp" name="expires_at" on_update="false" nullable="false" comment="OTP expiry"/>
+        <column xsi:type="smallint" name="verify_attempts" padding="5" unsigned="true" nullable="false" default="0" comment="Number of failed verify attempts"/>
+        <column xsi:type="boolean" name="is_verified" default="false" comment="Whether OTP was successfully verified"/>
+        <column xsi:type="varchar" name="wati_message_id" length="100" nullable="true" comment="WATI message ID for delivery tracking"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created at"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+
+        <!-- Look up active OTP by phone, plus prune expired ones. -->
+        <index referenceId="FORMULA_LOGIN_OTP_PHONE_EXPIRES_AT" indexType="btree">
+            <column name="phone"/>
+            <column name="expires_at"/>
+        </index>
+
+        <!-- Rate-limit window query needs to count recent requests per phone. -->
+        <index referenceId="FORMULA_LOGIN_OTP_PHONE_CREATED_AT" indexType="btree">
+            <column name="phone"/>
+            <column name="created_at"/>
+        </index>
+    </table>
+
+    <!--
+        OTPs for email-based recovery (used by legacy users who don't have
+        their phone but have email access). Keeps a separate lifecycle from
+        login OTPs so the two flows can't interfere.
+    -->
+    <table name="formula_email_recovery_otp" resource="default" engine="innodb"
+           comment="Email OTP requests for legacy account recovery">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="email" length="255" nullable="false" comment="Customer email"/>
+        <column xsi:type="varchar" name="otp_code" length="10" nullable="false" comment="OTP code"/>
+        <column xsi:type="timestamp" name="expires_at" on_update="false" nullable="false" comment="OTP expiry"/>
+        <column xsi:type="smallint" name="verify_attempts" padding="5" unsigned="true" nullable="false" default="0" comment="Number of failed verify attempts"/>
+        <column xsi:type="boolean" name="is_verified" default="false" comment="Whether OTP was successfully verified"/>
+        <column xsi:type="varchar" name="phone_add_token" length="100" nullable="true" comment="Short-lived token issued after successful verify, used to add phone"/>
+        <column xsi:type="timestamp" name="phone_add_token_expires_at" on_update="false" nullable="true" comment="phone_add_token expiry"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created at"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+
+        <index referenceId="FORMULA_EMAIL_RECOVERY_OTP_EMAIL_EXPIRES_AT" indexType="btree">
+            <column name="email"/>
+            <column name="expires_at"/>
+        </index>
+
+        <index referenceId="FORMULA_EMAIL_RECOVERY_OTP_EMAIL_CREATED_AT" indexType="btree">
+            <column name="email"/>
+            <column name="created_at"/>
+        </index>
+
+        <index referenceId="FORMULA_EMAIL_RECOVERY_OTP_PHONE_ADD_TOKEN" indexType="btree">
+            <column name="phone_add_token"/>
+        </index>
+    </table>
+</schema>

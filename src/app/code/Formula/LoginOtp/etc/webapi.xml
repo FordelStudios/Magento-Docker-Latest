@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+
+    <!-- ============ Phone-OTP login ============ -->
+
+    <route url="/V1/auth/otp/request" method="POST">
+        <service class="Formula\LoginOtp\Api\LoginOtpInterface" method="requestOtp"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/auth/otp/verify" method="POST">
+        <service class="Formula\LoginOtp\Api\LoginOtpInterface" method="verifyOtp"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <!-- ============ Email-based recovery for legacy users ============ -->
+
+    <route url="/V1/auth/recover/email-otp/request" method="POST">
+        <service class="Formula\LoginOtp\Api\EmailRecoveryInterface" method="requestEmailOtp"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/auth/recover/email-otp/verify" method="POST">
+        <service class="Formula\LoginOtp\Api\EmailRecoveryInterface" method="verifyEmailOtp"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/auth/recover/add-phone/request" method="POST">
+        <service class="Formula\LoginOtp\Api\EmailRecoveryInterface" method="addPhoneRequest"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/auth/recover/add-phone/confirm" method="POST">
+        <service class="Formula\LoginOtp\Api\EmailRecoveryInterface" method="addPhoneConfirm"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+</routes>
