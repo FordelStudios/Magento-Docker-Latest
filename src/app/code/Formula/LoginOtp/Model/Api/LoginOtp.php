@@ -50,9 +50,10 @@ class LoginOtp implements LoginOtpInterface
         $this->logger = $logger;
     }
 
-    public function requestOtp(string $phone)
+    public function requestOtp(string $phone, ?string $mode = null)
     {
         $normalized = $this->phoneValidator->normalize($phone);
+        $this->enforceMode($normalized, $mode);
         $issued = $this->otpRepository->issue($normalized);
 
         $sendResult = $this->watiSender->send($normalized, $issued['otp']);
@@ -77,15 +78,25 @@ class LoginOtp implements LoginOtpInterface
         return $result;
     }
 
-    public function verifyOtp(string $phone, string $otp, ?string $firstname = null, ?string $lastname = null)
-    {
+    public function verifyOtp(
+        string $phone,
+        string $otp,
+        ?string $firstname = null,
+        ?string $lastname = null,
+        ?string $mode = null
+    ) {
         $normalized = $this->phoneValidator->normalize($phone);
+
+        // Re-check mode at verify too: between requestOtp and verifyOtp the
+        // user could have been created/deleted by a concurrent flow, so we
+        // can't trust the requestOtp gate alone.
+        $this->enforceMode($normalized, $mode);
+
         $this->otpRepository->verify($normalized, $otp);
 
-        // OTP is good — issue token (find-or-create customer). firstname/
-        // lastname only matter on the create branch; CustomerFinder ignores
-        // them for existing customers so /sign-up doesn't clobber a returning
-        // user's name.
+        // firstname/lastname only matter on the create branch; CustomerFinder
+        // ignores them for existing customers so /sign-up never clobbers a
+        // returning user's name.
         $found = $this->customerFinder->findOrCreateByPhone(
             $normalized,
             $firstname,
@@ -104,6 +115,40 @@ class LoginOtp implements LoginOtpInterface
         $result->setCustomerId((int) $customer->getId());
         $result->setHasPlaceholderEmail($hasPlaceholder);
         return $result;
+    }
+
+    /**
+     * Reject early if the phone's existence on file doesn't match the caller's
+     * intent. Skipped when $mode is null so legacy find-or-create callers keep
+     * working unchanged.
+     *
+     * - mode='login'   : must exist
+     * - mode='register': must NOT exist
+     */
+    private function enforceMode(string $normalizedPhone, ?string $mode): void
+    {
+        if ($mode === null || $mode === '') {
+            return;
+        }
+        if ($mode !== 'login' && $mode !== 'register') {
+            throw new LocalizedException(
+                __('Invalid auth mode. Expected "login" or "register".')
+            );
+        }
+
+        $existing = $this->customerFinder->findByPhone($normalizedPhone);
+
+        if ($mode === 'login' && !$existing) {
+            throw new LocalizedException(
+                __('No account is registered with this number. Create an account to continue.')
+            );
+        }
+
+        if ($mode === 'register' && $existing) {
+            throw new LocalizedException(
+                __('This number is already registered. Sign in instead.')
+            );
+        }
     }
 
     private function isPlaceholderEmail(string $email): bool
