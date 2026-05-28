@@ -88,13 +88,30 @@ class CustomerFinder
             return $this->customerRepository->getById((int) $row->getId());
         }
 
-        // Step 2: by default-billing-address.telephone (last 10 digits)
+        // Step 2: by ANY address.telephone (last 10 digits).
+        //
+        // Why "any address" and not just default_billing:
+        // - audit (2026-05-28 in [[formula-data-baseline]]) showed real customers
+        //   put phone on addresses where is_default_billing is NULL
+        // - first deploy of this code looked only at default_billing and missed
+        //   ~all of them, creating placeholder accounts for users who already
+        //   had real accounts (the customer 142 incident)
+        //
+        // Preference order, in case multiple addresses for the same customer
+        // (or across customers) share the phone:
+        //   1. default_billing match (strongest signal that this is "the" account)
+        //   2. default_shipping match
+        //   3. lowest customer entity_id (deterministic; tends to match the older account)
         $conn = $this->resource->getConnection();
         $customerId = $conn->fetchOne(
             "SELECT ce.entity_id
              FROM customer_entity ce
-             JOIN customer_address_entity cae ON cae.entity_id = ce.default_billing
+             JOIN customer_address_entity cae ON cae.parent_id = ce.entity_id
              WHERE RIGHT(REGEXP_REPLACE(cae.telephone, '[^0-9]', ''), 10) = ?
+             ORDER BY
+               (cae.entity_id = ce.default_billing) DESC,
+               (cae.entity_id = ce.default_shipping) DESC,
+               ce.entity_id ASC
              LIMIT 1",
             [$normalizedPhone]
         );
