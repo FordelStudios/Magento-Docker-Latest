@@ -77,13 +77,20 @@ class LoginOtp implements LoginOtpInterface
         return $result;
     }
 
-    public function verifyOtp(string $phone, string $otp)
+    public function verifyOtp(string $phone, string $otp, ?string $firstname = null, ?string $lastname = null)
     {
         $normalized = $this->phoneValidator->normalize($phone);
         $this->otpRepository->verify($normalized, $otp);
 
-        // OTP is good — issue token (find-or-create customer).
-        $found = $this->customerFinder->findOrCreateByPhone($normalized);
+        // OTP is good — issue token (find-or-create customer). firstname/
+        // lastname only matter on the create branch; CustomerFinder ignores
+        // them for existing customers so /sign-up doesn't clobber a returning
+        // user's name.
+        $found = $this->customerFinder->findOrCreateByPhone(
+            $normalized,
+            $firstname,
+            $lastname
+        );
         $customer = $found['customer'];
         $tokens = $this->tokenIssuer->issueFor((int) $customer->getId());
 

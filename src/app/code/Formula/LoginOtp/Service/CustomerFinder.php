@@ -62,14 +62,24 @@ class CustomerFinder
     /**
      * @return array{customer: CustomerInterface, is_new: bool}
      */
-    public function findOrCreateByPhone(string $normalizedPhone): array
-    {
+    public function findOrCreateByPhone(
+        string $normalizedPhone,
+        ?string $firstname = null,
+        ?string $lastname = null
+    ): array {
         $existing = $this->findByPhone($normalizedPhone);
         if ($existing) {
+            // Returning user: never overwrite the name on file from a
+            // /sign-up form. The form's intent is "register"; if it turns out
+            // they already exist, we just log them in.
             return ['customer' => $existing, 'is_new' => false];
         }
 
-        $created = $this->createPlaceholderCustomer($normalizedPhone);
+        $created = $this->createPlaceholderCustomer(
+            $normalizedPhone,
+            $firstname,
+            $lastname
+        );
         return ['customer' => $created, 'is_new' => true];
     }
 
@@ -150,8 +160,11 @@ class CustomerFinder
         return $this->customerRepository->save($customer);
     }
 
-    private function createPlaceholderCustomer(string $normalizedPhone): CustomerInterface
-    {
+    private function createPlaceholderCustomer(
+        string $normalizedPhone,
+        ?string $firstname = null,
+        ?string $lastname = null
+    ): CustomerInterface {
         $domain = (string) $this->scopeConfig->getValue(
             self::XML_PATH_PLACEHOLDER_DOMAIN,
             ScopeInterface::SCOPE_STORE
@@ -159,11 +172,17 @@ class CustomerFinder
 
         $email = $normalizedPhone . '@' . $domain;
 
+        // Trim and fall back to the generic placeholder names if the caller
+        // didn't supply anything (the legacy /sign-in flow that only collects
+        // a phone). Magento requires non-empty firstname/lastname.
+        $first = trim((string) $firstname);
+        $last = trim((string) $lastname);
+
         /** @var CustomerInterface $customer */
         $customer = $this->customerFactory->create();
         $customer->setEmail($email);
-        $customer->setFirstname('Customer');  // Magento requires non-empty
-        $customer->setLastname('-');
+        $customer->setFirstname($first !== '' ? $first : 'Customer');
+        $customer->setLastname($last !== '' ? $last : '-');
         $customer->setWebsiteId((int) $this->storeManager->getWebsite()->getId());
         $customer->setStoreId((int) $this->storeManager->getStore()->getId());
         $customer->setCustomAttribute('phone', $normalizedPhone);
