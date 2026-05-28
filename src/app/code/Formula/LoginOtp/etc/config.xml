@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <formula_login_otp>
+            <general>
+                <otp_length>6</otp_length>
+                <expiry_seconds>300</expiry_seconds>
+                <max_attempts_per_otp>5</max_attempts_per_otp>
+                <max_requests_per_phone_per_window>3</max_requests_per_phone_per_window>
+                <rate_limit_window_seconds>600</rate_limit_window_seconds>
+                <wati_template_name>formula_login_otp</wati_template_name>
+                <placeholder_email_domain>formula.placeholder</placeholder_email_domain>
+            </general>
+        </formula_login_otp>
+    </default>
+</config>

@@ -74,6 +74,27 @@ class WatiApiService
     }
 
     /**
+     * Generic public entry point for sending an approved WhatsApp template
+     * to an arbitrary number, independent of any Order context.
+     *
+     * Used by Formula_LoginOtp for OTP delivery. Keeps the call site simple
+     * while routing through the same callWatiApi() implementation as order
+     * notifications, so curl/auth/logging behavior stays consistent.
+     *
+     * @param string $phoneNumber  E.164 without '+', e.g. "919876543210"
+     * @param string $templateName Approved Meta template name (e.g. "formula_login_otp")
+     * @param array  $parameters   Array of ['name' => '1', 'value' => '123456'] items
+     * @return array               ['success' => bool, ...] as returned by callWatiApi
+     */
+    public function sendTemplateMessage(string $phoneNumber, string $templateName, array $parameters): array
+    {
+        if (!$this->watiHelper->isEnabled()) {
+            return ['success' => false, 'error' => 'Wati integration is disabled'];
+        }
+        return $this->callWatiApi($phoneNumber, $templateName, $parameters);
+    }
+
+    /**
      * Send order status notification via WhatsApp
      *
      * @param OrderInterface $order

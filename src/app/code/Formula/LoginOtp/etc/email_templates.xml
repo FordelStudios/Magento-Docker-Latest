@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
+    <template id="formula_email_recovery_otp"
+              label="Formula — Account Recovery OTP"
+              file="recovery_otp.html"
+              type="html"
+              module="Formula_LoginOtp"
+              area="frontend"/>
+</config>
