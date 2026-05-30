@@ -94,9 +94,11 @@ class OrderManagement implements OrderManagementInterface
                     $shippingAddress->setPostcode($billingAddress['postcode'] ?? '123456');
                     $shippingAddress->setTelephone($billingAddress['telephone'] ?? '1234567890');
                     $shippingAddress->setEmail($billingAddress['email'] ?? 'test@example.com');
-                    // Ensure shipping method is set if missing
+                    // Ensure shipping method is set if missing. This is the
+                    // online (Razorpay) order path, where shipping is free, so
+                    // default to free shipping rather than the COD flat rate.
                     if (!$shippingAddress->getShippingMethod()) {
-                        $shippingAddress->setShippingMethod('flatrate_flatrate');
+                        $shippingAddress->setShippingMethod('freeshipping_freeshipping');
                         $shippingAddress->setCollectShippingRates(true);
                         $shippingAddress->collectShippingRates();
                     }
