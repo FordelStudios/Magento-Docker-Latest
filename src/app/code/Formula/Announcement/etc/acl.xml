@@ -3,10 +3,14 @@
     <acl>
         <resources>
             <resource id="Magento_Backend::admin">
-                <resource id="Magento_Config::config">
-                    <resource id="Formula_Announcement::config"
-                              title="Announcement Bar Section"
-                              sortOrder="100"/>
+                <resource id="Magento_Backend::stores">
+                    <resource id="Magento_Backend::stores_settings">
+                        <resource id="Magento_Config::config">
+                            <resource id="Formula_Announcement::config"
+                                      title="Announcement Bar Section"
+                                      sortOrder="100"/>
+                        </resource>
+                    </resource>
                 </resource>
             </resource>
         </resources>
