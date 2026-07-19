@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+
+    <!-- Serialize the posted FAQ rows into the `faqs` JSON attribute before save -->
+    <event name="catalog_product_save_before">
+        <observer name="formula_productfaq_serialize_faqs" instance="Formula\ProductFaq\Observer\SerializeFaqsObserver" />
+    </event>
+
+</config>
