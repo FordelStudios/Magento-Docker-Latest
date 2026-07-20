@@ -1077,7 +1077,9 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             $isRecommended = $review->getIsRecommended() !== null ? (bool)$review->getIsRecommended() : null;
             
             $reviewModel->setData([
-                'customer_id' => $customerId,
+                // Guests store NULL (not 0) — review_detail.customer_id has a
+                // foreign key to customer_entity, so 0 would violate it.
+                'customer_id' => $customerId ?: null,
                 'nickname' => $nickname,
                 'title' => $review->getTitle(),
                 'detail' => $review->getDetail(),
