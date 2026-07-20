@@ -73,6 +73,15 @@ class CodOrderShiprocketSync implements ObserverInterface
             return;
         }
 
+        // Visibility probe: prove whether sales_order_place_after actually reaches this observer.
+        // Logged at info (not debug) so it survives prod where debug_mode=0, BEFORE any shouldSync gating.
+        $payment = $order->getPayment();
+        $this->logger->info(sprintf(
+            'CodOrderShiprocketSync: place_after fired for order %s (method=%s)',
+            $order->getIncrementId(),
+            $payment ? $payment->getMethod() : 'unknown'
+        ));
+
         try {
             // Check if Shiprocket is enabled
             if (!$this->shiprocketHelper->isEnabled()) {
