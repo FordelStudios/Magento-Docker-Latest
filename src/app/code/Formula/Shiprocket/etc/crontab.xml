@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <!-- Self-healing backfill: retry Shiprocket forward-shipment creation for COD/wallet orders
+             that never synced via the sales_order_place_after observer. Runs every 15 minutes. -->
+        <job name="formula_shiprocket_backfill_shipments" instance="Formula\Shiprocket\Cron\BackfillShiprocketShipments" method="execute">
+            <schedule>*/15 * * * *</schedule>
+        </job>
+    </group>
+</config>
