@@ -179,6 +179,35 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
         return $customerId;
     }
 
+    /**
+     * Resolve the customer ID from session/token context WITHOUT requiring auth.
+     *
+     * Returns 0 for guests. Used by the open (anonymous) review-create endpoint
+     * so a logged-in customer is still identified by their token while a guest
+     * can post anonymously.
+     *
+     * @return int
+     */
+    protected function resolveCustomerId()
+    {
+        if ($this->customerSession->isLoggedIn()) {
+            return (int)$this->customerSession->getCustomerId();
+        }
+
+        try {
+            $context = \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Magento\Authorization\Model\UserContextInterface::class);
+
+            if ($context->getUserType() == \Magento\Authorization\Model\UserContextInterface::USER_TYPE_CUSTOMER) {
+                return (int)$context->getUserId();
+            }
+        } catch (\Exception $e) {
+            // No customer context — treat as guest.
+        }
+
+        return 0;
+    }
+
 
     /**
      * Check if customer already has a review for this product
@@ -976,11 +1005,12 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
     public function create(ReviewInterface $review)
     {
         try {
-            // For REST API with token, the customerId comes from the token context
-            // Get authenticated customer ID
-            $customerId = $this->getAuthenticatedCustomerId();
+            // Reviews are open to everyone: logged-in customers are identified
+            // via their token; guests post anonymously (customerId 0). No prior
+            // purchase is required.
+            $customerId = $this->resolveCustomerId();
 
-            $customer = $this->customerRepository->getById($customerId);
+            $customer = $customerId ? $this->customerRepository->getById($customerId) : null;
             
             // Handle SKU encoding/decoding for product lookup
             $productSku = $review->getProductSku();
@@ -1002,23 +1032,30 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                 }
             }
 
-             // PURCHASE VERIFICATION - Check if customer has purchased this product
-            $purchaseData = $this->checkCustomerPurchaseHistory($customerId, $product->getId());
-            if (!$purchaseData['has_purchased']) {
-                throw new \Magento\Framework\Exception\AuthorizationException(
-                    __('You can only review products that you have purchased. Please purchase this product first before leaving a review.')
-                );
+            // Purchase is no longer required — anyone may review this product.
+
+            // De-dupe only for logged-in customers (one review per product each).
+            // Guests (customerId 0) share the sentinel id and cannot be de-duped,
+            // so each guest submission is always a new review.
+            if ($customerId) {
+                $existingReviewId = $this->getExistingReviewId($customerId, $product->getId());
+
+                if ($existingReviewId) {
+                    // Update the existing review instead of creating a new one
+                    return $this->update($existingReviewId, $review);
+                }
             }
 
-            // Check if customer already has a review for this product
-            $existingReviewId = $this->getExistingReviewId($customerId, $product->getId());
-            
-            if ($existingReviewId) {
-                // Update the existing review instead of creating a new one
-                return $this->update($existingReviewId, $review);
+            // Display name: prefer the name submitted with the review (the form
+            // always collects it), fall back to the logged-in customer's account
+            // name, then to a neutral label so the byline is never blank.
+            $nickname = trim((string)$review->getNickname());
+            if ($nickname === '' && $customer) {
+                $nickname = trim($customer->getFirstname() . ' ' . $customer->getLastname());
             }
-
-            $nickname = $customer->getFirstname() . ' ' . $customer->getLastname();
+            if ($nickname === '') {
+                $nickname = 'Anonymous';
+            }
 
             $reviewModel = $this->reviewFactory->create();
     
@@ -1197,14 +1234,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             }
 
 
-            // PURCHASE VERIFICATION - Check if customer has purchased this product
-            // This ensures that even existing reviews can only be updated by customers who have purchased the product
-            $purchaseData = $this->checkCustomerPurchaseHistory($customerId, $productId);
-            if (!$purchaseData['has_purchased']) {
-                throw new \Magento\Framework\Exception\AuthorizationException(
-                    __('You can only update reviews for products that you have purchased.')
-                );
-            }
+            // Purchase is no longer required to edit your own review.
 
             // Update review status if provided
             $statusId = $reviewModel->getStatusId();

@@ -9,11 +9,13 @@
         </resources>
     </route>
 
-    <!-- Create review - only logged in customers -->
+    <!-- Create review - open to everyone (guests and logged-in customers).
+         Logged-in customers are still identified via their token; guests post
+         anonymously. A prior purchase is NOT required. -->
     <route url="/V1/reviews" method="POST">
         <service class="Formula\Review\Api\ProductReviewRepositoryInterface" method="create"/>
         <resources>
-            <resource ref="self"/>
+            <resource ref="anonymous"/>
         </resources>
     </route>
 
