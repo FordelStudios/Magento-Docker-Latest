@@ -176,9 +176,46 @@ class BackfillShiprocketShipments
             $order = $this->orderRepository->get($orderId);
             $incrementId = $order->getIncrementId();
 
-            // Idempotency guard: re-check now, right before creating, to avoid double-create
-            // races with the sales_order_place_after observer that may have just synced it.
+            // Idempotency guard (Magento side): re-check now, right before creating,
+            // to avoid double-create races with the sales_order_place_after observer.
             if ($order->getData('shiprocket_order_id') || $order->getData('shiprocket_shipment_id')) {
+                return;
+            }
+
+            // Duplicate guard (Shiprocket side): the order may already exist in
+            // Shiprocket — e.g. pushed manually from the dashboard — without its
+            // ids ever being written back to Magento. Never create a second one.
+            // If the lookup itself fails, SKIP (don't create) rather than risk a dup.
+            try {
+                $existing = $this->shiprocketShipmentService->findExistingShiprocketOrder($incrementId);
+            } catch (\Throwable $e) {
+                $this->logger->error(
+                    'ShiprocketBackfill: existence check failed for order ' . $incrementId
+                    . ' - skipping to avoid a possible duplicate - ' . $e->getMessage()
+                );
+                return;
+            }
+
+            if ($existing !== null) {
+                // Already in Shiprocket — record its ids back onto the order so it
+                // stops looking unsynced, and do NOT create another shipment.
+                $order->setData('shiprocket_order_id', $existing['shiprocket_order_id']);
+                $order->setData('shiprocket_shipment_id', $existing['shipment_id']);
+                if (!empty($existing['awb_code'])) {
+                    $order->setData('shiprocket_awb_number', $existing['awb_code']);
+                }
+                if (!empty($existing['courier_name'])) {
+                    $order->setData('shiprocket_courier_name', $existing['courier_name']);
+                }
+                $order->addStatusHistoryComment(sprintf(
+                    'Shiprocket order already existed (SR order %s); recorded existing ids, no duplicate created.',
+                    $existing['shiprocket_order_id'] ?? '-'
+                ));
+                $this->orderRepository->save($order);
+                $this->logger->info(
+                    'ShiprocketBackfill: order ' . $incrementId . ' already in Shiprocket (SR#'
+                    . ($existing['shiprocket_order_id'] ?? '-') . ') - recorded ids, skipped create'
+                );
                 return;
             }
 

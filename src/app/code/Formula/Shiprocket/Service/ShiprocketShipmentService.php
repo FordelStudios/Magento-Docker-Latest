@@ -17,7 +17,8 @@ class ShiprocketShipmentService
     const CREATE_SHIPMENT_ENDPOINT = 'orders/create/adhoc';
     const CANCEL_SHIPMENT_ENDPOINT = 'orders/cancel';
     const SHIPMENT_TRACK_ENDPOINT = 'courier/track/';
-    
+    const LIST_ORDERS_ENDPOINT = 'orders';
+
     private $authToken = null;
 
     public function __construct(
@@ -130,6 +131,55 @@ class ShiprocketShipmentService
             $this->logger->error('Failed to track shipment: ' . $e->getMessage());
             throw new LocalizedException(__('Failed to track shipment: %1', $e->getMessage()));
         }
+    }
+
+    /**
+     * Look up an existing Shiprocket order by the Magento increment id.
+     *
+     * On create we send the increment id as `order_id`; Shiprocket stores it as
+     * `channel_order_id`. This read-only lookup lets the backfill avoid creating
+     * a DUPLICATE shipment for an order that is already in Shiprocket (e.g. one
+     * that was pushed manually from the dashboard) but whose ids were never
+     * written back into Magento.
+     *
+     * @param string $incrementId
+     * @return array|null ['shiprocket_order_id','shipment_id','awb_code','courier_name'] if found, else null
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function findExistingShiprocketOrder($incrementId)
+    {
+        $this->authenticate();
+
+        $endpoint = self::LIST_ORDERS_ENDPOINT . '?search=' . urlencode((string) $incrementId);
+        $response = $this->callShiprocketAPI($endpoint, [], 'GET');
+
+        $rows = $response['data'] ?? [];
+        if (!is_array($rows)) {
+            return null;
+        }
+
+        foreach ($rows as $row) {
+            // Match on the exact channel order id — a `search` can return fuzzy
+            // hits, so only treat an exact match as "already exists".
+            $channelOrderId = (string) ($row['channel_order_id'] ?? '');
+            if ($channelOrderId === '' || $channelOrderId !== (string) $incrementId) {
+                continue;
+            }
+
+            $shipments = isset($row['shipments']) && is_array($row['shipments'])
+                ? $row['shipments']
+                : [];
+            $shipment = !empty($shipments) ? reset($shipments) : [];
+
+            return [
+                'shiprocket_order_id' => $row['id'] ?? null,
+                'shipment_id' => $shipment['id'] ?? ($row['shipment_id'] ?? null),
+                'awb_code' => $shipment['awb'] ?? ($row['awb_code'] ?? null),
+                'courier_name' => $shipment['courier'] ?? ($row['courier_name'] ?? null),
+            ];
+        }
+
+        return null;
     }
 
     /**
