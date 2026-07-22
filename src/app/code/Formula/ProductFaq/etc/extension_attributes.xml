@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Api/etc/extension_attributes.xsd">
+	<!-- Per-product FAQs exposed on the Product API -->
+	<extension_attributes for="Magento\Catalog\Api\Data\ProductInterface">
+		<attribute code="faqs" type="Formula\ProductFaq\Api\Data\FaqInterface[]" />
+	</extension_attributes>
+</config>

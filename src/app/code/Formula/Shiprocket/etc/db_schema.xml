@@ -2,5 +2,9 @@
 <schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
     <table name="sales_order" resource="default">
         <column xsi:type="date" name="est_delivery_date" nullable="true" comment="Estimated Delivery Date from Shiprocket"/>
+        <!-- Shiprocket forward-shipment identifiers set by CodOrderShiprocketSync observer and the backfill cron -->
+        <column xsi:type="int" name="shiprocket_order_id" unsigned="true" nullable="true" comment="Shiprocket Order ID (forward shipment)"/>
+        <column xsi:type="int" name="shiprocket_shipment_id" unsigned="true" nullable="true" comment="Shiprocket Shipment ID (forward shipment)"/>
+        <column xsi:type="varchar" name="shiprocket_courier_name" nullable="true" length="255" comment="Shiprocket Assigned Courier Name"/>
     </table>
 </schema>

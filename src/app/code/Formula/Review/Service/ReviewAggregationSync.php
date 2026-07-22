@@ -138,6 +138,13 @@ class ReviewAggregationSync
             )
             ->where('r.entity_pk_value IN (?)', $productIds)
             ->where('r.entity_id = ?', 1)
+            // Only approved reviews (status_id = 1 = Review::STATUS_APPROVED)
+            // may contribute to the public rating_summary / reviews_count.
+            // Without this, pending (2) and not-approved (3) reviews leaked
+            // into the aggregate, producing a star rating with no visible
+            // reviews (an aggregateRating with zero review objects) and
+            // surfacing unvetted content as a public rating.
+            ->where('r.status_id = ?', 1)
             ->group('r.entity_pk_value');
 
         $results = $connection->fetchAll($select);

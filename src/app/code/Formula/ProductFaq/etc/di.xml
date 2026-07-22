@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- FAQ data interface preference -->
+    <preference for="Formula\ProductFaq\Api\Data\FaqInterface" type="Formula\ProductFaq\Model\Data\Faq" />
+
+    <!-- Plugin for API serialization of FaqInterface[] objects -->
+    <type name="Magento\Framework\Reflection\DataObjectProcessor">
+        <plugin name="formula_productfaq_add_faq_details" type="Formula\ProductFaq\Plugin\DataObjectProcessorPlugin" />
+    </type>
+
+    <!-- Plugin to add product FAQs to the Product API -->
+    <type name="Magento\Catalog\Api\ProductRepositoryInterface">
+        <plugin name="formula_productfaq_product_faqs"
+                type="Formula\ProductFaq\Plugin\ProductFaqPlugin"
+                sortOrder="100" />
+    </type>
+</config>
