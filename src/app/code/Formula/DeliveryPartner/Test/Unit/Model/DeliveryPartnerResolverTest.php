@@ -81,6 +81,21 @@ class DeliveryPartnerResolverTest extends TestCase
         $this->assertSame(PartnerCode::SHADOWFAX, $resolver->resolveCode($order));
     }
 
+    public function testExplicitShiprocketOverrideResolvesToShiprocketPartner(): void
+    {
+        // Regression: an explicit per-order delivery_partner='shiprocket' must resolve via the
+        // override path (the Shiprocket adapter IS registered in the DI partner map), not merely
+        // fall through to the config default. This matters once orders are intent-stamped:
+        // a 'shiprocket'-stamped order must resolve to Shiprocket even if the global default flips.
+        $this->scopeConfig->expects($this->never())->method('getValue');
+
+        $order = $this->createOrder(PartnerCode::SHIPROCKET);
+        $resolver = $this->createResolver();
+
+        $this->assertSame(PartnerCode::SHIPROCKET, $resolver->resolveCode($order));
+        $this->assertSame($this->shiprocketPartner, $resolver->resolve($order));
+    }
+
     public function testOverrideNullFallsBackToConfigDefault(): void
     {
         $this->scopeConfig->method('getValue')
