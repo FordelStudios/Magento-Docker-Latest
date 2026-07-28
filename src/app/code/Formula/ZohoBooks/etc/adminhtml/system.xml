@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="formula" translate="label" sortOrder="200">
+            <label>Formula</label>
+        </tab>
+
+        <section id="zohobooks" translate="label" type="text" sortOrder="60"
+                 showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Zoho Books</label>
+            <tab>formula</tab>
+            <resource>Formula_ZohoBooks::config</resource>
+
+            <group id="general" translate="label" type="text" sortOrder="10"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Settings</label>
+
+                <field id="enabled" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Zoho Books Integration</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable/disable pushing orders/invoices to Zoho Books</comment>
+                </field>
+
+                <field id="region" translate="label comment" type="select" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Zoho Data Center Region</label>
+                    <source_model>Formula\ZohoBooks\Model\Config\Source\Region</source_model>
+                    <comment>The Zoho data center your organization is registered in. Determines the API/accounts host.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="organization_id" translate="label comment" type="text" sortOrder="30"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Organization ID</label>
+                    <comment><![CDATA[Your Zoho Books Organization ID. Found in Zoho Books > Settings > Organization Profile]]></comment>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="client_id" translate="label comment" type="text" sortOrder="40"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Client ID</label>
+                    <comment><![CDATA[OAuth Client ID from the Zoho API Console (https://api-console.zoho.com)]]></comment>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="client_secret" translate="label comment" type="obscure" sortOrder="50"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Client Secret</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment><![CDATA[OAuth Client Secret from the Zoho API Console]]></comment>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="refresh_token" translate="label comment" type="obscure" sortOrder="60"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Refresh Token</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment><![CDATA[OAuth Refresh Token obtained during the Zoho OAuth authorization flow]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="org_gst_state_code" translate="label comment" type="text" sortOrder="70"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Organization GST State Code</label>
+                    <comment><![CDATA[Your company's 2-digit GST state code (e.g. 27 for Maharashtra). Drives the IGST vs CGST+SGST split on every invoice.]]></comment>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="default_gst_rate" translate="label comment" type="text" sortOrder="80"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default GST Rate (%)</label>
+                    <comment>Fallback GST rate applied when a product's HSN bucket has no explicit rate</comment>
+                    <validate>required-entry validate-number</validate>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="debug_mode" translate="label comment" type="select" sortOrder="90"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Debug Mode</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable detailed logging for Zoho API calls (logs to var/log/system.log)</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

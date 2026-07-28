@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <zohobooks>
+            <general>
+                <enabled>0</enabled>
+                <region>.in</region>
+                <default_gst_rate>18</default_gst_rate>
+                <debug_mode>0</debug_mode>
+            </general>
+        </zohobooks>
+    </default>
+</config>
