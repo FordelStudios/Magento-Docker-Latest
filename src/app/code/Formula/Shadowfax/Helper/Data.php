@@ -124,6 +124,50 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Get pickup contact phone
+     *
+     * @param int|null $storeId
+     * @return string|null
+     */
+    public function getPickupPhone($storeId = null): ?string
+    {
+        return $this->getConfigValue('pickup_phone', $storeId);
+    }
+
+    /**
+     * Get pickup street address
+     *
+     * @param int|null $storeId
+     * @return string|null
+     */
+    public function getPickupAddress($storeId = null): ?string
+    {
+        return $this->getConfigValue('pickup_address', $storeId);
+    }
+
+    /**
+     * Get pickup city
+     *
+     * @param int|null $storeId
+     * @return string|null
+     */
+    public function getPickupCity($storeId = null): ?string
+    {
+        return $this->getConfigValue('pickup_city', $storeId);
+    }
+
+    /**
+     * Get pickup state
+     *
+     * @param int|null $storeId
+     * @return string|null
+     */
+    public function getPickupState($storeId = null): ?string
+    {
+        return $this->getConfigValue('pickup_state', $storeId);
+    }
+
+    /**
      * Get webhook secret (decrypted)
      *
      * @param int|null $storeId

@@ -71,6 +71,42 @@
                     </depends>
                 </field>
 
+                <field id="pickup_phone" translate="label comment" type="text" sortOrder="61"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Pickup Contact Phone</label>
+                    <comment>Contact phone number at the pickup location (sent in shipment manifest)</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="pickup_address" translate="label comment" type="text" sortOrder="62"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Pickup Street Address</label>
+                    <comment>Street address of the pickup location (sent in shipment manifest)</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="pickup_city" translate="label comment" type="text" sortOrder="63"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Pickup City</label>
+                    <comment>City of the pickup location (sent in shipment manifest)</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="pickup_state" translate="label comment" type="text" sortOrder="64"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Pickup State</label>
+                    <comment>State of the pickup location (sent in shipment manifest)</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
                 <field id="webhook_secret" translate="label comment" type="obscure" sortOrder="70"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Webhook Secret</label>

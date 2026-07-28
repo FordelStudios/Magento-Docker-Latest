@@ -12,37 +12,17 @@ namespace Formula\Shadowfax\Model\Data;
 class ServiceabilityResult
 {
     /**
-     * @var bool
-     */
-    private $serviceable;
-
-    /**
-     * @var int|null
-     */
-    private $etaDays;
-
-    /**
-     * @var string|null
-     */
-    private $estDate;
-
-    /**
-     * @var array
-     */
-    private $raw;
-
-    /**
      * @param bool $serviceable
      * @param int|null $etaDays
      * @param string|null $estDate
-     * @param array $raw
+     * @param array $raw Full raw API response, kept for debugging/reconciliation.
      */
-    public function __construct(bool $serviceable, ?int $etaDays, ?string $estDate, array $raw = [])
-    {
-        $this->serviceable = $serviceable;
-        $this->etaDays = $etaDays;
-        $this->estDate = $estDate;
-        $this->raw = $raw;
+    public function __construct(
+        public readonly bool $serviceable,
+        public readonly ?int $etaDays,
+        public readonly ?string $estDate,
+        public readonly array $raw = []
+    ) {
     }
 
     /**
@@ -70,8 +50,6 @@ class ServiceabilityResult
     }
 
     /**
-     * Full raw API response, kept for debugging/reconciliation.
-     *
      * @return array
      */
     public function getRaw(): array

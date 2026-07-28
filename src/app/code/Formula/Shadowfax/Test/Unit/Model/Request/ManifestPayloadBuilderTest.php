@@ -44,15 +44,13 @@ class ManifestPayloadBuilderTest extends TestCase
 
         $this->shadowfaxHelper->method('getPickupLocation')->willReturn(self::PICKUP_LOCATION);
         $this->shadowfaxHelper->method('getPickupPostcode')->willReturn(self::PICKUP_POSTCODE);
+        $this->shadowfaxHelper->method('getPickupPhone')->willReturn(self::PICKUP_PHONE);
+        $this->shadowfaxHelper->method('getPickupAddress')->willReturn(self::PICKUP_ADDRESS);
+        $this->shadowfaxHelper->method('getPickupCity')->willReturn(self::PICKUP_CITY);
+        $this->shadowfaxHelper->method('getPickupState')->willReturn(self::PICKUP_STATE);
         $this->shadowfaxHelper->method('getClientName')->willReturn(self::CLIENT_NAME);
 
-        $this->builder = new ManifestPayloadBuilder(
-            $this->shadowfaxHelper,
-            self::PICKUP_PHONE,
-            self::PICKUP_ADDRESS,
-            self::PICKUP_CITY,
-            self::PICKUP_STATE
-        );
+        $this->builder = new ManifestPayloadBuilder($this->shadowfaxHelper);
     }
 
     /**
@@ -149,10 +147,25 @@ class ManifestPayloadBuilderTest extends TestCase
         $this->assertSame('FW-100', $payload['package']['items'][0]['sku']);
         $this->assertSame(2, $payload['package']['items'][0]['quantity']);
         $this->assertSame(500.00, $payload['package']['items'][0]['price']);
-        $this->assertArrayHasKey('hsn', $payload['package']['items'][0]);
+        $this->assertSame(
+            ManifestPayloadBuilder::DEFAULT_HSN,
+            $payload['package']['items'][0]['hsn']
+        );
 
         $this->assertSame('Serum', $payload['package']['items'][1]['name']);
         $this->assertSame('SR-200', $payload['package']['items'][1]['sku']);
+    }
+
+    public function testFractionalQtyIsRoundedNotTruncated(): void
+    {
+        // 1.5 units must round to 2, never truncate to 1 (under-declaring logistics units).
+        $order = $this->buildOrderMock('razorpay', 750.00, 1.0, [
+            ['name' => 'Sheet Mask', 'sku' => 'SM-400', 'qty' => 1.5, 'price' => 500.00],
+        ]);
+
+        $payload = $this->builder->build($order);
+
+        $this->assertSame(2, $payload['package']['items'][0]['quantity']);
     }
 
     public function testDropDetailsArePulledFromShippingAddress(): void

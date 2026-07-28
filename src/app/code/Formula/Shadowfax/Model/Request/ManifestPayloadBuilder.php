@@ -57,53 +57,18 @@ class ManifestPayloadBuilder
     private $shadowfaxHelper;
 
     /**
-     * @var string
-     */
-    private $pickupPhone;
-
-    /**
-     * @var string
-     */
-    private $pickupAddress;
-
-    /**
-     * @var string
-     */
-    private $pickupCity;
-
-    /**
-     * @var string
-     */
-    private $pickupState;
-
-    /**
-     * Pickup name/pincode come from the encrypted ShadowFax config (Helper\Data, Task 1).
-     * Pickup phone/address/city/state are NOT yet part of that config (only a pickup
-     * "location name" and postcode exist there) — they are injected here as explicit
-     * constructor args so this class stays pure/deterministic/testable, and so wiring
-     * a real merchant pickup address doesn't require touching the Task-1 config schema.
-     *
-     * @todo Wire real pickup phone/address/city/state (currently default to empty
-     *       string) once the admin config for a full pickup postal address exists.
+     * All pickup details (name, phone, address, city, state, pincode) are read from the
+     * ShadowFax admin config via Helper\Data. This keeps build() deterministic (given
+     * fixed config it produces a fixed payload) while guaranteeing we never silently
+     * ship a manifest with an empty pickup address — the values come from a single
+     * source of truth the merchant configures once.
      *
      * @param ShadowfaxHelper $shadowfaxHelper
-     * @param string $pickupPhone
-     * @param string $pickupAddress
-     * @param string $pickupCity
-     * @param string $pickupState
      */
     public function __construct(
-        ShadowfaxHelper $shadowfaxHelper,
-        string $pickupPhone = '',
-        string $pickupAddress = '',
-        string $pickupCity = '',
-        string $pickupState = ''
+        ShadowfaxHelper $shadowfaxHelper
     ) {
         $this->shadowfaxHelper = $shadowfaxHelper;
-        $this->pickupPhone = $pickupPhone;
-        $this->pickupAddress = $pickupAddress;
-        $this->pickupCity = $pickupCity;
-        $this->pickupState = $pickupState;
     }
 
     /**
@@ -148,10 +113,10 @@ class ManifestPayloadBuilder
     {
         return [
             'name' => (string) $this->shadowfaxHelper->getPickupLocation(),
-            'phone' => $this->pickupPhone,
-            'address' => $this->pickupAddress,
-            'city' => $this->pickupCity,
-            'state' => $this->pickupState,
+            'phone' => (string) $this->shadowfaxHelper->getPickupPhone(),
+            'address' => (string) $this->shadowfaxHelper->getPickupAddress(),
+            'city' => (string) $this->shadowfaxHelper->getPickupCity(),
+            'state' => (string) $this->shadowfaxHelper->getPickupState(),
             'pincode' => (string) $this->shadowfaxHelper->getPickupPostcode(),
         ];
     }
@@ -220,7 +185,7 @@ class ManifestPayloadBuilder
         return [
             'name' => $item->getName(),
             'sku' => $item->getSku(),
-            'quantity' => (int) $item->getQtyOrdered(),
+            'quantity' => (int) round((float) $item->getQtyOrdered()),
             'price' => (float) $item->getPrice(),
             'hsn' => self::DEFAULT_HSN,
         ];

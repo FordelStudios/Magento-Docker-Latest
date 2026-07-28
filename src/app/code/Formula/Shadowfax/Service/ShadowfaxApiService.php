@@ -124,6 +124,17 @@ class ShadowfaxApiService
     }
 
     /**
+     * Cancel a shipment by AWB.
+     *
+     * request() already throws on any non-2xx status, so reaching this point means the
+     * HTTP call succeeded — treat that as a successful cancellation (matching the
+     * Formula_Shiprocket house pattern) unless the 2xx body EXPLICITLY says
+     * success === false. A missing `success` key on a 2xx response is treated as
+     * success, not failure.
+     *
+     * @todo The `success` response key is an ASSUMED field name — reconcile against
+     *       real ShadowFax API docs when P1 credentials land.
+     *
      * @param string $awb
      * @return bool
      * @throws LocalizedException
@@ -133,7 +144,7 @@ class ShadowfaxApiService
         $endpoint = sprintf(self::ENDPOINT_CANCEL_SHIPMENT, $awb);
         $response = $this->request('POST', $endpoint, ['awb' => $awb]);
 
-        return (bool) ($response['success'] ?? false);
+        return ($response['success'] ?? true) !== false;
     }
 
     /**

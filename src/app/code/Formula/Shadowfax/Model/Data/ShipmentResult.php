@@ -13,37 +13,17 @@ namespace Formula\Shadowfax\Model\Data;
 class ShipmentResult
 {
     /**
-     * @var string|null
-     */
-    private $awb;
-
-    /**
-     * @var string|null
-     */
-    private $shipmentId;
-
-    /**
-     * @var string|null
-     */
-    private $courierName;
-
-    /**
-     * @var array
-     */
-    private $raw;
-
-    /**
      * @param string|null $awb
      * @param string|null $shipmentId
      * @param string|null $courierName
-     * @param array $raw
+     * @param array $raw Full raw API response, kept for debugging/reconciliation.
      */
-    public function __construct(?string $awb, ?string $shipmentId, ?string $courierName, array $raw = [])
-    {
-        $this->awb = $awb;
-        $this->shipmentId = $shipmentId;
-        $this->courierName = $courierName;
-        $this->raw = $raw;
+    public function __construct(
+        public readonly ?string $awb,
+        public readonly ?string $shipmentId,
+        public readonly ?string $courierName,
+        public readonly array $raw = []
+    ) {
     }
 
     /**
@@ -71,8 +51,6 @@ class ShipmentResult
     }
 
     /**
-     * Full raw API response, kept for debugging/reconciliation.
-     *
      * @return array
      */
     public function getRaw(): array

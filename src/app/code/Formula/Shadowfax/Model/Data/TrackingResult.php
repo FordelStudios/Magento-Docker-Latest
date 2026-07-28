@@ -12,30 +12,15 @@ namespace Formula\Shadowfax\Model\Data;
 class TrackingResult
 {
     /**
-     * @var string|null
-     */
-    private $statusCode;
-
-    /**
-     * @var string|null
-     */
-    private $statusLabel;
-
-    /**
-     * @var array
-     */
-    private $raw;
-
-    /**
      * @param string|null $statusCode
      * @param string|null $statusLabel
-     * @param array $raw
+     * @param array $raw Full raw API response, kept for debugging/reconciliation.
      */
-    public function __construct(?string $statusCode, ?string $statusLabel, array $raw = [])
-    {
-        $this->statusCode = $statusCode;
-        $this->statusLabel = $statusLabel;
-        $this->raw = $raw;
+    public function __construct(
+        public readonly ?string $statusCode,
+        public readonly ?string $statusLabel,
+        public readonly array $raw = []
+    ) {
     }
 
     /**
@@ -55,8 +40,6 @@ class TrackingResult
     }
 
     /**
-     * Full raw API response, kept for debugging/reconciliation.
-     *
      * @return array
      */
     public function getRaw(): array
