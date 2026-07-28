@@ -5,6 +5,8 @@ namespace Formula\Shiprocket\Cron;
 
 use Formula\Shiprocket\Service\ShiprocketShipmentService;
 use Formula\Shiprocket\Helper\Data as ShiprocketHelper;
+use Formula\DeliveryPartner\Model\DeliveryPartnerResolver;
+use Formula\DeliveryPartner\Model\PartnerCode;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Psr\Log\LoggerInterface;
@@ -66,24 +68,32 @@ class BackfillShiprocketShipments
     private $logger;
 
     /**
+     * @var DeliveryPartnerResolver
+     */
+    private $deliveryPartnerResolver;
+
+    /**
      * @param ShiprocketShipmentService $shiprocketShipmentService
      * @param ShiprocketHelper $shiprocketHelper
      * @param OrderRepositoryInterface $orderRepository
      * @param OrderCollectionFactory $orderCollectionFactory
      * @param LoggerInterface $logger
+     * @param DeliveryPartnerResolver $deliveryPartnerResolver
      */
     public function __construct(
         ShiprocketShipmentService $shiprocketShipmentService,
         ShiprocketHelper $shiprocketHelper,
         OrderRepositoryInterface $orderRepository,
         OrderCollectionFactory $orderCollectionFactory,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        DeliveryPartnerResolver $deliveryPartnerResolver
     ) {
         $this->shiprocketShipmentService = $shiprocketShipmentService;
         $this->shiprocketHelper = $shiprocketHelper;
         $this->orderRepository = $orderRepository;
         $this->orderCollectionFactory = $orderCollectionFactory;
         $this->logger = $logger;
+        $this->deliveryPartnerResolver = $deliveryPartnerResolver;
     }
 
     /**
@@ -182,6 +192,14 @@ class BackfillShiprocketShipments
                 return;
             }
 
+            // Partner guard: only Shiprocket-destined orders are backfilled here. An order
+            // routed to another partner (e.g. ShadowFax via config/per-order override) would
+            // otherwise match this cron's candidate query (it has no shiprocket_* ids) and be
+            // wrongly Shiprocket-shipped. Its own partner backfill cron handles it instead.
+            if ($this->deliveryPartnerResolver->resolveCode($order) !== PartnerCode::SHIPROCKET) {
+                return;
+            }
+
             $shipmentResult = $this->shiprocketShipmentService->createShipment($order);
 
             if (empty($shipmentResult['success'])) {
@@ -196,6 +214,7 @@ class BackfillShiprocketShipments
             $order->setData('shiprocket_shipment_id', $shipmentResult['shipment_id']);
             $order->setData('shiprocket_awb_number', $shipmentResult['awb_code']);
             $order->setData('shiprocket_courier_name', $shipmentResult['courier_name']);
+            $order->setData('delivery_partner', PartnerCode::SHIPROCKET);
 
             $comment = sprintf(
                 'Shiprocket shipment created for order. Shipment ID: %s, AWB: %s, Courier: %s',
