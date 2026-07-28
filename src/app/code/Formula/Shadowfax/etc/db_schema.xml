@@ -5,5 +5,16 @@
         <column xsi:type="varchar" name="shadowfax_shipment_id" nullable="true" length="64" comment="ShadowFax Shipment ID"/>
         <column xsi:type="varchar" name="shadowfax_courier_name" nullable="true" length="128" comment="ShadowFax Courier Name"/>
         <column xsi:type="varchar" name="delivery_partner" nullable="true" length="32" comment="Assigned Delivery Partner (shiprocket/shadowfax)"/>
+        <!--
+            The A4 tracking webhook looks up orders by these two columns
+            (ShadowfaxWebhookHandler::findOrderByField). Unindexed varchar
+            lookups on sales_order full-scan the table at scale.
+        -->
+        <index referenceId="SALES_ORDER_SHADOWFAX_AWB" indexType="btree">
+            <column name="shadowfax_awb"/>
+        </index>
+        <index referenceId="SALES_ORDER_SHADOWFAX_SHIPMENT_ID" indexType="btree">
+            <column name="shadowfax_shipment_id"/>
+        </index>
     </table>
 </schema>

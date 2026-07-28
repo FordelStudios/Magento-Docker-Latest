@@ -5,6 +5,10 @@
             "shadowfax_shipment_id": true,
             "shadowfax_courier_name": true,
             "delivery_partner": true
+        },
+        "index": {
+            "SALES_ORDER_SHADOWFAX_AWB": true,
+            "SALES_ORDER_SHADOWFAX_SHIPMENT_ID": true
         }
     }
 }
