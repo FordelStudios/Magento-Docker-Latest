@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Formula\Shadowfax\Test\Unit\Model\DeliveryPartner;
 
 use Formula\DeliveryPartner\Model\PartnerCode;
+use Formula\Shadowfax\Model\Config\OrderStatus;
 use Formula\Shadowfax\Model\Data\ShipmentResult;
 use Formula\Shadowfax\Model\DeliveryPartner\ShadowfaxDeliveryPartner;
 use Formula\Shadowfax\Service\ShadowfaxApiService;
@@ -36,6 +37,10 @@ class ShadowfaxDeliveryPartnerTest extends TestCase
 
         $this->apiService->method('createShipment')->with($order)->willReturn($shipmentResult);
 
+        // On success the adapter sets the ShadowFax initial status, mirroring Shiprocket's
+        // 'shipment_created'. Status knowledge stays inside the Shadowfax module.
+        $order->expects($this->once())->method('setStatus')->with(OrderStatus::SHIPMENT_CREATED);
+
         $result = $this->adapter->createShipment($order);
 
         $this->assertSame(PartnerCode::SHADOWFAX, $result->getPartnerCode());
@@ -52,6 +57,9 @@ class ShadowfaxDeliveryPartnerTest extends TestCase
 
         $this->apiService->method('createShipment')->with($order)->willReturn($shipmentResult);
 
+        // No AWB -> unsuccessful -> status must NOT be advanced.
+        $order->expects($this->never())->method('setStatus');
+
         $result = $this->adapter->createShipment($order);
 
         $this->assertSame(PartnerCode::SHADOWFAX, $result->getPartnerCode());
@@ -67,6 +75,8 @@ class ShadowfaxDeliveryPartnerTest extends TestCase
         $shipmentResult = new ShipmentResult('', 'SF-SHIP-3', 'Courier X', []);
 
         $this->apiService->method('createShipment')->with($order)->willReturn($shipmentResult);
+
+        $order->expects($this->never())->method('setStatus');
 
         $result = $this->adapter->createShipment($order);
 
