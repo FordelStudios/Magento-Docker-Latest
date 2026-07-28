@@ -192,7 +192,10 @@ class ShadowfaxWebhookTest extends TestCase
         $result = $this->webhook->handleStatusUpdate(['awb' => 'AWB1', 'status' => 'DELIVERED']);
 
         $this->assertFalse($result['success']);
-        $this->assertSame('order repository blew up', $result['message']);
+        // Caller gets a generic message; the raw exception detail (which can
+        // leak SQL/ORM internals) must NOT be echoed into the response body.
+        $this->assertSame('Webhook processing failed', $result['message']);
+        $this->assertStringNotContainsString('order repository blew up', $result['message']);
     }
 
     public function testMissingPayloadFieldsAreExtractedAsNullNotEmptyString(): void
@@ -207,5 +210,24 @@ class ShadowfaxWebhookTest extends TestCase
             ->willReturn(['success' => true, 'message' => 'ok']);
 
         $this->webhook->handleStatusUpdate(['status' => 'DELIVERED']);
+    }
+
+    public function testNonScalarPayloadFieldIsExtractedAsNullNotArrayString(): void
+    {
+        $this->request->method('getHeader')
+            ->with(ShadowfaxWebhook::HEADER_SECRET)
+            ->willReturn(self::CONFIGURED_SECRET);
+
+        // A malformed/nested field must not stringify to "Array" (+ a PHP
+        // warning) — it is treated as absent.
+        $this->webhookHandler->expects($this->once())
+            ->method('handleTrackingUpdate')
+            ->with(null, null, 'DELIVERED')
+            ->willReturn(['success' => true, 'message' => 'ok']);
+
+        $this->webhook->handleStatusUpdate([
+            'awb' => ['nested' => 'not-a-string'],
+            'status' => 'DELIVERED',
+        ]);
     }
 }

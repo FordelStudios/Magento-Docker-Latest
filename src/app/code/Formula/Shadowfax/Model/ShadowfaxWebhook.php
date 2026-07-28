@@ -131,7 +131,10 @@ class ShadowfaxWebhook implements ShadowfaxWebhookInterface
                 'data' => $webhookData,
             ]);
 
-            return ['success' => false, 'message' => $e->getMessage()];
+            // Return a generic message to the caller — never echo $e->getMessage()
+            // into the response body, which can leak SQL/ORM internals. Full
+            // detail stays in the logger->error above.
+            return ['success' => false, 'message' => 'Webhook processing failed'];
         }
     }
 
@@ -168,13 +171,6 @@ class ShadowfaxWebhook implements ShadowfaxWebhookInterface
             $webhookData = json_decode((string) json_encode($webhookData), true);
         }
 
-        if (empty($webhookData)) {
-            $rawInput = file_get_contents('php://input');
-            if ($rawInput) {
-                $webhookData = json_decode($rawInput, true);
-            }
-        }
-
         return is_array($webhookData) ? $webhookData : [];
     }
 
@@ -186,6 +182,13 @@ class ShadowfaxWebhook implements ShadowfaxWebhookInterface
     private function extractField(array $webhookData, string $field): ?string
     {
         if (!isset($webhookData[$field]) || $webhookData[$field] === '') {
+            return null;
+        }
+
+        // Guard the cast: a nested array/object here would stringify to "Array"
+        // (plus a PHP warning). AWB / shipment_id / status are all scalars — a
+        // non-scalar is malformed input, so treat it as absent.
+        if (!is_scalar($webhookData[$field])) {
             return null;
         }
 
