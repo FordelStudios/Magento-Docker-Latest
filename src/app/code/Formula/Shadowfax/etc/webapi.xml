@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <!-- Inbound ShadowFax tracking status-update webhook (secret-verified in Model\ShadowfaxWebhook, not ACL) -->
+    <route url="/V1/shadowfax/webhook/status-update" method="POST">
+        <service class="Formula\Shadowfax\Api\ShadowfaxWebhookInterface" method="handleStatusUpdate"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <!--
+        Non-branded alias route, in case ShadowFax also blocks callback URLs
+        containing their own name (mirrors the reason Formula_Shiprocket
+        exposes /V1/shipping/webhook/tracking-update as an alias for
+        /V1/shiprocket/webhook/status-update).
+
+        ASSUMPTION TO RECONCILE: we do not know whether ShadowFax actually
+        rejects branded URLs the way Shiprocket does — this is precautionary,
+        not confirmed. Cannot reuse /V1/shipping/webhook/tracking-update,
+        that path is already Shiprocket's alias.
+
+        @todo Confirm with P1 docs whether this alias is actually needed.
+    -->
+    <route url="/V1/logistics/webhook/status-update" method="POST">
+        <service class="Formula\Shadowfax\Api\ShadowfaxWebhookInterface" method="handleStatusUpdate"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+</routes>
