@@ -12,6 +12,9 @@ use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
 use Magento\Sales\Api\TransactionRepositoryInterface;
 use Magento\Framework\DB\Transaction;
 use Formula\Shiprocket\Service\ShiprocketShipmentService;
+use Formula\DeliveryPartner\Model\DeliveryPartnerResolver;
+use Formula\DeliveryPartner\Model\PartnerCode;
+use Formula\DeliveryPartner\Model\ShipmentResultPersister;
 use Psr\Log\LoggerInterface;
 
 class OrderManagement implements OrderManagementInterface
@@ -25,6 +28,8 @@ class OrderManagement implements OrderManagementInterface
     protected $orderResponseFactory;
     protected $shiprocketShipmentService;
     protected $logger;
+    protected $deliveryPartnerResolver;
+    protected $shipmentResultPersister;
 
     public function __construct(
         CartManagementInterface $cartManagement,
@@ -35,7 +40,9 @@ class OrderManagement implements OrderManagementInterface
         Transaction $transaction,
         OrderResponseInterfaceFactory $orderResponseFactory,
         ShiprocketShipmentService $shiprocketShipmentService,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        DeliveryPartnerResolver $deliveryPartnerResolver,
+        ShipmentResultPersister $shipmentResultPersister
     ) {
         $this->cartManagement = $cartManagement;
         $this->cartRepository = $cartRepository;
@@ -46,6 +53,8 @@ class OrderManagement implements OrderManagementInterface
         $this->orderResponseFactory = $orderResponseFactory;
         $this->shiprocketShipmentService = $shiprocketShipmentService;
         $this->logger = $logger;
+        $this->deliveryPartnerResolver = $deliveryPartnerResolver;
+        $this->shipmentResultPersister = $shipmentResultPersister;
     }
 
     public function createOrder($cartId, $paymentData, $billingAddress)
@@ -117,9 +126,13 @@ class OrderManagement implements OrderManagementInterface
             // **IMPORTANT: Process the payment and update order status**
             $this->processPaymentAndUpdateOrder($order, $paymentData);
 
-            // Create Shiprocket shipment automatically
-            $this->logger->info('Attempting to create Shiprocket shipment for Razorpay order: ' . $order->getIncrementId());
-            $shipmentData = $this->createShiprocketShipment($order);
+            // Create the forward shipment automatically via the active delivery partner.
+            // NOTE: this is the ONLY shipment-aware step; payment capture, invoicing and
+            // order-state transitions above are untouched. Shipment creation is fully
+            // isolated (never rethrows) so it can never break a payment that already
+            // succeeded — see createPartnerShipment().
+            $this->logger->info('Attempting to create delivery-partner shipment for Razorpay order: ' . $order->getIncrementId());
+            $shipmentData = $this->createPartnerShipment($order);
             
             // Update Razorpay table
             $this->updateRazorpayOrderData($order, $paymentData);
@@ -241,6 +254,95 @@ class OrderManagement implements OrderManagementInterface
     }
     
     /**
+     * Route forward-shipment creation to the order's active delivery partner.
+     *
+     * Shiprocket (the default) keeps its existing, byte-for-byte code path; any other
+     * partner (currently only ShadowFax) goes through the neutral resolver abstraction.
+     * Both branches are individually isolated and NEVER rethrow into the payment flow.
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @return array
+     */
+    private function createPartnerShipment($order)
+    {
+        try {
+            $code = $this->deliveryPartnerResolver->resolveCode($order);
+        } catch (\Exception $e) {
+            // Resolver misconfiguration must not break a captured payment. Fall back to
+            // the historical Shiprocket path (the safe default) and log loudly.
+            $this->logger->error(
+                'Delivery-partner resolution failed for Razorpay order: ' . $order->getIncrementId()
+                . ' - falling back to Shiprocket - ' . $e->getMessage()
+            );
+            $code = PartnerCode::SHIPROCKET;
+        }
+
+        if ($code === PartnerCode::SHIPROCKET) {
+            return $this->createShiprocketShipment($order);
+        }
+
+        return $this->createNonShiprocketShipment($order);
+    }
+
+    /**
+     * Create a forward shipment via a non-Shiprocket partner (ShadowFax, ...) through the
+     * neutral Formula_DeliveryPartner abstraction. This module depends ONLY on
+     * Formula_DeliveryPartner — never directly on any concrete courier module.
+     *
+     * Mirrors createShiprocketShipment()'s isolation exactly: fully try/catch wrapped,
+     * NEVER throws, always returns an array so a shipment failure can never unwind the
+     * payment/invoice that already succeeded. Failed orders are left for the partner's
+     * own self-healing backfill cron.
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @return array
+     */
+    private function createNonShiprocketShipment($order)
+    {
+        try {
+            $result = $this->deliveryPartnerResolver->resolve($order)->createShipment($order);
+
+            if ($result->isSuccessful()) {
+                // Stage delivery_partner + shadowfax_* columns onto the order.
+                $this->shipmentResultPersister->apply($order, $result);
+
+                $comment = sprintf(
+                    '%s shipment created successfully. Shipment ID: %s, AWB: %s, Courier: %s',
+                    $result->getPartnerCode(),
+                    $result->getShipmentId() ?: 'TBD',
+                    $result->getAwb() ?: 'TBD',
+                    $result->getCourierName() ?: 'TBD'
+                );
+                $order->addStatusHistoryComment($comment);
+
+                $this->orderRepository->save($order);
+
+                $this->logger->info(
+                    'Delivery-partner shipment created for Razorpay order: ' . $order->getIncrementId()
+                    . ' via ' . $result->getPartnerCode()
+                );
+
+                return ['success' => true, 'partner' => $result->getPartnerCode()];
+            }
+
+            // Unsuccessful (e.g. no AWB yet). Do NOT fail the order — leave it for the
+            // partner's backfill cron to retry.
+            $this->logger->warning(
+                'Delivery-partner shipment creation returned unsuccessful for Razorpay order: '
+                . $order->getIncrementId()
+            );
+            return ['success' => false, 'message' => 'Shipment creation failed'];
+        } catch (\Exception $e) {
+            // Log but never fail the order creation — mirrors the Shiprocket isolation.
+            $this->logger->error(
+                'Exception during delivery-partner shipment for Razorpay order: '
+                . $order->getIncrementId() . ' - ' . $e->getMessage()
+            );
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
      * Create Shiprocket shipment for order
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $order
@@ -258,6 +360,11 @@ class OrderManagement implements OrderManagementInterface
                 $order->setData('shiprocket_shipment_id', $shipmentResult['shipment_id']);
                 $order->setData('shiprocket_awb_number', $shipmentResult['awb_code']);
                 $order->setData('shiprocket_courier_name', $shipmentResult['courier_name']);
+
+                // Record the delivery partner that handled this order. This is the ONLY
+                // addition to the existing Shiprocket branch — everything else here is
+                // behaviourally identical to before partner routing was introduced.
+                $order->setData('delivery_partner', PartnerCode::SHIPROCKET);
 
                 // Update order status to shipment created
                 $order->setStatus('shipment_created');

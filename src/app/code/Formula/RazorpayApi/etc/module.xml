@@ -5,6 +5,7 @@
             <module name="Magento_Sales"/>
             <module name="Magento_Payment"/>
             <module name="Formula_Shiprocket"/>
+            <module name="Formula_DeliveryPartner"/>
         </sequence>
     </module>
 </config>
