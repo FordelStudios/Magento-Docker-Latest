@@ -134,4 +134,26 @@ class DataTest extends TestCase
 
         $this->assertSame($plaintext, $this->helper->getWebhookSecret());
     }
+
+    public function testGetWebhookSecretReturnsNullWhenNotConfigured(): void
+    {
+        $this->scopeConfig->expects($this->once())
+            ->method('getValue')
+            ->with('shadowfax/general/webhook_secret', ScopeInterface::SCOPE_STORE, null)
+            ->willReturn(null);
+
+        $this->encryptor->expects($this->never())->method('decrypt');
+
+        $this->assertNull($this->helper->getWebhookSecret());
+    }
+
+    public function testGetApiBaseUrlTrimsTrailingSlash(): void
+    {
+        $this->scopeConfig->expects($this->once())
+            ->method('getValue')
+            ->with('shadowfax/general/api_base_url', ScopeInterface::SCOPE_STORE, null)
+            ->willReturn('https://api.shadowfax.in/');
+
+        $this->assertSame('https://api.shadowfax.in', $this->helper->getApiBaseUrl());
+    }
 }
