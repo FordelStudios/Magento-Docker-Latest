@@ -22,4 +22,13 @@
             </argument>
         </arguments>
     </type>
+
+    <!-- Register this adapter into the neutral Formula_DeliveryPartner resolver's partner map -->
+    <type name="Formula\DeliveryPartner\Model\DeliveryPartnerResolver">
+        <arguments>
+            <argument name="partners" xsi:type="array">
+                <item name="shiprocket" xsi:type="object">Formula\Shiprocket\Model\DeliveryPartner\ShiprocketDeliveryPartner</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

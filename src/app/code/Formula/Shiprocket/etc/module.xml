@@ -3,6 +3,7 @@
     <module name="Formula_Shiprocket" setup_version="1.0.0">
         <sequence>
             <module name="Magento_Webapi"/>
+            <module name="Formula_DeliveryPartner"/>
         </sequence>
     </module>
 </config>

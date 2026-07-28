@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="formula" translate="label" sortOrder="200">
+            <label>Formula</label>
+        </tab>
+
+        <section id="delivery_partner" translate="label" type="text" sortOrder="55"
+                 showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Delivery Partner</label>
+            <tab>formula</tab>
+            <resource>Formula_DeliveryPartner::config</resource>
+
+            <group id="general" translate="label" type="text" sortOrder="10"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Settings</label>
+
+                <field id="active_partner" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Active Delivery Partner</label>
+                    <source_model>Formula\DeliveryPartner\Model\Config\Source\Partner</source_model>
+                    <comment><![CDATA[Default courier used to ship orders when no per-order override (order.delivery_partner) is set. Individual courier modules (Shiprocket, ShadowFax) must still be configured/enabled separately.]]></comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
