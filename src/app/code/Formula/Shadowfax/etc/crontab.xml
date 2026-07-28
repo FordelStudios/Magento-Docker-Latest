@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <!-- Self-healing backfill: retry ShadowFax forward-shipment creation for orders routed
+             to ShadowFax (delivery_partner=shadowfax) that still have no AWB. Runs every 15
+             minutes, mirroring the Shiprocket backfill cadence. P1-gated (live behaviour
+             unverified until real ShadowFax credentials land). -->
+        <job name="formula_shadowfax_backfill_shipments" instance="Formula\Shadowfax\Cron\BackfillShadowfaxShipments" method="execute">
+            <schedule>*/15 * * * *</schedule>
+        </job>
+    </group>
+</config>
