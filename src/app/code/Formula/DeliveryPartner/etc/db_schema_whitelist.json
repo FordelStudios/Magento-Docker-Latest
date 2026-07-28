@@ -1,0 +1,7 @@
+{
+    "sales_order": {
+        "column": {
+            "delivery_partner": true
+        }
+    }
+}

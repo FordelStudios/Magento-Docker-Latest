@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="sales_order" resource="default">
+        <!--
+            Neutral, partner-agnostic column: which delivery partner an order is routed to
+            (shiprocket/shadowfax). Written by the Shiprocket observer/cron, RazorpayApi, and
+            the DeliveryPartner resolver flow. It lives here — in the neutral module every
+            partner depends on — rather than inside any one courier module, so disabling a
+            single courier can never drop a column that core order saves rely on.
+        -->
+        <column xsi:type="varchar" name="delivery_partner" nullable="true" length="32" comment="Assigned Delivery Partner (shiprocket/shadowfax)"/>
+    </table>
+</schema>

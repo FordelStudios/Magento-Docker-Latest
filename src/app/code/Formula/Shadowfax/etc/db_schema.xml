@@ -4,7 +4,9 @@
         <column xsi:type="varchar" name="shadowfax_awb" nullable="true" length="64" comment="ShadowFax AWB / Tracking Number"/>
         <column xsi:type="varchar" name="shadowfax_shipment_id" nullable="true" length="64" comment="ShadowFax Shipment ID"/>
         <column xsi:type="varchar" name="shadowfax_courier_name" nullable="true" length="128" comment="ShadowFax Courier Name"/>
-        <column xsi:type="varchar" name="delivery_partner" nullable="true" length="32" comment="Assigned Delivery Partner (shiprocket/shadowfax)"/>
+        <!-- The neutral `delivery_partner` column is owned by Formula_DeliveryPartner
+             (etc/db_schema.xml), NOT here — so disabling ShadowFax cannot drop a column
+             that core order saves and the Shiprocket paths depend on. -->
         <!--
             The A4 tracking webhook looks up orders by these two columns
             (ShadowfaxWebhookHandler::findOrderByField). Unindexed varchar
