@@ -1,0 +1,10 @@
+{
+    "sales_order": {
+        "column": {
+            "shadowfax_awb": true,
+            "shadowfax_shipment_id": true,
+            "shadowfax_courier_name": true,
+            "delivery_partner": true
+        }
+    }
+}

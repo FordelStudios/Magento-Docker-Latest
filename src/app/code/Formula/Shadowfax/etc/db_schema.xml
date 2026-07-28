@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="sales_order" resource="default">
+        <column xsi:type="varchar" name="shadowfax_awb" nullable="true" length="64" comment="ShadowFax AWB / Tracking Number"/>
+        <column xsi:type="varchar" name="shadowfax_shipment_id" nullable="true" length="64" comment="ShadowFax Shipment ID"/>
+        <column xsi:type="varchar" name="shadowfax_courier_name" nullable="true" length="128" comment="ShadowFax Courier Name"/>
+        <column xsi:type="varchar" name="delivery_partner" nullable="true" length="32" comment="Assigned Delivery Partner (shiprocket/shadowfax)"/>
+    </table>
+</schema>
