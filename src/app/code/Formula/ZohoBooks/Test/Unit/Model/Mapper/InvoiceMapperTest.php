@@ -18,16 +18,19 @@ use Magento\Sales\Model\Order\Invoice\Item as InvoiceItem;
 use Magento\Sales\Model\Order\Item as OrderItem;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 class InvoiceMapperTest extends TestCase
 {
     private ZohoBooksHelper|MockObject $helper;
+    private LoggerInterface|MockObject $logger;
     private InvoiceMapper $mapper;
 
     protected function setUp(): void
     {
         $this->helper = $this->createMock(ZohoBooksHelper::class);
         $this->helper->method('getOrgGstStateCode')->willReturn('27'); // org = Maharashtra
+        $this->logger = $this->createMock(LoggerInterface::class);
 
         // HsnResolver, PlaceOfSupplyResolver, StateCodeMapper and ProductCategoryClassifier
         // are all pure - use the real implementations so the tax-split math is genuinely
@@ -36,7 +39,9 @@ class InvoiceMapperTest extends TestCase
             new HsnResolver(),
             new PlaceOfSupplyResolver($this->helper),
             new StateCodeMapper(),
-            new ProductCategoryClassifier()
+            new ProductCategoryClassifier(),
+            $this->helper,
+            $this->logger
         );
     }
 
@@ -88,11 +93,12 @@ class InvoiceMapperTest extends TestCase
         OrderAddress $billingAddress,
         array $items,
         string $incrementId = '000000123',
-        string $createdAt = '2026-07-20 10:15:00'
+        string $createdAt = '2026-07-20 10:15:00',
+        ?OrderAddress $shippingAddress = null
     ): Invoice|MockObject {
         $order = $this->createMock(Order::class);
         $order->method('getBillingAddress')->willReturn($billingAddress);
-        $order->method('getShippingAddress')->willReturn(null);
+        $order->method('getShippingAddress')->willReturn($shippingAddress);
 
         $invoice = $this->createMock(Invoice::class);
         $invoice->method('getOrder')->willReturn($order);
@@ -162,6 +168,25 @@ class InvoiceMapperTest extends TestCase
         $this->assertSame(['igst' => 18.0], $line['tax_split']);
     }
 
+    public function testBuildUsesShippingAddressForPlaceOfSupplyNotBilling(): void
+    {
+        // GST on goods (IGST Act s.10(1)(a)): place of supply is the DELIVERY location.
+        // Bill-to Delhi (07), ship-to Maharashtra (27), org in Maharashtra (27):
+        // must resolve intrastate (CGST+SGST) off the SHIPPING state, not interstate
+        // off the billing state.
+        $billingAddress = $this->makeBillingAddress('DL', 'Delhi');
+        $shippingAddress = $this->makeBillingAddress('MH', 'Maharashtra');
+        $product = $this->makeProduct(['Best Sellers']);
+        $items = [$this->makeInvoiceItem('SKU-1', 'Glow Serum', 1000.0, 1.0, $product)];
+
+        $invoice = $this->makeInvoice($billingAddress, $items, '000000123', '2026-07-20 10:15:00', $shippingAddress);
+
+        $result = $this->mapper->build($invoice, 'zoho-contact-ship');
+
+        $this->assertSame('27', $result['payload']['place_of_supply']);
+        $this->assertSame(['cgst' => 9.0, 'sgst' => 9.0], $result['payload']['line_items'][0]['tax_split']);
+    }
+
     public function testBuildFlagsFallbackSkuWhenProductIsUnavailable(): void
     {
         $billingAddress = $this->makeBillingAddress('MH', 'Maharashtra');
@@ -194,6 +219,67 @@ class InvoiceMapperTest extends TestCase
         $result = $this->mapper->build($invoice, 'zoho-contact-999');
 
         $this->assertSame([], $result['fallbackSkus']);
+    }
+
+    public function testBuildLogsAndFlagsWhenCategoryReadThrowsExceptionAndDebugOn(): void
+    {
+        $this->helper->method('isDebugMode')->willReturn(true);
+        $this->logger->expects($this->once())
+            ->method('debug')
+            ->with(
+                $this->stringContains('could not resolve categories'),
+                $this->callback(static fn (array $ctx): bool => $ctx['sku'] === 'SKU-BOOM')
+            );
+
+        $billingAddress = $this->makeBillingAddress('MH', 'Maharashtra');
+        $product = $this->createMock(Product::class);
+        $product->method('getCategoryCollection')
+            ->willThrowException(new \RuntimeException('DB read failed'));
+        $items = [$this->makeInvoiceItem('SKU-BOOM', 'Serum', 500.0, 1.0, $product)];
+
+        $invoice = $this->makeInvoice($billingAddress, $items);
+
+        $result = $this->mapper->build($invoice, 'zoho-contact-boom');
+
+        // A recoverable Exception degrades ONE line to a flagged skincare fallback, not fatal.
+        $this->assertSame('3304', $result['payload']['line_items'][0]['hsn_or_sac']);
+        $this->assertCount(1, $result['fallbackSkus']);
+        $this->assertSame('SKU-BOOM', $result['fallbackSkus'][0]['sku']);
+        $this->assertSame('categories_unavailable', $result['fallbackSkus'][0]['reason']);
+    }
+
+    public function testBuildDoesNotLogCategoryFallbackWhenDebugOff(): void
+    {
+        $this->helper->method('isDebugMode')->willReturn(false);
+        $this->logger->expects($this->never())->method('debug');
+
+        $billingAddress = $this->makeBillingAddress('MH', 'Maharashtra');
+        $items = [$this->makeInvoiceItem('SKU-MISSING', 'Mystery Item', 100.0, 1.0, null)];
+
+        $invoice = $this->makeInvoice($billingAddress, $items);
+
+        // Still flagged downstream even with debug off - the log is observability, not the signal.
+        $result = $this->mapper->build($invoice, 'zoho-contact-nodebug');
+        $this->assertCount(1, $result['fallbackSkus']);
+    }
+
+    public function testBuildLetsPhpErrorPropagateInsteadOfSwallowingAsFallback(): void
+    {
+        // A TypeError (systemic breakage, e.g. a Magento API signature change) must NOT be
+        // swallowed as a routine per-SKU fallback - it has to surface loudly.
+        $this->helper->method('isDebugMode')->willReturn(true);
+
+        $billingAddress = $this->makeBillingAddress('MH', 'Maharashtra');
+        $product = $this->createMock(Product::class);
+        $product->method('getCategoryCollection')
+            ->willThrowException(new \TypeError('getCategoryCollection() return type changed'));
+        $items = [$this->makeInvoiceItem('SKU-TYPEERR', 'Serum', 500.0, 1.0, $product)];
+
+        $invoice = $this->makeInvoice($billingAddress, $items);
+
+        $this->expectException(\TypeError::class);
+
+        $this->mapper->build($invoice, 'zoho-contact-typeerr');
     }
 
     public function testBuildThrowsWhenNoBillingOrShippingAddressExists(): void

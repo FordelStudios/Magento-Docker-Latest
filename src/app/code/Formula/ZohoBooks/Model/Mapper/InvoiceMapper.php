@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Formula\ZohoBooks\Model\Mapper;
 
+use Formula\ZohoBooks\Helper\Data as ZohoBooksHelper;
 use Formula\ZohoBooks\Model\Catalog\ProductCategoryClassifier;
 use Formula\ZohoBooks\Model\Gst\HsnResolver;
 use Formula\ZohoBooks\Model\Gst\PlaceOfSupplyResolver;
@@ -10,6 +11,7 @@ use Formula\ZohoBooks\Model\Gst\StateCodeMapper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Invoice\Item as InvoiceItem;
+use Psr\Log\LoggerInterface;
 
 /**
  * Pure mapper: builds a Zoho Books Invoice payload (POST /invoices) from a paid Magento
@@ -29,6 +31,14 @@ use Magento\Sales\Model\Order\Invoice\Item as InvoiceItem;
  *
  * @todo Reconcile field names/shape (esp. tax_id vs. tax_percentage - see below) against
  *       Zoho Books API v3 + org config when P2/P3 lands. NOT verified against a live org.
+ * @todo Place of supply is resolved from the SHIPPING (delivery) address per the GST rule
+ *       for supply of goods (IGST Act s.10(1)(a): place of supply of goods is where their
+ *       movement terminates for delivery to the recipient), falling back to billing only
+ *       for orders with no shipment (virtual/no-ship). Confirm this delivery-location basis
+ *       with the accountant before go-live - using the wrong address flips the CGST/IGST
+ *       tax head. NOTE: this is distinct from ContactMapper's `place_of_contact`, which
+ *       stays on the BILLING address (the contact's registered location, not the invoice's
+ *       place of supply).
  */
 class InvoiceMapper
 {
@@ -44,7 +54,9 @@ class InvoiceMapper
         private readonly HsnResolver $hsnResolver,
         private readonly PlaceOfSupplyResolver $placeOfSupplyResolver,
         private readonly StateCodeMapper $stateCodeMapper,
-        private readonly ProductCategoryClassifier $productCategoryClassifier
+        private readonly ProductCategoryClassifier $productCategoryClassifier,
+        private readonly ZohoBooksHelper $helper,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -63,7 +75,9 @@ class InvoiceMapper
     public function build(Invoice $invoice, string $zohoContactId): array
     {
         $order = $invoice->getOrder();
-        $address = $order->getBillingAddress() ?? $order->getShippingAddress();
+        // Place of supply for GOODS is the delivery location (shipping address); fall back
+        // to billing only for orders with no shipment (virtual/no-ship). See class @todo.
+        $address = $order->getShippingAddress() ?? $order->getBillingAddress();
         if ($address === null) {
             throw new LocalizedException(__(
                 'Invoice "%1" has no billing or shipping address on its order; cannot '
@@ -152,11 +166,13 @@ class InvoiceMapper
         try {
             $orderItem = $invoiceItem->getOrderItem();
             if ($orderItem === null) {
+                $this->logCategoryFallback($invoiceItem, 'order item unavailable');
                 return [[], true];
             }
 
             $product = $orderItem->getProduct();
             if ($product === null) {
+                $this->logCategoryFallback($invoiceItem, 'product unavailable');
                 return [[], true];
             }
 
@@ -166,11 +182,39 @@ class InvoiceMapper
             }
 
             return [$names, false];
-        } catch (\Throwable $e) {
-            // Genuinely can't tell what this product is - flag it rather than fatal the
-            // whole invoice push over one unresolvable line.
+        } catch (\Exception $e) {
+            // A genuinely unresolvable line (e.g. a product/category read failed) is flagged
+            // rather than fataling the whole invoice push. Caught as \Exception, NOT
+            // \Throwable, on purpose: an Error (TypeError/ArgumentCountError from a Magento
+            // API change) is a SYSTEMIC breakage that must surface loudly and blow up the
+            // push, not silently degrade EVERY line to skincare-fallback - so Errors are
+            // deliberately left to propagate.
+            $this->logCategoryFallback($invoiceItem, 'category read failed: ' . $e->getMessage());
+
             return [[], true];
         }
+    }
+
+    /**
+     * Emit a debug log (gated on the module's debug_mode config) whenever a line falls back
+     * to skincare because its categories couldn't be read - so the fallback is observable,
+     * never silent. The SKU is also returned to the caller via fallbackSkus regardless of
+     * this log, so a disabled debug_mode never loses the downstream signal.
+     */
+    private function logCategoryFallback(InvoiceItem $invoiceItem, string $reason): void
+    {
+        if (!$this->helper->isDebugMode()) {
+            return;
+        }
+
+        $this->logger->debug(
+            'ZohoBooks InvoiceMapper: could not resolve categories for invoice line; '
+            . 'classifying as skincare fallback and flagging SKU.',
+            [
+                'sku' => (string) $invoiceItem->getSku(),
+                'reason' => $reason,
+            ]
+        );
     }
 
     private function formatDate(?string $createdAt): string
