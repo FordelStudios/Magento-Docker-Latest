@@ -24,6 +24,10 @@ class PlaceOfSupplyResult
      * Intrastate (same state) -> CGST + SGST, split evenly.
      * Interstate (different state) -> IGST, full rate.
      *
+     * Returns EXACT floats and intentionally does not round (e.g. 5.0 -> 2.5/2.5).
+     * The caller (the future Zoho payload mapper) owns final rounding to Zoho's
+     * required decimal precision, so rounding is not baked in at two layers.
+     *
      * @param float $rate GST rate as a percentage (e.g. 18.0)
      * @return array{igst?: float, cgst?: float, sgst?: float}
      */

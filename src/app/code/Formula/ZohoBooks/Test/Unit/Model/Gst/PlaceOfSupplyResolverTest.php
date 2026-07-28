@@ -64,6 +64,88 @@ class PlaceOfSupplyResolverTest extends TestCase
         $this->assertSame(['igst' => 18.0], $split);
     }
 
+    public function testIntrastateSplitsOddRateWithoutRounding(): void
+    {
+        $this->helper->method('getOrgGstStateCode')->willReturn('27');
+
+        $result = $this->resolver->resolve('27');
+        $split = $result->splitTax(5.0);
+
+        $this->assertSame(['cgst' => 2.5, 'sgst' => 2.5], $split);
+    }
+
+    public function testInterstateAssignsFullOddRateToIgst(): void
+    {
+        $this->helper->method('getOrgGstStateCode')->willReturn('27');
+
+        $result = $this->resolver->resolve('06');
+        $split = $result->splitTax(5.0);
+
+        $this->assertSame(['igst' => 5.0], $split);
+    }
+
+    public function testResolveZeroPadsSingleDigitCodesBeforeComparing(): void
+    {
+        // org "7" and customer "07" are both Delhi -> must classify as intrastate.
+        $this->helper->method('getOrgGstStateCode')->willReturn('7');
+
+        $result = $this->resolver->resolve('07');
+
+        $this->assertSame(PlaceOfSupplyResolver::SUPPLY_TYPE_INTRASTATE, $result->supplyType);
+        $this->assertSame('07', $result->placeOfSupply);
+    }
+
+    public function testResolveZeroPadsSingleDigitCustomerCode(): void
+    {
+        $this->helper->method('getOrgGstStateCode')->willReturn('27');
+
+        $result = $this->resolver->resolve('6');
+
+        $this->assertSame(PlaceOfSupplyResolver::SUPPLY_TYPE_INTERSTATE, $result->supplyType);
+        $this->assertSame('06', $result->placeOfSupply);
+    }
+
+    /**
+     * @dataProvider malformedCustomerCodeProvider
+     */
+    public function testResolveThrowsOnMalformedCustomerCode(string $customerStateCode): void
+    {
+        $this->helper->method('getOrgGstStateCode')->willReturn('27');
+
+        $this->expectException(LocalizedException::class);
+
+        $this->resolver->resolve($customerStateCode);
+    }
+
+    public function malformedCustomerCodeProvider(): array
+    {
+        return [
+            'three digits' => ['271'],
+            'alpha' => ['AB'],
+            'alphanumeric' => ['2A'],
+        ];
+    }
+
+    /**
+     * @dataProvider malformedOrgCodeProvider
+     */
+    public function testResolveThrowsOnMalformedOrgCode(string $orgStateCode): void
+    {
+        $this->helper->method('getOrgGstStateCode')->willReturn($orgStateCode);
+
+        $this->expectException(LocalizedException::class);
+
+        $this->resolver->resolve('27');
+    }
+
+    public function malformedOrgCodeProvider(): array
+    {
+        return [
+            'three digits' => ['271'],
+            'alpha' => ['AB'],
+        ];
+    }
+
     public function testResolveNormalizesWhitespaceBeforeComparing(): void
     {
         $this->helper->method('getOrgGstStateCode')->willReturn(' 27 ');

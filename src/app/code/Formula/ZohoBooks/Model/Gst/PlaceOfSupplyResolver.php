@@ -42,24 +42,48 @@ class PlaceOfSupplyResolver
      */
     public function resolve(string $customerStateCode): PlaceOfSupplyResult
     {
-        $normalizedCustomerCode = trim($customerStateCode);
-        if ($normalizedCustomerCode === '') {
-            throw new LocalizedException(
-                __('Customer GST state code is required to determine place of supply.')
-            );
-        }
+        $normalizedCustomerCode = $this->normalizeStateCode(
+            $customerStateCode,
+            __('Customer GST state code is required and must be a valid 2-digit GST state code.')
+        );
 
-        $normalizedOrgCode = trim((string) $this->helper->getOrgGstStateCode());
-        if ($normalizedOrgCode === '') {
-            throw new LocalizedException(
-                __('Organization GST state code is not configured; cannot determine place of supply.')
-            );
-        }
+        $normalizedOrgCode = $this->normalizeStateCode(
+            (string) $this->helper->getOrgGstStateCode(),
+            __('Organization GST state code is not configured or is not a valid 2-digit GST state code.')
+        );
 
         $supplyType = $normalizedOrgCode === $normalizedCustomerCode
             ? self::SUPPLY_TYPE_INTRASTATE
             : self::SUPPLY_TYPE_INTERSTATE;
 
         return new PlaceOfSupplyResult($supplyType, $normalizedCustomerCode);
+    }
+
+    /**
+     * Normalize a GST state code to a canonical 2-digit string.
+     *
+     * Trims, then left zero-pads a 1-2 digit numeric code ("7" -> "07") so that
+     * equivalent codes compare equal. Anything that is not exactly 2 digits after
+     * padding (empty, "271", "AB", "2A") is rejected with a throw rather than
+     * silently classified — a wrong CGST/IGST split is a GST compliance bug.
+     *
+     * @param string $stateCode raw code from config or the caller
+     * @param \Magento\Framework\Phrase $errorMessage message for the thrown exception
+     * @return string canonical 2-digit code
+     * @throws LocalizedException when the code is empty or not a valid 2-digit code
+     */
+    private function normalizeStateCode(string $stateCode, \Magento\Framework\Phrase $errorMessage): string
+    {
+        $trimmed = trim($stateCode);
+
+        if (preg_match('/^\d{1,2}$/', $trimmed)) {
+            $trimmed = str_pad($trimmed, 2, '0', STR_PAD_LEFT);
+        }
+
+        if (!preg_match('/^\d{2}$/', $trimmed)) {
+            throw new LocalizedException($errorMessage);
+        }
+
+        return $trimmed;
     }
 }

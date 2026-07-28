@@ -54,8 +54,9 @@ class HsnResolver
     public function resolve(string $categoryKey): HsnResult
     {
         $normalizedKey = strtolower(trim($categoryKey));
+        $isFallback = !isset(self::BUCKET_MAP[$normalizedKey]);
         $bucket = self::BUCKET_MAP[$normalizedKey] ?? self::BUCKET_MAP[self::FALLBACK_BUCKET];
 
-        return new HsnResult($bucket['hsn'], $bucket['rate']);
+        return new HsnResult($bucket['hsn'], $bucket['rate'], $isFallback);
     }
 }

@@ -26,6 +26,7 @@ class HsnResolverTest extends TestCase
         $this->assertInstanceOf(HsnResult::class, $result);
         $this->assertSame($expectedHsn, $result->hsn);
         $this->assertSame($expectedRate, $result->rate);
+        $this->assertFalse($result->isFallback, 'Known bucket must not be flagged as a fallback');
     }
 
     public function bucketProvider(): array
@@ -43,6 +44,7 @@ class HsnResolverTest extends TestCase
 
         $this->assertSame('3304', $result->hsn);
         $this->assertSame(18.0, $result->rate);
+        $this->assertTrue($result->isFallback, 'Unknown bucket must be flagged as a fallback');
     }
 
     public function testResolveFallsBackToSkincareForEmptyBucket(): void
@@ -51,6 +53,7 @@ class HsnResolverTest extends TestCase
 
         $this->assertSame('3304', $result->hsn);
         $this->assertSame(18.0, $result->rate);
+        $this->assertTrue($result->isFallback, 'Empty bucket must be flagged as a fallback');
     }
 
     /**
