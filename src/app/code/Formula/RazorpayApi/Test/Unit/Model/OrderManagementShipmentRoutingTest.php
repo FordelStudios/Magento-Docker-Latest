@@ -117,8 +117,9 @@ class OrderManagementShipmentRoutingTest extends TestCase
 
         $result = $this->invokePrivate('createPartnerShipment', $order);
 
+        // delivery_partner is stamped by the separate pre-capture intent step, not by dispatch.
         $this->assertTrue($result['success']);
-        $this->assertSame(PartnerCode::SHIPROCKET, $setData['delivery_partner']);
+        $this->assertArrayNotHasKey('delivery_partner', $setData);
     }
 
     public function testPartnerDispatchRoutesNonShiprocketThroughResolverAbstraction(): void
@@ -140,8 +141,10 @@ class OrderManagementShipmentRoutingTest extends TestCase
 
         $this->assertTrue($result['success']);
         $this->assertSame(PartnerCode::SHADOWFAX, $result['partner']);
-        $this->assertSame(PartnerCode::SHADOWFAX, $setData['delivery_partner']);
+        // Dispatch persists the shadowfax_* identifier columns (via the persister); the
+        // delivery_partner stamp is the separate pre-capture step, not part of dispatch.
         $this->assertSame('SF-AWB-9', $setData['shadowfax_awb']);
+        $this->assertArrayNotHasKey('delivery_partner', $setData);
     }
 
     public function testNonShiprocketShipmentExceptionIsSwallowedNeverBreaksPayment(): void
@@ -187,6 +190,33 @@ class OrderManagementShipmentRoutingTest extends TestCase
         $result = $this->invokePrivate('createPartnerShipment', $order);
 
         $this->assertTrue($result['success']);
-        $this->assertSame(PartnerCode::SHIPROCKET, $setData['delivery_partner']);
+    }
+
+    public function testStampDeliveryPartnerIntentSetsResolvedCodeBeforeCapture(): void
+    {
+        $setData = [];
+        $order = $this->makeOrder($setData);
+
+        $this->resolver->method('resolveCode')->with($order)->willReturn(PartnerCode::SHADOWFAX);
+
+        $this->invokePrivate('stampDeliveryPartnerIntent', $order);
+
+        // Intent stamp rides the existing processPaymentAndUpdateOrder save (no new save here).
+        $this->assertSame(PartnerCode::SHADOWFAX, $setData['delivery_partner']);
+    }
+
+    public function testStampDeliveryPartnerIntentSwallowsResolverErrorNeverBreaksPayment(): void
+    {
+        $setData = [];
+        $order = $this->makeOrder($setData);
+
+        // Runs immediately before payment capture — a stamp failure must never throw.
+        $this->resolver->method('resolveCode')
+            ->with($order)
+            ->willThrowException(new \RuntimeException('bad config'));
+
+        $this->invokePrivate('stampDeliveryPartnerIntent', $order);
+
+        $this->assertArrayNotHasKey('delivery_partner', $setData);
     }
 }

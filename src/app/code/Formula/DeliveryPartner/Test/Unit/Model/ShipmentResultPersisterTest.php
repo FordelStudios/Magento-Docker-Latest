@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Formula\DeliveryPartner\Test\Unit\Model;
 
-use Formula\DeliveryPartner\Api\Data\DeliveryShipmentResultInterface;
 use Formula\DeliveryPartner\Model\Data\DeliveryShipmentResult;
 use Formula\DeliveryPartner\Model\PartnerCode;
 use Formula\DeliveryPartner\Model\ShipmentResultPersister;
@@ -14,9 +13,11 @@ use PHPUnit\Framework\TestCase;
 /**
  * Unit tests for ShipmentResultPersister.
  *
+ * Since intent-stamping moved delivery_partner ownership to the call sites (stamped early,
+ * riding an existing save), this persister now owns ONLY the shadowfax_* identifier columns.
+ *
  * The order is mocked via the concrete \Magento\Sales\Model\Order class (not the
- * OrderInterface) because setData() lives on AbstractModel/DataObject, not on the
- * interface — matching the house pattern in DeliveryPartnerResolverTest.
+ * OrderInterface) because setData() lives on AbstractModel/DataObject, not on the interface.
  */
 class ShipmentResultPersisterTest extends TestCase
 {
@@ -28,9 +29,10 @@ class ShipmentResultPersisterTest extends TestCase
     }
 
     /**
-     * A ShadowFax result must stamp delivery_partner AND all three shadowfax_* columns.
+     * A ShadowFax result stamps the three shadowfax_* columns — and must NOT write
+     * delivery_partner (that is owned by the attempt-time intent stamp at the call site).
      */
-    public function testShadowfaxResultSetsAllShadowfaxColumnsAndPartner(): void
+    public function testShadowfaxResultSetsShadowfaxColumnsOnlyNotDeliveryPartner(): void
     {
         $result = new DeliveryShipmentResult(
             PartnerCode::SHADOWFAX,
@@ -43,7 +45,6 @@ class ShipmentResultPersisterTest extends TestCase
         $order = $this->createMock(Order::class);
 
         $expected = [
-            ['delivery_partner', PartnerCode::SHADOWFAX],
             ['shadowfax_shipment_id', 'SF-SHIP-9'],
             ['shadowfax_awb', 'AWB-77'],
             ['shadowfax_courier_name', 'ShadowFax Express'],
@@ -56,6 +57,7 @@ class ShipmentResultPersisterTest extends TestCase
                 [$expectedKey, $expectedValue] = array_shift($expected);
                 $this->assertSame($expectedKey, $key);
                 $this->assertSame($expectedValue, $value);
+                $this->assertNotSame('delivery_partner', $key, 'persister must not own delivery_partner');
                 return null;
             });
 
@@ -65,10 +67,10 @@ class ShipmentResultPersisterTest extends TestCase
     }
 
     /**
-     * A Shiprocket result must stamp ONLY delivery_partner — never the shadowfax_* columns
-     * (those belong to the existing Shiprocket persistence path; double-writing is a bug).
+     * A Shiprocket result writes NOTHING — the existing Shiprocket code persists its own
+     * shiprocket_* columns and delivery_partner is stamped at attempt time elsewhere.
      */
-    public function testShiprocketResultSetsOnlyDeliveryPartner(): void
+    public function testShiprocketResultWritesNothing(): void
     {
         $result = new DeliveryShipmentResult(
             PartnerCode::SHIPROCKET,
@@ -79,27 +81,22 @@ class ShipmentResultPersisterTest extends TestCase
         );
 
         $order = $this->createMock(Order::class);
-
-        $order->expects($this->once())
-            ->method('setData')
-            ->with('delivery_partner', PartnerCode::SHIPROCKET);
+        $order->expects($this->never())->method('setData');
 
         $this->persister->apply($order, $result);
     }
 
     /**
      * ShadowFax result with null identifiers still stamps the columns (as null) —
-     * so a partial/pending record is represented explicitly rather than left stale.
+     * representing a partial/pending record explicitly rather than leaving stale data.
      */
     public function testShadowfaxResultWithNullIdentifiersStillStampsColumns(): void
     {
-        /** @var DeliveryShipmentResultInterface $result */
         $result = new DeliveryShipmentResult(PartnerCode::SHADOWFAX, null, null, null, false);
 
         $order = $this->createMock(Order::class);
 
         $expected = [
-            ['delivery_partner', PartnerCode::SHADOWFAX],
             ['shadowfax_shipment_id', null],
             ['shadowfax_awb', null],
             ['shadowfax_courier_name', null],

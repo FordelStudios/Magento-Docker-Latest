@@ -84,7 +84,9 @@ class BackfillShadowfaxShipmentsTest extends TestCase
 
         $this->processOrder(404);
 
-        $this->assertSame(PartnerCode::SHADOWFAX, $setData['delivery_partner']);
+        // delivery_partner was already stamped as intent at placement (that is how this cron
+        // discovered the order); the cron persists the shadowfax_* identifier columns.
+        $this->assertArrayNotHasKey('delivery_partner', $setData);
         $this->assertSame('SF-AWB-4', $setData['shadowfax_awb']);
         $this->assertSame('SF-SHIP-4', $setData['shadowfax_shipment_id']);
         $this->assertSame('ShadowFax Air', $setData['shadowfax_courier_name']);

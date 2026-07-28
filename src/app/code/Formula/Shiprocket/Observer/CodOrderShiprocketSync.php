@@ -116,6 +116,13 @@ class CodOrderShiprocketSync implements ObserverInterface
             // Formula_DeliveryPartner — never directly on any other concrete courier module.
             $partnerCode = $this->deliveryPartnerResolver->resolveCode($order);
 
+            // Stamp the resolved partner as INTENT immediately, for BOTH partners. This rides
+            // the order's existing place-flow save (OrderService::place() saves the order right
+            // after sales_order_place_after fires), so delivery_partner persists even if the
+            // shipment attempt below fails — leaving the order discoverable by the partner's
+            // backfill cron and immune to a later global active-partner config flip.
+            $order->setData('delivery_partner', $partnerCode);
+
             if ($partnerCode === PartnerCode::SHIPROCKET) {
                 $this->logger->info('CodOrderShiprocketSync: Starting Shiprocket sync for order ' . $order->getIncrementId());
 
@@ -128,10 +135,7 @@ class CodOrderShiprocketSync implements ObserverInterface
                     $order->setData('shiprocket_shipment_id', $shipmentResult['shipment_id']);
                     $order->setData('shiprocket_awb_number', $shipmentResult['awb_code']);
                     $order->setData('shiprocket_courier_name', $shipmentResult['courier_name']);
-
-                    // Record the delivery partner. This is the ONLY addition to the existing
-                    // Shiprocket success path — all field-setting above is unchanged.
-                    $order->setData('delivery_partner', PartnerCode::SHIPROCKET);
+                    // delivery_partner is already stamped as intent above (rides the place-flow save).
 
                     // Add order comment
                     $comment = sprintf(

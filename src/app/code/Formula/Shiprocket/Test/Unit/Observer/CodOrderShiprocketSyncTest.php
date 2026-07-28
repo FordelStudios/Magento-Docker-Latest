@@ -159,7 +159,7 @@ class CodOrderShiprocketSyncTest extends TestCase
         $this->assertArrayNotHasKey('shiprocket_order_id', $setData);
     }
 
-    public function testNonShiprocketUnsuccessfulResultIsLeftForBackfillNoSave(): void
+    public function testNonShiprocketUnsuccessfulStillStampsIntentAndAddsNoFailureSave(): void
     {
         $setData = [];
         $order = $this->makeCodOrder($setData);
@@ -173,11 +173,30 @@ class CodOrderShiprocketSyncTest extends TestCase
         );
         $this->resolver->method('resolve')->with($order)->willReturn($partner);
 
-        // Unsuccessful create must NOT persist anything and must NOT save.
+        // Intent is stamped EARLY, so a failed shipment still leaves delivery_partner set on the
+        // order (it persists via the place-flow save that runs after this observer). The observer
+        // itself must NOT add a save on the failure path.
         $this->orderRepository->expects($this->never())->method('save');
 
         $this->observer->execute($this->makeObserverEvent($order));
 
-        $this->assertArrayNotHasKey('delivery_partner', $setData);
+        $this->assertSame(PartnerCode::SHADOWFAX, $setData['delivery_partner']);
+        $this->assertArrayNotHasKey('shadowfax_awb', $setData);
+    }
+
+    public function testShiprocketFailureStillStampsIntentAndAddsNoFailureSave(): void
+    {
+        $setData = [];
+        $order = $this->makeCodOrder($setData);
+
+        $this->resolver->method('resolveCode')->with($order)->willReturn(PartnerCode::SHIPROCKET);
+        $this->shiprocketService->method('createShipment')->with($order)->willReturn(['success' => false]);
+
+        // Shiprocket failure: intent already stamped early; observer adds no failure-path save.
+        $this->orderRepository->expects($this->never())->method('save');
+
+        $this->observer->execute($this->makeObserverEvent($order));
+
+        $this->assertSame(PartnerCode::SHIPROCKET, $setData['delivery_partner']);
     }
 }

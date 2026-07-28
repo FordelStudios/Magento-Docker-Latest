@@ -122,7 +122,15 @@ class OrderManagement implements OrderManagementInterface
             
             // Load the created order
             $order = $this->orderRepository->get($orderId);
-            
+
+            // Stamp the resolved delivery partner as INTENT on the order BEFORE payment
+            // processing. processPaymentAndUpdateOrder() already saves the order, so this
+            // field persists regardless of whether shipment creation later succeeds — leaving
+            // the order discoverable by the partner's backfill cron and immune to a later
+            // global active-partner config flip. We do NOT modify processPaymentAndUpdateOrder;
+            // we only set a field on the order object before it runs, and we never add a new save.
+            $this->stampDeliveryPartnerIntent($order);
+
             // **IMPORTANT: Process the payment and update order status**
             $this->processPaymentAndUpdateOrder($order, $paymentData);
 
@@ -254,6 +262,29 @@ class OrderManagement implements OrderManagementInterface
     }
     
     /**
+     * Stamp the resolved delivery partner onto the order as intent, before payment processing.
+     *
+     * resolveCode() never throws (it always returns a code, defaulting to Shiprocket), but this
+     * runs on the LIVE prepaid path immediately before capture, so it is defensively wrapped:
+     * a stamp failure must never break a payment. It only sets a field on the in-memory order;
+     * persistence rides the existing save inside processPaymentAndUpdateOrder() — NO new save.
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @return void
+     */
+    private function stampDeliveryPartnerIntent($order)
+    {
+        try {
+            $order->setData('delivery_partner', $this->deliveryPartnerResolver->resolveCode($order));
+        } catch (\Exception $e) {
+            $this->logger->error(
+                'Delivery-partner intent stamp failed for Razorpay order: ' . $order->getIncrementId()
+                . ' - ' . $e->getMessage()
+            );
+        }
+    }
+
+    /**
      * Route forward-shipment creation to the order's active delivery partner.
      *
      * Shiprocket (the default) keeps its existing, byte-for-byte code path; any other
@@ -360,11 +391,8 @@ class OrderManagement implements OrderManagementInterface
                 $order->setData('shiprocket_shipment_id', $shipmentResult['shipment_id']);
                 $order->setData('shiprocket_awb_number', $shipmentResult['awb_code']);
                 $order->setData('shiprocket_courier_name', $shipmentResult['courier_name']);
-
-                // Record the delivery partner that handled this order. This is the ONLY
-                // addition to the existing Shiprocket branch — everything else here is
-                // behaviourally identical to before partner routing was introduced.
-                $order->setData('delivery_partner', PartnerCode::SHIPROCKET);
+                // delivery_partner is already stamped as intent before payment capture
+                // (see stampDeliveryPartnerIntent) — this branch is otherwise unchanged.
 
                 // Update order status to shipment created
                 $order->setStatus('shipment_created');
